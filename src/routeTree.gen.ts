@@ -10,20 +10,38 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BunnyRouteImport } from './routes/bunny'
 import { Route as GradeRouteImport } from './routes/grade'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as PlannerRouteImport } from './routes/planner'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StageRouteImport } from './routes/stage'
 import { Route as CurriculumIndexRouteImport } from './routes/curriculum.index'
+import { Route as CurriculumSubjectIdRouteImport } from './routes/curriculum.$subjectId'
+import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AchievementsRoute = AchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BunnyRoute = BunnyRouteImport.update({
+  id: '/bunny',
+  path: '/bunny',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GradeRoute = GradeRouteImport.update({
@@ -36,6 +54,26 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlannerRoute = PlannerRouteImport.update({
+  id: '/planner',
+  path: '/planner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StageRoute = StageRouteImport.update({
   id: '/stage',
   path: '/stage',
@@ -46,47 +84,131 @@ const CurriculumIndexRoute = CurriculumIndexRouteImport.update({
   path: '/curriculum/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CurriculumSubjectIdRoute = CurriculumSubjectIdRouteImport.update({
+  id: '/curriculum/$subjectId',
+  path: '/curriculum/$subjectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LessonLessonIdRoute = LessonLessonIdRouteImport.update({
+  id: '/lesson/$lessonId',
+  path: '/lesson/$lessonId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
+  '/bunny': typeof BunnyRoute
   '/grade': typeof GradeRoute
   '/home': typeof HomeRoute
+  '/planner': typeof PlannerRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
+  '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
+  '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
+  '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum/': typeof CurriculumIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
+  '/bunny': typeof BunnyRoute
   '/grade': typeof GradeRoute
   '/home': typeof HomeRoute
+  '/planner': typeof PlannerRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
+  '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
+  '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
+  '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum': typeof CurriculumIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
+  '/bunny': typeof BunnyRoute
   '/grade': typeof GradeRoute
   '/home': typeof HomeRoute
+  '/planner': typeof PlannerRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
+  '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
+  '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
+  '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum/': typeof CurriculumIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/grade' | '/home' | '/stage' | '/curriculum/'
+  fullPaths:
+    | '/'
+    | '/achievements'
+    | '/auth'
+    | '/bunny'
+    | '/grade'
+    | '/home'
+    | '/planner'
+    | '/profile'
+    | '/progress'
+    | '/settings'
+    | '/stage'
+    | '/curriculum/$subjectId'
+    | '/lesson/$lessonId'
+    | '/curriculum/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/grade' | '/home' | '/stage' | '/curriculum'
+  to:
+    | '/'
+    | '/achievements'
+    | '/auth'
+    | '/bunny'
+    | '/grade'
+    | '/home'
+    | '/planner'
+    | '/profile'
+    | '/progress'
+    | '/settings'
+    | '/stage'
+    | '/curriculum/$subjectId'
+    | '/lesson/$lessonId'
+    | '/curriculum'
   id:
-    '__root__' | '/' | '/auth' | '/grade' | '/home' | '/stage' | '/curriculum/'
+    | '__root__'
+    | '/'
+    | '/achievements'
+    | '/auth'
+    | '/bunny'
+    | '/grade'
+    | '/home'
+    | '/planner'
+    | '/profile'
+    | '/progress'
+    | '/settings'
+    | '/stage'
+    | '/curriculum/$subjectId'
+    | '/lesson/$lessonId'
+    | '/curriculum/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AchievementsRoute: typeof AchievementsRoute
   AuthRoute: typeof AuthRoute
+  BunnyRoute: typeof BunnyRoute
   GradeRoute: typeof GradeRoute
   HomeRoute: typeof HomeRoute
+  PlannerRoute: typeof PlannerRoute
+  ProfileRoute: typeof ProfileRoute
+  ProgressRoute: typeof ProgressRoute
+  SettingsRoute: typeof SettingsRoute
   StageRoute: typeof StageRoute
+  CurriculumSubjectIdRoute: typeof CurriculumSubjectIdRoute
+  LessonLessonIdRoute: typeof LessonLessonIdRoute
   CurriculumIndexRoute: typeof CurriculumIndexRoute
 }
 
@@ -99,11 +221,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/achievements': {
+      id: '/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AchievementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bunny': {
+      id: '/bunny'
+      path: '/bunny'
+      fullPath: '/bunny'
+      preLoaderRoute: typeof BunnyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/grade': {
@@ -120,6 +256,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/planner': {
+      id: '/planner'
+      path: '/planner'
+      fullPath: '/planner'
+      preLoaderRoute: typeof PlannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stage': {
       id: '/stage'
       path: '/stage'
@@ -134,15 +298,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CurriculumIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/curriculum/$subjectId': {
+      id: '/curriculum/$subjectId'
+      path: '/curriculum/$subjectId'
+      fullPath: '/curriculum/$subjectId'
+      preLoaderRoute: typeof CurriculumSubjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lesson/$lessonId': {
+      id: '/lesson/$lessonId'
+      path: '/lesson/$lessonId'
+      fullPath: '/lesson/$lessonId'
+      preLoaderRoute: typeof LessonLessonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AchievementsRoute: AchievementsRoute,
   AuthRoute: AuthRoute,
+  BunnyRoute: BunnyRoute,
   GradeRoute: GradeRoute,
   HomeRoute: HomeRoute,
+  PlannerRoute: PlannerRoute,
+  ProfileRoute: ProfileRoute,
+  ProgressRoute: ProgressRoute,
+  SettingsRoute: SettingsRoute,
   StageRoute: StageRoute,
+  CurriculumSubjectIdRoute: CurriculumSubjectIdRoute,
+  LessonLessonIdRoute: LessonLessonIdRoute,
   CurriculumIndexRoute: CurriculumIndexRoute,
 }
 export const routeTree = rootRouteImport
