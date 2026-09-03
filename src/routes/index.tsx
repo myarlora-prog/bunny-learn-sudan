@@ -38,7 +38,7 @@ const slides = [
 
 function Onboarding() {
   const [i, setI] = useState(0);
-  const slide = slides[i];
+  const slide = slides[i]!;
   const last = i === slides.length - 1;
 
   return (
