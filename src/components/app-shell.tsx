@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { BottomNav } from "@/components/bottom-nav";
@@ -29,19 +29,21 @@ export function PageHeader({
 }: {
   title: string;
   subtitle?: string;
-  back?: string;
+  back?: boolean;
   action?: ReactNode;
 }) {
+  const router = useRouter();
   return (
     <header className="mb-5 flex items-start gap-3">
       {back && (
-        <Link
-          to={back}
+        <button
+          type="button"
+          onClick={() => router.history.back()}
           className="press mt-1 flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
           aria-label="رجوع"
         >
           <ChevronRight className="size-5 text-foreground" />
-        </Link>
+        </button>
       )}
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-2xl">{title}</h1>
