@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 import { Bunny } from "@/components/bunny";
 import { PageHeader } from "@/components/app-shell";
-import { stages } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
+import { useGrades, useStages } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/grade")({
@@ -20,17 +21,25 @@ export const Route = createFileRoute("/grade")({
 function GradePage() {
   const { state, update } = useApp();
   const navigate = useNavigate();
-  const stage = stages.find((s) => s.id === state.stageId) ?? stages[1]!;
+  const { data: stages } = useStages();
+  const stage = (stages ?? []).find((s) => s.id === state.stageId);
+  const { data: grades, isLoading } = useGrades(state.stageId);
 
   return (
     <div className="page-enter mx-auto min-h-screen w-full max-w-lg px-5 pb-10 pt-8">
-      <PageHeader title="اختر صفك" subtitle={stage.name} back />
+      <PageHeader title="اختر صفك" subtitle={stage?.name ?? ""} back />
       <div className="mb-5 flex justify-center">
         <Bunny variant="study" size={120} float priority />
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center py-10">
+          <Loader2 className="size-7 animate-spin text-primary" />
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
-        {stage.grades.map((g) => {
+        {(grades ?? []).map((g) => {
           const active = state.gradeId === g.id;
           return (
             <button
@@ -38,7 +47,7 @@ function GradePage() {
               type="button"
               onClick={() => {
                 update({ gradeId: g.id });
-                navigate({ to: "/home" });
+                void navigate({ to: "/home" });
               }}
               className={cn(
                 "surface-card press rise flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center text-sm font-bold",
