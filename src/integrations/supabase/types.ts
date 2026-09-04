@@ -385,29 +385,41 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_emoji: string
           created_at: string
           display_name: string
           email: string
           grade_id: string | null
           id: string
+          referral_code: string | null
+          referral_reward_granted: boolean
+          referred_by: string | null
           stage_id: string | null
           updated_at: string
         }
         Insert: {
+          avatar_emoji?: string
           created_at?: string
           display_name?: string
           email?: string
           grade_id?: string | null
           id: string
+          referral_code?: string | null
+          referral_reward_granted?: boolean
+          referred_by?: string | null
           stage_id?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_emoji?: string
           created_at?: string
           display_name?: string
           email?: string
           grade_id?: string | null
           id?: string
+          referral_code?: string | null
+          referral_reward_granted?: boolean
+          referred_by?: string | null
           stage_id?: string | null
           updated_at?: string
         }
@@ -506,6 +518,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referrals: {
+        Row: {
+          activated_at: string | null
+          code_used: string
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          activated_at?: string | null
+          code_used: string
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          activated_at?: string | null
+          code_used?: string
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: []
       }
       stages: {
         Row: {
@@ -800,6 +842,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_referral: { Args: { _uid: string }; Returns: undefined }
+      apply_referral_code: { Args: { _code: string }; Returns: Json }
+      bump_streak: {
+        Args: { _minutes: number; _points: number; _uid: string }
+        Returns: undefined
+      }
+      complete_lesson: { Args: { _lesson_id: string }; Returns: Json }
+      energy_state: { Args: never; Returns: Json }
+      gen_referral_code: { Args: never; Returns: string }
+      grade_champions: {
+        Args: { _grade_id?: string }
+        Returns: {
+          avatar_emoji: string
+          display_name: string
+          points: number
+          rank: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -808,6 +869,21 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      log_ai_message: {
+        Args: { _content: string; _role: string }
+        Returns: undefined
+      }
+      record_quiz_attempt: {
+        Args: { _lesson_id: string; _score: number; _total: number }
+        Returns: Json
+      }
+      referral_summary: { Args: never; Returns: Json }
+      set_flashcard_progress: {
+        Args: { _flashcard_id: string; _known: boolean }
+        Returns: undefined
+      }
+      setting_int: { Args: { _default: number; _key: string }; Returns: number }
+      spend_energy: { Args: { _amount?: number }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
