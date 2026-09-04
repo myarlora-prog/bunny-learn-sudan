@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Settings, CalendarDays, Trophy, GraduationCap, ChevronLeft, LogOut } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { Bunny } from "@/components/bunny";
@@ -18,7 +18,8 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const { state, reset } = useApp();
+  const { state, signOut } = useApp();
+  const navigate = useNavigate();
   const stage = stages.find((s) => s.id === state.stageId);
   const grade = stage?.grades.find((g) => g.id === state.gradeId);
 
