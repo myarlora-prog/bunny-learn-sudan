@@ -72,14 +72,16 @@ function ProfilePage() {
         ))}
       </div>
 
-      <Link to="/auth" onClick={reset}>
-        <button
-          type="button"
-          className="press mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-3xl border border-destructive/30 bg-destructive/10 py-3.5 text-sm font-bold text-destructive"
-        >
-          <LogOut className="size-4" /> تسجيل الخروج
-        </button>
-      </Link>
+      <button
+        type="button"
+        onClick={async () => {
+          await signOut();
+          await navigate({ to: "/auth", replace: true });
+        }}
+        className="press mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-3xl border border-destructive/30 bg-destructive/10 py-3.5 text-sm font-bold text-destructive"
+      >
+        <LogOut className="size-4" /> تسجيل الخروج
+      </button>
     </Screen>
   );
 }
