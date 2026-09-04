@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Settings, CalendarDays, Trophy, GraduationCap, ChevronLeft, LogOut } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { Bunny } from "@/components/bunny";
@@ -18,7 +18,8 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const { state, reset } = useApp();
+  const { state, signOut } = useApp();
+  const navigate = useNavigate();
   const stage = stages.find((s) => s.id === state.stageId);
   const grade = stage?.grades.find((g) => g.id === state.gradeId);
 
@@ -72,14 +73,16 @@ function ProfilePage() {
         ))}
       </div>
 
-      <Link to="/auth" onClick={reset}>
-        <button
-          type="button"
-          className="press mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-3xl border border-destructive/30 bg-destructive/10 py-3.5 text-sm font-bold text-destructive"
-        >
-          <LogOut className="size-4" /> تسجيل الخروج
-        </button>
-      </Link>
+      <button
+        type="button"
+        onClick={async () => {
+          await signOut();
+          await navigate({ to: "/auth", replace: true });
+        }}
+        className="press mt-5 flex h-13 w-full items-center justify-center gap-2 rounded-3xl border border-destructive/30 bg-destructive/10 py-3.5 text-sm font-bold text-destructive"
+      >
+        <LogOut className="size-4" /> تسجيل الخروج
+      </button>
     </Screen>
   );
 }

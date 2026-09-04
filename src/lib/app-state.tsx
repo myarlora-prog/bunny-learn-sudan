@@ -153,11 +153,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setState((s) => ({ ...s, ...patch }));
       const uid = session?.user.id;
       if (!uid) return;
-      const profilePatch: Record<string, unknown> = {};
-      if (patch.name !== undefined) profilePatch["display_name"] = patch.name;
-      if (patch.stageId !== undefined) profilePatch["stage_id"] = patch.stageId;
-      if (patch.gradeId !== undefined) profilePatch["grade_id"] = patch.gradeId;
-      if (patch.avatar !== undefined) profilePatch["avatar_emoji"] = patch.avatar;
+      const profilePatch: {
+        display_name?: string;
+        stage_id?: string | null;
+        grade_id?: string | null;
+        avatar_emoji?: string;
+      } = {};
+      if (patch.name !== undefined) profilePatch.display_name = patch.name;
+      if (patch.stageId !== undefined) profilePatch.stage_id = patch.stageId;
+      if (patch.gradeId !== undefined) profilePatch.grade_id = patch.gradeId;
+      if (patch.avatar !== undefined) profilePatch.avatar_emoji = patch.avatar;
       if (Object.keys(profilePatch).length) {
         void supabase.from("profiles").update(profilePatch).eq("id", uid);
       }

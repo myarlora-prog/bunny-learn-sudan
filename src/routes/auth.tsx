@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Mail, Lock, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Mail, Lock, UserRound, Loader2 } from "lucide-react";
 import { Bunny } from "@/components/bunny";
 import { useApp } from "@/lib/app-state";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/auth")({
@@ -32,17 +34,65 @@ function Field({
   );
 }
 
+function arabicError(message: string) {
+  const m = message.toLowerCase();
+  if (m.includes("invalid login")) return "البريد الإلكتروني أو كلمة المرور غير صحيحة";
+  if (m.includes("already registered") || m.includes("already been registered"))
+    return "هذا البريد مسجّل بالفعل، جرّب تسجيل الدخول";
+  if (m.includes("password")) return "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+  if (m.includes("email")) return "تأكد من صحة البريد الإلكتروني";
+  return "حدث خطأ، حاول مرة أخرى";
+}
+
 function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const { update, state } = useApp();
+  const { session, state, hydrated } = useApp();
   const navigate = useNavigate();
-  const [name, setName] = useState(state.name);
-  const [email, setEmail] = useState(state.email);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (session && hydrated) {
+      void navigate({ to: state.gradeId ? "/home" : "/stage", replace: true });
+    }
+  }, [session, hydrated, state.gradeId, navigate]);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    update({ name: name || "طالب بَني", email });
-    navigate({ to: state.gradeId ? "/home" : "/stage" });
+    setError(null);
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        const { error: err } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth`,
+            data: { display_name: name || "طالب بَني" },
+          },
+        });
+        if (err) throw err;
+      } else {
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) throw err;
+      }
+    } catch (err) {
+      setError(arabicError(err instanceof Error ? err.message : ""));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const google = async () => {
+    setError(null);
+    try {
+      await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    } catch {
+      setError("تعذّر الدخول عبر Google، حاول مرة أخرى");
+    }
   };
 
   return (
@@ -60,7 +110,10 @@ function AuthPage() {
           <button
             key={m}
             type="button"
-            onClick={() => setMode(m)}
+            onClick={() => {
+              setMode(m);
+              setError(null);
+            }}
             className={cn(
               "flex-1 rounded-xl py-2.5 text-sm font-bold transition-all",
               mode === m ? "bg-card text-primary shadow-[var(--shadow-soft)]" : "text-muted-foreground",
@@ -79,25 +132,47 @@ function AuthPage() {
           icon={Mail}
           type="email"
           required
+          autoComplete="email"
           placeholder="البريد الإلكتروني"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <Field icon={Lock} type="password" required placeholder="كلمة المرور" />
+        <Field
+          icon={Lock}
+          type="password"
+          required
+          minLength={6}
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
+          placeholder="كلمة المرور"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-        {mode === "login" && (
-          <button type="button" className="self-start text-xs font-medium text-primary">
-            نسيت كلمة المرور؟
-          </button>
+        {error && (
+          <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-xs font-bold text-destructive">{error}</p>
         )}
 
         <button
           type="submit"
-          className="press gradient-hero mt-3 h-14 rounded-3xl text-base font-bold text-primary-foreground shadow-[var(--shadow-float)]"
+          disabled={busy}
+          className="press gradient-hero mt-3 flex h-14 items-center justify-center gap-2 rounded-3xl text-base font-bold text-primary-foreground shadow-[var(--shadow-float)] disabled:opacity-70"
         >
+          {busy && <Loader2 className="size-5 animate-spin" />}
           {mode === "login" ? "دخول" : "إنشاء الحساب"}
         </button>
       </form>
+
+      <div className="my-5 flex items-center gap-3 text-[11px] text-muted-foreground">
+        <span className="h-px flex-1 bg-border" /> أو <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <button
+        type="button"
+        onClick={google}
+        className="press flex h-13 items-center justify-center gap-3 rounded-3xl border border-border bg-card py-3.5 text-sm font-bold shadow-[var(--shadow-soft)]"
+      >
+        <span className="text-lg">🔵</span> المتابعة عبر Google
+      </button>
 
       <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
         بمتابعتك أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بتطبيق بَني.
