@@ -2,22 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Send } from "lucide-react";
 import { Screen } from "@/components/app-shell";
-import { Bunny } from "@/components/bunny";
+import { Saqro } from "@/components/saqro";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/bunny")({
+export const Route = createFileRoute("/saqro")({
   head: () => ({
     meta: [
-      { title: "بَني AI | المساعد الدراسي الذكي" },
-      { name: "description", content: "اسأل بَني الذكي عن أي درس: شرح مبسّط، تلخيص، أمثلة، أو اختبار سريع." },
-      { property: "og:title", content: "بَني AI | المساعد الدراسي الذكي" },
+      { title: "سَقرو AI | المساعد الدراسي الذكي" },
+      { name: "description", content: "اسأل سَقرو الذكي عن أي درس: شرح مبسّط، تلخيص، أمثلة، أو اختبار سريع." },
+      { property: "og:title", content: "سَقرو AI | المساعد الدراسي الذكي" },
       { property: "og:description", content: "مساعد دراسي ذكي يجيبك بلغة بسيطة في أي وقت." },
     ],
   }),
-  component: BunnyAI,
+  component: SaqroAI,
 });
 
-type Msg = { role: "bunny" | "me"; text: string };
+type Msg = { role: "saqro" | "me"; text: string };
 
 const suggestions = [
   "اشرح لي نظرية فيثاغورس ببساطة",
@@ -31,9 +31,9 @@ const replies: Record<string, string> = {
     "سؤال ممتاز! دعني أبسّطها لك: ابدأ بفهم الفكرة الأساسية أولًا، ثم طبّق مثالًا واحدًا بنفسك، وأخيرًا راجع البطاقات التعليمية الخاصة بالدرس. جرّب أن تشرح الفكرة بصوتك — هذه أسرع طريقة لتثبيتها.",
 };
 
-function BunnyAI() {
+function SaqroAI() {
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "bunny", text: "أهلاً 👋 أنا بَني، مساعدك الدراسي. اسألني عن أي درس في منهجك وسأشرحه لك ببساطة." },
+    { role: "saqro", text: "أهلاً 👋 أنا سَقرو، مساعدك الدراسي. اسألني عن أي درس في منهجك وسأشرحه لك ببساطة." },
   ]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -45,16 +45,16 @@ function BunnyAI() {
     setTyping(true);
     setTimeout(() => {
       setTyping(false);
-      setMessages((m) => [...m, { role: "bunny", text: replies["default"]! }]);
+      setMessages((m) => [...m, { role: "saqro", text: replies["default"]! }]);
     }, 900);
   };
 
   return (
     <Screen>
       <div className="mb-4 flex items-center gap-3">
-        <Bunny size={64} float priority />
+        <Saqro size={64} float priority />
         <div>
-          <h1 className="text-xl">بَني الذكي</h1>
+          <h1 className="text-xl">سَقرو الذكي</h1>
           <p className="text-xs text-success">متصل الآن · جاهز لمساعدتك</p>
         </div>
       </div>
@@ -113,7 +113,7 @@ function BunnyAI() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="اكتب سؤالك لبَني..."
+            placeholder="اكتب سؤالك لسَقرو..."
             className="h-11 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
           />
           <button

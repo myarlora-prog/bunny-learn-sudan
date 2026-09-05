@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Check, Loader2 } from "lucide-react";
-import { Bunny } from "@/components/bunny";
+import { Saqro } from "@/components/saqro";
 import { useApp } from "@/lib/app-state";
 import { useStages } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/stage")({
   head: () => ({
     meta: [
-      { title: "اختر المرحلة الدراسية | بَني" },
-      { name: "description", content: "اختر مرحلتك الدراسية في المنهج السوداني ليجهّز بَني محتواك التعليمي." },
-      { property: "og:title", content: "اختر المرحلة الدراسية | بَني" },
+      { title: "اختر المرحلة الدراسية | سَقرو" },
+      { name: "description", content: "اختر مرحلتك الدراسية في المنهج السوداني ليجهّز سَقرو محتواك التعليمي." },
+      { property: "og:title", content: "اختر المرحلة الدراسية | سَقرو" },
       { property: "og:description", content: "الأساس، الثانوي، أو الشهادة السودانية — اختر ما يناسبك." },
     ],
   }),
@@ -27,7 +27,7 @@ function StagePage() {
   return (
     <div className="page-enter mx-auto min-h-screen w-full max-w-lg px-5 pb-10 pt-10">
       <div className="mb-6 flex items-center gap-4">
-        <Bunny size={84} float priority />
+        <Saqro size={84} float priority />
         <div>
           <h1 className="text-2xl">هل أنت طالب؟ نعم 👋</h1>
           <p className="mt-1 text-sm text-muted-foreground">اختر مرحلتك وسأجهّز لك المنهج المناسب</p>

@@ -47,14 +47,23 @@ const DEFAULT: AppState = {
   points: 0,
   studyDays: 0,
   totalMinutes: 0,
-  avatar: "🐰",
+  avatar: "🦅",
   referralCode: null,
+};
+
+export type Subscription = {
+  plan: string;
+  status: string;
+  expires_at: string;
+  grade_id: string;
 };
 
 type Ctx = {
   state: AppState;
   session: Session | null;
   isAdmin: boolean;
+  subscription: Subscription | null;
+  isSuper: boolean;
   energy: EnergyState | null;
   hydrated: boolean;
   update: (patch: Partial<AppState>) => void;
@@ -67,12 +76,13 @@ type Ctx = {
 };
 
 const AppContext = createContext<Ctx | null>(null);
-const DARK_KEY = "bunny-dark";
+const DARK_KEY = "saqro-dark";
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(DEFAULT);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [energy, setEnergy] = useState<EnergyState | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -91,18 +101,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (!uid) {
       setState((s) => ({ ...DEFAULT, dark: s.dark }));
       setIsAdmin(false);
+      setSubscription(null);
       setEnergy(null);
       setHydrated(true);
       return;
     }
-    const [profile, stats, progress, settings, admin, energyRes] = await Promise.all([
+    const [profile, stats, progress, settings, admin, energyRes, sub] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", uid).maybeSingle(),
       supabase.from("lesson_progress").select("lesson_id").eq("user_id", uid),
       supabase.from("user_settings").select("*").eq("user_id", uid).maybeSingle(),
       supabase.rpc("is_admin"),
       supabase.rpc("energy_state"),
+      supabase
+        .from("subscriptions")
+        .select("plan,status,expires_at,grade_id")
+        .eq("user_id", uid)
+        .eq("status", "active")
+        .gt("expires_at", new Date().toISOString())
+        .order("expires_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
+
+    setSubscription((sub.data as Subscription | null) ?? null);
 
     setIsAdmin(admin.data === true);
     setEnergy((energyRes.data as unknown as EnergyState) ?? null);
@@ -112,7 +134,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       email: profile.data?.email || "",
       stageId: profile.data?.stage_id ?? null,
       gradeId: profile.data?.grade_id ?? null,
-      avatar: profile.data?.avatar_emoji || "🐰",
+      avatar: profile.data?.avatar_emoji || "🦅",
       referralCode: profile.data?.referral_code ?? null,
       dark: settings.data?.dark_mode ?? s.dark,
       streak: stats.data?.streak ?? 0,
@@ -195,13 +217,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const spendEnergy = useCallback(
     async (amount = 1) => {
       if (!session) return { ok: false, state: null };
+      if (subscription) return { ok: true, state: energy };
       const { data, error } = await supabase.rpc("spend_energy", { _amount: amount });
       if (error) return { ok: false, state: energy };
       const res = data as unknown as { ok: boolean; state: EnergyState };
       setEnergy(res.state);
       return { ok: res.ok, state: res.state };
     },
-    [session, energy],
+    [session, energy, subscription],
   );
 
   const signOut = useCallback(async () => {
@@ -209,6 +232,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...DEFAULT, dark: s.dark }));
     setEnergy(null);
     setIsAdmin(false);
+    setSubscription(null);
   }, []);
 
   const reset = useCallback(() => setState((s) => ({ ...DEFAULT, dark: s.dark })), []);
@@ -218,6 +242,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       state,
       session,
       isAdmin,
+      subscription,
+      isSuper: !!subscription,
       energy,
       hydrated,
       update,
@@ -228,7 +254,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       signOut,
       reset,
     }),
-    [state, session, isAdmin, energy, hydrated, update, toggleLesson, refreshEnergy, spendEnergy, refresh, signOut, reset],
+    [state, session, isAdmin, subscription, energy, hydrated, update, toggleLesson, refreshEnergy, spendEnergy, refresh, signOut, reset],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

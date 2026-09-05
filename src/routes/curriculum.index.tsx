@@ -7,9 +7,9 @@ import { useApp } from "@/lib/app-state";
 export const Route = createFileRoute("/curriculum/")({
   head: () => ({
     meta: [
-      { title: "المنهج | بَني" },
-      { name: "description", content: "تصفّح مواد المنهج السوداني ووحداته ودروسه داخل تطبيق بَني." },
-      { property: "og:title", content: "المنهج | بَني" },
+      { title: "المنهج | سَقرو" },
+      { name: "description", content: "تصفّح مواد المنهج السوداني ووحداته ودروسه داخل تطبيق سَقرو." },
+      { property: "og:title", content: "المنهج | سَقرو" },
       { property: "og:description", content: "كل موادك ووحداتك ودروسك في مكان واحد منظّم." },
     ],
   }),

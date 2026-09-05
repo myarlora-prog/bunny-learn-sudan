@@ -1,16 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, Circle, Clock } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
-import { BunnyEmpty } from "@/components/bunny";
+import { SaqroEmpty } from "@/components/saqro";
 import { getSubject } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/curriculum/$subjectId")({
   head: () => ({
     meta: [
-      { title: "وحدات المادة | بَني" },
-      { name: "description", content: "استعرض وحدات المادة ودروسها ومدة كل درس داخل تطبيق بَني التعليمي." },
-      { property: "og:title", content: "وحدات المادة | بَني" },
+      { title: "وحدات المادة | سَقرو" },
+      { name: "description", content: "استعرض وحدات المادة ودروسها ومدة كل درس داخل تطبيق سَقرو التعليمي." },
+      { property: "og:title", content: "وحدات المادة | سَقرو" },
       { property: "og:description", content: "وحدات ودروس منظّمة مع متابعة إنجازك في كل درس." },
     ],
   }),
@@ -26,7 +26,7 @@ function SubjectPage() {
     return (
       <Screen>
         <PageHeader title="المادة غير متوفرة" back />
-        <BunnyEmpty title="لم أجد هذه المادة" desc="ربما تم تغيير المنهج. ارجع واختر مادة أخرى من القائمة." />
+        <SaqroEmpty title="لم أجد هذه المادة" desc="ربما تم تغيير المنهج. ارجع واختر مادة أخرى من القائمة." />
       </Screen>
     );
   }

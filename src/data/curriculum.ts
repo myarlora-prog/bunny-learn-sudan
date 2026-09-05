@@ -386,12 +386,12 @@ export const getLesson = (id: string) => {
 export const allLessons = subjects.flatMap((s) => s.units.flatMap((u) => u.lessons));
 
 export const achievements = [
-  { id: "a1", title: "أول خطوة", desc: "أكملت أول درس مع بَني", icon: "🌱", earned: true },
+  { id: "a1", title: "أول خطوة", desc: "أكملت أول درس مع سَقرو", icon: "🌱", earned: true },
   { id: "a2", title: "أسبوع متواصل", desc: "٧ أيام دراسة بدون انقطاع", icon: "🔥", earned: true },
   { id: "a3", title: "بطل البطاقات", desc: "راجعت ١٠٠ بطاقة تعليمية", icon: "🃏", earned: true },
   { id: "a4", title: "عبقري الاختبارات", desc: "٥ اختبارات بدرجة كاملة", icon: "🏆", earned: false },
   { id: "a5", title: "منظّم الوقت", desc: "التزمت بالخطة اليومية ١٤ يومًا", icon: "🗓️", earned: false },
-  { id: "a6", title: "صديق بَني", desc: "١٠٠ سؤال لمساعد بَني الذكي", icon: "🤖", earned: false },
+  { id: "a6", title: "صديق سَقرو", desc: "١٠٠ سؤال لمساعد سَقرو الذكي", icon: "🤖", earned: false },
 ];
 
 export const plannerTasks = [

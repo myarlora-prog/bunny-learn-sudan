@@ -2,16 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { CheckCircle2, Circle, Plus } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
-import { Bunny } from "@/components/bunny";
+import { Saqro } from "@/components/saqro";
 import { plannerTasks } from "@/data/curriculum";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/planner")({
   head: () => ({
     meta: [
-      { title: "الخطة اليومية | بَني" },
-      { name: "description", content: "نظّم يومك الدراسي مع بَني: مهام محددة بالوقت لكل مادة ومتابعة إنجازك." },
-      { property: "og:title", content: "الخطة اليومية | بَني" },
+      { title: "الخطة اليومية | سَقرو" },
+      { name: "description", content: "نظّم يومك الدراسي مع سَقرو: مهام محددة بالوقت لكل مادة ومتابعة إنجازك." },
+      { property: "og:title", content: "الخطة اليومية | سَقرو" },
       { property: "og:description", content: "خطة مذاكرة يومية بسيطة تساعدك على الالتزام." },
     ],
   }),
@@ -47,7 +47,7 @@ function PlannerPage() {
       </div>
 
       <Card className="gradient-hero flex items-center gap-3 border-transparent">
-        <Bunny variant="study" size={68} float />
+        <Saqro variant="study" size={68} float />
         <div className="flex-1 text-primary-foreground">
           <h2 className="text-base text-primary-foreground">
             أنجزت {done} من {tasks.length} مهام

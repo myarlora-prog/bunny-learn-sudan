@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Mail, Lock, UserRound, Loader2 } from "lucide-react";
-import { Bunny } from "@/components/bunny";
+import { Saqro } from "@/components/saqro";
 import { useApp } from "@/lib/app-state";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "تسجيل الدخول | بَني" },
-      { name: "description", content: "سجّل الدخول أو أنشئ حسابًا جديدًا في بَني وابدأ رحلتك مع المنهج السوداني." },
-      { property: "og:title", content: "تسجيل الدخول | بَني" },
-      { property: "og:description", content: "ادخل إلى حسابك في بَني وتابع خطتك الدراسية." },
+      { title: "تسجيل الدخول | سَقرو" },
+      { name: "description", content: "سجّل الدخول أو أنشئ حسابًا جديدًا في سَقرو وابدأ رحلتك مع المنهج السوداني." },
+      { property: "og:title", content: "تسجيل الدخول | سَقرو" },
+      { property: "og:description", content: "ادخل إلى حسابك في سَقرو وتابع خطتك الدراسية." },
     ],
   }),
   component: AuthPage,
@@ -71,7 +71,7 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth`,
-            data: { display_name: name || "طالب بَني" },
+            data: { display_name: name || "طالب سَقرو" },
           },
         });
         if (err) throw err;
@@ -98,10 +98,10 @@ function AuthPage() {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-6 pb-10 pt-10">
       <div className="page-enter flex flex-col items-center text-center">
-        <Bunny size={130} float priority />
+        <Saqro size={130} float priority />
         <h1 className="mt-3 text-2xl">{mode === "login" ? "مرحبًا بعودتك!" : "أنشئ حسابك"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {mode === "login" ? "بَني في انتظارك لنكمل المذاكرة" : "دقيقة واحدة وتبدأ رحلتك التعليمية"}
+          {mode === "login" ? "سَقرو في انتظارك لنكمل المذاكرة" : "دقيقة واحدة وتبدأ رحلتك التعليمية"}
         </p>
       </div>
 
@@ -175,7 +175,7 @@ function AuthPage() {
       </button>
 
       <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
-        بمتابعتك أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بتطبيق بَني.
+        بمتابعتك أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بتطبيق سَقرو.
       </p>
     </div>
   );
