@@ -34,7 +34,7 @@ export function useHeroes(enabled = true) {
     queryKey: ["heroes"],
     enabled,
     queryFn: async (): Promise<Hero[]> => {
-      const { data, error } = await supabase.rpc("grade_champions", { _grade_id: undefined });
+      const { data, error } = await supabase.rpc("grade_champions");
       if (error) throw error;
       return (data ?? []) as Hero[];
     },
