@@ -13,12 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as BunnyRouteImport } from './routes/bunny'
 import { Route as GradeRouteImport } from './routes/grade'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as SaqroRouteImport } from './routes/saqro'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StageRouteImport } from './routes/stage'
 import { Route as CurriculumIndexRouteImport } from './routes/curriculum.index'
@@ -45,11 +45,6 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BunnyRoute = BunnyRouteImport.update({
-  id: '/bunny',
-  path: '/bunny',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GradeRoute = GradeRouteImport.update({
   id: '/grade',
   path: '/grade',
@@ -73,6 +68,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const ProgressRoute = ProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaqroRoute = SaqroRouteImport.update({
+  id: '/saqro',
+  path: '/saqro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -106,12 +106,12 @@ export interface FileRoutesByFullPath {
   '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/bunny': typeof BunnyRoute
   '/grade': typeof GradeRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
@@ -123,12 +123,12 @@ export interface FileRoutesByTo {
   '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/bunny': typeof BunnyRoute
   '/grade': typeof GradeRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
@@ -141,12 +141,12 @@ export interface FileRoutesById {
   '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/bunny': typeof BunnyRoute
   '/grade': typeof GradeRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
@@ -160,12 +160,12 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/admin'
     | '/auth'
-    | '/bunny'
     | '/grade'
     | '/home'
     | '/planner'
     | '/profile'
     | '/progress'
+    | '/saqro'
     | '/settings'
     | '/stage'
     | '/curriculum/$subjectId'
@@ -177,12 +177,12 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/admin'
     | '/auth'
-    | '/bunny'
     | '/grade'
     | '/home'
     | '/planner'
     | '/profile'
     | '/progress'
+    | '/saqro'
     | '/settings'
     | '/stage'
     | '/curriculum/$subjectId'
@@ -194,12 +194,12 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/admin'
     | '/auth'
-    | '/bunny'
     | '/grade'
     | '/home'
     | '/planner'
     | '/profile'
     | '/progress'
+    | '/saqro'
     | '/settings'
     | '/stage'
     | '/curriculum/$subjectId'
@@ -212,12 +212,12 @@ export interface RootRouteChildren {
   AchievementsRoute: typeof AchievementsRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
-  BunnyRoute: typeof BunnyRoute
   GradeRoute: typeof GradeRoute
   HomeRoute: typeof HomeRoute
   PlannerRoute: typeof PlannerRoute
   ProfileRoute: typeof ProfileRoute
   ProgressRoute: typeof ProgressRoute
+  SaqroRoute: typeof SaqroRoute
   SettingsRoute: typeof SettingsRoute
   StageRoute: typeof StageRoute
   CurriculumSubjectIdRoute: typeof CurriculumSubjectIdRoute
@@ -255,13 +255,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/bunny': {
-      id: '/bunny'
-      path: '/bunny'
-      fullPath: '/bunny'
-      preLoaderRoute: typeof BunnyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/grade': {
       id: '/grade'
       path: '/grade'
@@ -295,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/progress'
       fullPath: '/progress'
       preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saqro': {
+      id: '/saqro'
+      path: '/saqro'
+      fullPath: '/saqro'
+      preLoaderRoute: typeof SaqroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -340,12 +340,12 @@ const rootRouteChildren: RootRouteChildren = {
   AchievementsRoute: AchievementsRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
-  BunnyRoute: BunnyRoute,
   GradeRoute: GradeRoute,
   HomeRoute: HomeRoute,
   PlannerRoute: PlannerRoute,
   ProfileRoute: ProfileRoute,
   ProgressRoute: ProgressRoute,
+  SaqroRoute: SaqroRoute,
   SettingsRoute: SettingsRoute,
   StageRoute: StageRoute,
   CurriculumSubjectIdRoute: CurriculumSubjectIdRoute,
