@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "الإعدادات | بَني" },
-      { name: "description", content: "تحكّم في الوضع الليلي والتنبيهات والصوت واللغة داخل تطبيق بَني." },
-      { property: "og:title", content: "الإعدادات | بَني" },
-      { property: "og:description", content: "خصّص تجربتك في بَني كما تحب." },
+      { title: "الإعدادات | سَقرو" },
+      { name: "description", content: "تحكّم في الوضع الليلي والتنبيهات والصوت واللغة داخل تطبيق سَقرو." },
+      { property: "og:title", content: "الإعدادات | سَقرو" },
+      { property: "og:description", content: "خصّص تجربتك في سَقرو كما تحب." },
     ],
   }),
   component: SettingsPage,
@@ -46,7 +46,7 @@ function SettingsPage() {
 
   return (
     <Screen>
-      <PageHeader title="الإعدادات" subtitle="خصّص تجربتك مع بَني" back />
+      <PageHeader title="الإعدادات" subtitle="خصّص تجربتك مع سَقرو" back />
 
       <div className="flex flex-col gap-2.5">
         <Card className="flex items-center gap-3">
@@ -96,7 +96,7 @@ function SettingsPage() {
           <Info className="size-5 text-primary" />
           <div className="flex-1">
             <h3 className="text-sm font-bold">عن التطبيق</h3>
-            <p className="text-[11px] text-muted-foreground">بَني · الإصدار 1.0 · المنهج السوداني</p>
+            <p className="text-[11px] text-muted-foreground">سَقرو · الإصدار 1.0 · المنهج السوداني</p>
           </div>
         </Card>
       </div>

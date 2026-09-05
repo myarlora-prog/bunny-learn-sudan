@@ -1,18 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Bunny } from "@/components/bunny";
+import { Saqro } from "@/components/saqro";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "بَني | تطبيق المنهج السوداني الذكي" },
+      { title: "سَقرو | تطبيق المنهج السوداني الذكي" },
       {
         name: "description",
-        content: "بَني تطبيق تعليمي ذكي للمنهج السوداني: ملخصات وبطاقات واختبارات ومساعد ذكي يرافقك في مذاكرتك.",
+        content: "سَقرو تطبيق تعليمي ذكي للمنهج السوداني: ملخصات وبطاقات واختبارات ومساعد ذكي يرافقك في مذاكرتك.",
       },
-      { property: "og:title", content: "بَني | تطبيق المنهج السوداني الذكي" },
-      { property: "og:description", content: "ملخصات ذكية وبطاقات واختبارات ومساعد بَني الذكي للمنهج السوداني." },
+      { property: "og:title", content: "سَقرو | تطبيق المنهج السوداني الذكي" },
+      { property: "og:description", content: "ملخصات ذكية وبطاقات واختبارات ومساعد سَقرو الذكي للمنهج السوداني." },
     ],
   }),
   component: Onboarding,
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
 
 const slides = [
   {
-    title: "أهلاً بك، أنا بَني 👋",
+    title: "أهلاً بك، أنا سَقرو 👋",
     desc: "رفيقك في المذاكرة. سنتعلّم المنهج السوداني خطوة بخطوة، بهدوء وبدون تشتيت.",
     variant: "wave" as const,
   },
@@ -31,7 +31,7 @@ const slides = [
   },
   {
     title: "اختبارات ومساعد ذكي",
-    desc: "اختبارات مولّدة بالذكاء الاصطناعي، ومساعد بَني يجيب على أسئلتك في أي وقت.",
+    desc: "اختبارات مولّدة بالذكاء الاصطناعي، ومساعد سَقرو يجيب على أسئلتك في أي وقت.",
     variant: "wave" as const,
   },
 ];
@@ -52,7 +52,7 @@ function Onboarding() {
       <div key={i} className="page-enter flex flex-1 flex-col items-center justify-center text-center">
         <div className="relative mb-8 flex items-center justify-center">
           <div className="absolute size-56 rounded-full bg-primary-soft blur-2xl" />
-          <Bunny variant={slide.variant} size={220} float priority />
+          <Saqro variant={slide.variant} size={220} float priority />
         </div>
         <h1 className="text-3xl leading-tight">{slide.title}</h1>
         <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground">{slide.desc}</p>

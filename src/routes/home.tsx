@@ -1,17 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Flame, Sparkles, Target, CalendarDays, Trophy, ChevronLeft } from "lucide-react";
 import { Card, Screen } from "@/components/app-shell";
-import { Bunny } from "@/components/bunny";
+import { Saqro } from "@/components/saqro";
 import { allLessons, plannerTasks, subjects } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
     meta: [
-      { title: "الرئيسية | بَني" },
-      { name: "description", content: "لوحتك اليومية في بَني: خطة المذاكرة، متابعة المواد، والدرس التالي." },
-      { property: "og:title", content: "الرئيسية | بَني" },
-      { property: "og:description", content: "تابع خطتك اليومية وتقدمك في المنهج السوداني مع بَني." },
+      { title: "الرئيسية | سَقرو" },
+      { name: "description", content: "لوحتك اليومية في سَقرو: خطة المذاكرة، متابعة المواد، والدرس التالي." },
+      { property: "og:title", content: "الرئيسية | سَقرو" },
+      { property: "og:description", content: "تابع خطتك اليومية وتقدمك في المنهج السوداني مع سَقرو." },
     ],
   }),
   component: HomePage,
@@ -29,7 +29,7 @@ function HomePage() {
       <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">مساء الخير 🌙</p>
-          <h1 className="text-2xl">{state.name || "طالب بَني"}</h1>
+          <h1 className="text-2xl">{state.name || "طالب سَقرو"}</h1>
         </div>
         <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2 shadow-[var(--shadow-soft)]">
           <Flame className="size-4 text-warning" />
@@ -50,7 +50,7 @@ function HomePage() {
             ابدأ الدرس <ChevronLeft className="size-4" />
           </Link>
         </div>
-        <Bunny size={140} float className="absolute -bottom-3 left-1 z-0" priority />
+        <Saqro size={140} float className="absolute -bottom-3 left-1 z-0" priority />
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-3">
@@ -109,11 +109,11 @@ function HomePage() {
         </Link>
       </section>
 
-      <Link to="/bunny">
+      <Link to="/saqro">
         <Card className="mt-3 flex items-center gap-3">
-          <Bunny size={54} />
+          <Saqro size={54} />
           <div className="flex-1">
-            <h3 className="text-sm font-bold">اسأل بَني الذكي</h3>
+            <h3 className="text-sm font-bold">اسأل سَقرو الذكي</h3>
             <p className="text-[11px] text-muted-foreground">اشرح لي، لخّص لي، أو اختبرني في أي درس</p>
           </div>
           <ChevronLeft className="size-5 text-muted-foreground" />

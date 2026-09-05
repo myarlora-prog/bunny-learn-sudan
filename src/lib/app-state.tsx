@@ -67,7 +67,7 @@ type Ctx = {
 };
 
 const AppContext = createContext<Ctx | null>(null);
-const DARK_KEY = "bunny-dark";
+const DARK_KEY = "saqro-dark";
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(DEFAULT);

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { BookOpen, Sparkles, Layers, ListChecks, CheckCircle2, RotateCcw, Lightbulb } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
-import { Bunny, BunnyEmpty } from "@/components/bunny";
+import { Saqro, SaqroEmpty } from "@/components/saqro";
 import { getLesson } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
 import { cn } from "@/lib/utils";
@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/lesson/$lessonId")({
   head: () => ({
     meta: [
-      { title: "الدرس | بَني" },
+      { title: "الدرس | سَقرو" },
       { name: "description", content: "شرح مبسّط، ملخص ذكي، بطاقات مراجعة، واختبار مولّد بالذكاء الاصطناعي لكل درس." },
-      { property: "og:title", content: "الدرس | بَني" },
-      { property: "og:description", content: "اشرح، لخّص، راجع، واختبر نفسك في الدرس مع بَني." },
+      { property: "og:title", content: "الدرس | سَقرو" },
+      { property: "og:description", content: "اشرح، لخّص، راجع، واختبر نفسك في الدرس مع سَقرو." },
     ],
   }),
   component: LessonPage,
@@ -39,7 +39,7 @@ function LessonPage() {
     return (
       <Screen>
         <PageHeader title="الدرس غير متوفر" back />
-        <BunnyEmpty title="لم أعثر على هذا الدرس" desc="عد إلى المنهج واختر درسًا آخر، وأنا في انتظارك." />
+        <SaqroEmpty title="لم أعثر على هذا الدرس" desc="عد إلى المنهج واختر درسًا آخر، وأنا في انتظارك." />
       </Screen>
     );
   }
@@ -86,8 +86,8 @@ function LessonPage() {
       {tab === "summary" && (
         <div key="summary" className="page-enter">
           <Card className="gradient-hero flex items-center gap-3 border-transparent">
-            <Bunny size={56} />
-            <p className="text-sm font-bold text-primary-foreground">ملخص بَني الذكي — أهم ما يجب أن تتذكره</p>
+            <Saqro size={56} />
+            <p className="text-sm font-bold text-primary-foreground">ملخص سَقرو الذكي — أهم ما يجب أن تتذكره</p>
           </Card>
           <div className="mt-3 flex flex-col gap-2.5">
             {lesson.summary.map((s, i) => (

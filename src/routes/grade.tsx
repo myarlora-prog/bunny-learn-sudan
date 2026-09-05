@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { Bunny } from "@/components/bunny";
+import { Saqro } from "@/components/saqro";
 import { PageHeader } from "@/components/app-shell";
 import { useApp } from "@/lib/app-state";
 import { useGrades, useStages } from "@/lib/curriculum-db";
@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/grade")({
   head: () => ({
     meta: [
-      { title: "اختر الصف الدراسي | بَني" },
-      { name: "description", content: "حدّد صفك الدراسي داخل المنهج السوداني ليعرض بَني موادك ووحداتك." },
-      { property: "og:title", content: "اختر الصف الدراسي | بَني" },
-      { property: "og:description", content: "اختر صفك ليبدأ بَني في تجهيز الدروس والملخصات." },
+      { title: "اختر الصف الدراسي | سَقرو" },
+      { name: "description", content: "حدّد صفك الدراسي داخل المنهج السوداني ليعرض سَقرو موادك ووحداتك." },
+      { property: "og:title", content: "اختر الصف الدراسي | سَقرو" },
+      { property: "og:description", content: "اختر صفك ليبدأ سَقرو في تجهيز الدروس والملخصات." },
     ],
   }),
   component: GradePage,
@@ -29,7 +29,7 @@ function GradePage() {
     <div className="page-enter mx-auto min-h-screen w-full max-w-lg px-5 pb-10 pt-8">
       <PageHeader title="اختر صفك" subtitle={stage?.name ?? ""} back />
       <div className="mb-5 flex justify-center">
-        <Bunny variant="study" size={120} float priority />
+        <Saqro variant="study" size={120} float priority />
       </div>
 
       {isLoading && (

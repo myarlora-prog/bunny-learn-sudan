@@ -8,10 +8,10 @@ import { useRequireAdmin } from "@/lib/guards";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "لوحة التحكم | بَني" },
-      { name: "description", content: "لوحة تحكم خاصة بمالك تطبيق بَني لإدارة المنهج والمستخدمين والاشتراكات." },
-      { property: "og:title", content: "لوحة التحكم | بَني" },
-      { property: "og:description", content: "إدارة المنهج والمستخدمين والاشتراكات في بَني." },
+      { title: "لوحة التحكم | سَقرو" },
+      { name: "description", content: "لوحة تحكم خاصة بمالك تطبيق سَقرو لإدارة المنهج والمستخدمين والاشتراكات." },
+      { property: "og:title", content: "لوحة التحكم | سَقرو" },
+      { property: "og:description", content: "إدارة المنهج والمستخدمين والاشتراكات في سَقرو." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),

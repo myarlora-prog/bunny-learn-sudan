@@ -1,17 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Settings, CalendarDays, Trophy, GraduationCap, ChevronLeft, LogOut } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
-import { Bunny } from "@/components/bunny";
+import { Saqro } from "@/components/saqro";
 import { allLessons, stages } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "حسابي | بَني" },
-      { name: "description", content: "ملفك الشخصي في بَني: مرحلتك وصفك ونقاطك وإعداداتك الدراسية." },
-      { property: "og:title", content: "حسابي | بَني" },
-      { property: "og:description", content: "أدر بياناتك الدراسية وإعداداتك داخل تطبيق بَني." },
+      { title: "حسابي | سَقرو" },
+      { name: "description", content: "ملفك الشخصي في سَقرو: مرحلتك وصفك ونقاطك وإعداداتك الدراسية." },
+      { property: "og:title", content: "حسابي | سَقرو" },
+      { property: "og:description", content: "أدر بياناتك الدراسية وإعداداتك داخل تطبيق سَقرو." },
     ],
   }),
   component: ProfilePage,
@@ -35,9 +35,9 @@ function ProfilePage() {
       <PageHeader title="حسابي" />
 
       <Card className="gradient-hero flex items-center gap-4 border-transparent">
-        <Bunny size={72} float />
+        <Saqro size={72} float />
         <div className="flex-1 text-primary-foreground">
-          <h2 className="text-lg text-primary-foreground">{state.name || "طالب بَني"}</h2>
+          <h2 className="text-lg text-primary-foreground">{state.name || "طالب سَقرو"}</h2>
           <p className="text-xs text-primary-foreground/85">{state.email || "لم يتم إدخال بريد إلكتروني"}</p>
           <p className="mt-1 text-xs text-primary-foreground/85">{grade ? `${stage?.name} · ${grade.name}` : "اختر مرحلتك الدراسية"}</p>
         </div>
