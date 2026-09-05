@@ -14,13 +14,16 @@ import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as GradeRouteImport } from './routes/grade'
+import { Route as HeroesRouteImport } from './routes/heroes'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as ReferralsRouteImport } from './routes/referrals'
 import { Route as SaqroRouteImport } from './routes/saqro'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StageRouteImport } from './routes/stage'
+import { Route as SuperRouteImport } from './routes/super'
 import { Route as CurriculumIndexRouteImport } from './routes/curriculum.index'
 import { Route as CurriculumSubjectIdRouteImport } from './routes/curriculum.$subjectId'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
@@ -50,6 +53,11 @@ const GradeRoute = GradeRouteImport.update({
   path: '/grade',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HeroesRoute = HeroesRouteImport.update({
+  id: '/heroes',
+  path: '/heroes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -70,6 +78,11 @@ const ProgressRoute = ProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReferralsRoute = ReferralsRouteImport.update({
+  id: '/referrals',
+  path: '/referrals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SaqroRoute = SaqroRouteImport.update({
   id: '/saqro',
   path: '/saqro',
@@ -83,6 +96,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const StageRoute = StageRouteImport.update({
   id: '/stage',
   path: '/stage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuperRoute = SuperRouteImport.update({
+  id: '/super',
+  path: '/super',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CurriculumIndexRoute = CurriculumIndexRouteImport.update({
@@ -107,13 +125,16 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/grade': typeof GradeRoute
+  '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/referrals': typeof ReferralsRoute
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
+  '/super': typeof SuperRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum/': typeof CurriculumIndexRoute
@@ -124,13 +145,16 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/grade': typeof GradeRoute
+  '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/referrals': typeof ReferralsRoute
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
+  '/super': typeof SuperRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum': typeof CurriculumIndexRoute
@@ -142,13 +166,16 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/grade': typeof GradeRoute
+  '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/referrals': typeof ReferralsRoute
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
+  '/super': typeof SuperRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum/': typeof CurriculumIndexRoute
@@ -161,13 +188,16 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/grade'
+    | '/heroes'
     | '/home'
     | '/planner'
     | '/profile'
     | '/progress'
+    | '/referrals'
     | '/saqro'
     | '/settings'
     | '/stage'
+    | '/super'
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
     | '/curriculum/'
@@ -178,13 +208,16 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/grade'
+    | '/heroes'
     | '/home'
     | '/planner'
     | '/profile'
     | '/progress'
+    | '/referrals'
     | '/saqro'
     | '/settings'
     | '/stage'
+    | '/super'
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
     | '/curriculum'
@@ -195,13 +228,16 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/grade'
+    | '/heroes'
     | '/home'
     | '/planner'
     | '/profile'
     | '/progress'
+    | '/referrals'
     | '/saqro'
     | '/settings'
     | '/stage'
+    | '/super'
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
     | '/curriculum/'
@@ -213,13 +249,16 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   GradeRoute: typeof GradeRoute
+  HeroesRoute: typeof HeroesRoute
   HomeRoute: typeof HomeRoute
   PlannerRoute: typeof PlannerRoute
   ProfileRoute: typeof ProfileRoute
   ProgressRoute: typeof ProgressRoute
+  ReferralsRoute: typeof ReferralsRoute
   SaqroRoute: typeof SaqroRoute
   SettingsRoute: typeof SettingsRoute
   StageRoute: typeof StageRoute
+  SuperRoute: typeof SuperRoute
   CurriculumSubjectIdRoute: typeof CurriculumSubjectIdRoute
   LessonLessonIdRoute: typeof LessonLessonIdRoute
   CurriculumIndexRoute: typeof CurriculumIndexRoute
@@ -262,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GradeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/heroes': {
+      id: '/heroes'
+      path: '/heroes'
+      fullPath: '/heroes'
+      preLoaderRoute: typeof HeroesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -290,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgressRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/referrals': {
+      id: '/referrals'
+      path: '/referrals'
+      fullPath: '/referrals'
+      preLoaderRoute: typeof ReferralsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/saqro': {
       id: '/saqro'
       path: '/saqro'
@@ -309,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/stage'
       fullPath: '/stage'
       preLoaderRoute: typeof StageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/super': {
+      id: '/super'
+      path: '/super'
+      fullPath: '/super'
+      preLoaderRoute: typeof SuperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/curriculum/': {
@@ -341,13 +401,16 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   GradeRoute: GradeRoute,
+  HeroesRoute: HeroesRoute,
   HomeRoute: HomeRoute,
   PlannerRoute: PlannerRoute,
   ProfileRoute: ProfileRoute,
   ProgressRoute: ProgressRoute,
+  ReferralsRoute: ReferralsRoute,
   SaqroRoute: SaqroRoute,
   SettingsRoute: SettingsRoute,
   StageRoute: StageRoute,
+  SuperRoute: SuperRoute,
   CurriculumSubjectIdRoute: CurriculumSubjectIdRoute,
   LessonLessonIdRoute: LessonLessonIdRoute,
   CurriculumIndexRoute: CurriculumIndexRoute,
