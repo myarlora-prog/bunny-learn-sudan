@@ -29,6 +29,7 @@ type AppState = {
   dark: boolean;
   completedLessons: string[];
   streak: number;
+  longestStreak: number;
   points: number;
   studyDays: number;
   totalMinutes: number;
@@ -44,6 +45,7 @@ const DEFAULT: AppState = {
   dark: false,
   completedLessons: [],
   streak: 0,
+  longestStreak: 0,
   points: 0,
   studyDays: 0,
   totalMinutes: 0,
@@ -138,6 +140,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       referralCode: profile.data?.referral_code ?? null,
       dark: settings.data?.dark_mode ?? s.dark,
       streak: stats.data?.streak ?? 0,
+      longestStreak: stats.data?.longest_streak ?? 0,
       points: stats.data?.points ?? 0,
       studyDays: stats.data?.study_days ?? 0,
       totalMinutes: stats.data?.total_minutes ?? 0,
