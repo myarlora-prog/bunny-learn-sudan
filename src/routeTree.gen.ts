@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AvatarRouteImport } from './routes/avatar'
 import { Route as GradeRouteImport } from './routes/grade'
 import { Route as HeroesRouteImport } from './routes/heroes'
 import { Route as HomeRouteImport } from './routes/home'
@@ -46,6 +47,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AvatarRoute = AvatarRouteImport.update({
+  id: '/avatar',
+  path: '/avatar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GradeRoute = GradeRouteImport.update({
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/avatar': typeof AvatarRoute
   '/grade': typeof GradeRoute
   '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/avatar': typeof AvatarRoute
   '/grade': typeof GradeRoute
   '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/avatar': typeof AvatarRoute
   '/grade': typeof GradeRoute
   '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/admin'
     | '/auth'
+    | '/avatar'
     | '/grade'
     | '/heroes'
     | '/home'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/admin'
     | '/auth'
+    | '/avatar'
     | '/grade'
     | '/heroes'
     | '/home'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/admin'
     | '/auth'
+    | '/avatar'
     | '/grade'
     | '/heroes'
     | '/home'
@@ -248,6 +260,7 @@ export interface RootRouteChildren {
   AchievementsRoute: typeof AchievementsRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  AvatarRoute: typeof AvatarRoute
   GradeRoute: typeof GradeRoute
   HeroesRoute: typeof HeroesRoute
   HomeRoute: typeof HomeRoute
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/avatar': {
+      id: '/avatar'
+      path: '/avatar'
+      fullPath: '/avatar'
+      preLoaderRoute: typeof AvatarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/grade': {
@@ -400,6 +420,7 @@ const rootRouteChildren: RootRouteChildren = {
   AchievementsRoute: AchievementsRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  AvatarRoute: AvatarRoute,
   GradeRoute: GradeRoute,
   HeroesRoute: HeroesRoute,
   HomeRoute: HomeRoute,
