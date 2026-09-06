@@ -100,7 +100,7 @@ function ProfilePage() {
         <Flame className="size-5 text-warning" />
         <p className="flex-1 text-xs text-muted-foreground">
           مستواك الحالي: <span className="font-bold text-foreground">{level.name}</span>
-          {level.next ? ` · ${level.remaining} نقطة للمستوى التالي` : " · أعلى مستوى 🎉"}
+          {level.next !== null ? ` · ${level.next - state.points} نقطة للمستوى التالي` : " · أعلى مستوى 🎉"}
         </p>
       </Card>
 
