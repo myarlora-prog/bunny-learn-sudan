@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { BookOpen, Sparkles, Layers, ListChecks, CheckCircle2, RotateCcw, Lightbulb } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
+import { EnergyBadge, ZeroEnergyModal } from "@/components/energy";
 import { Saqro, SaqroEmpty } from "@/components/saqro";
 import { getLesson } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
@@ -29,11 +30,12 @@ const tabs = [
 function LessonPage() {
   const { lessonId } = Route.useParams();
   const data = getLesson(lessonId);
-  const { state, toggleLesson } = useApp();
+  const { state, toggleLesson, spendEnergy, isSuper } = useApp();
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>("explain");
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [blocked, setBlocked] = useState(false);
 
   if (!data) {
     return (
@@ -52,7 +54,7 @@ function LessonPage() {
 
   return (
     <Screen>
-      <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back />
+      <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back action={<EnergyBadge />} />
 
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {tabs.map(({ id, label, Icon }) => (
@@ -167,7 +169,16 @@ function LessonPage() {
                         key={oi}
                         type="button"
                         disabled={reveal}
-                        onClick={() => setAnswers((a) => ({ ...a, [qi]: oi }))}
+                        onClick={async () => {
+                          if (!correct && !isSuper) {
+                            const res = await spendEnergy(1);
+                            if (!res.ok) {
+                              setBlocked(true);
+                              return;
+                            }
+                          }
+                          setAnswers((a) => ({ ...a, [qi]: oi }));
+                        }}
                         className={cn(
                           "press rounded-2xl border border-border px-4 py-3 text-right text-sm transition-colors",
                           reveal && correct && "border-success bg-success/10 font-bold text-success",
@@ -212,6 +223,8 @@ function LessonPage() {
         <CheckCircle2 className="size-5" />
         {done ? "تم إكمال الدرس" : "وضع علامة كمكتمل"}
       </button>
+
+      <ZeroEnergyModal open={blocked} onClose={() => setBlocked(false)} />
     </Screen>
   );
 }

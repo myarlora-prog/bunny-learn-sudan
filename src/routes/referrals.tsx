@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Copy, Check, Gift, Share2, Loader2 } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { useReferralSummary } from "@/lib/account-db";
+import { supabase } from "@/integrations/supabase/client";
 import { useRequireAuth } from "@/lib/guards";
 
 export const Route = createFileRoute("/referrals")({
@@ -21,6 +22,22 @@ function ReferralsPage() {
   const { session } = useRequireAuth();
   const { data, isLoading } = useReferralSummary(!!session);
   const [copied, setCopied] = useState(false);
+  const [friendCode, setFriendCode] = useState("");
+  const [applyMsg, setApplyMsg] = useState("");
+  const [applying, setApplying] = useState(false);
+
+  const applyCode = async () => {
+    if (!friendCode.trim() || applying) return;
+    setApplying(true);
+    const { data: res, error } = await supabase.rpc("apply_referral_code", { _code: friendCode.trim() });
+    setApplying(false);
+    const out = res as unknown as { ok: boolean; reason?: string } | null;
+    if (error || !out) setApplyMsg("تعذّر تطبيق الكود، حاول لاحقًا.");
+    else if (out.ok) {
+      setApplyMsg("تم ربط دعوتك بنجاح 🎉");
+      setFriendCode("");
+    } else setApplyMsg(out.reason === "already_used" ? "لقد استخدمت كود دعوة من قبل." : "الكود غير صحيح.");
+  };
 
   const code = data?.code ?? "";
   const goal = data?.goal ?? 10;
@@ -87,6 +104,26 @@ function ReferralsPage() {
                 ? "🎉 حصلت على مكافأة السوبر بالفعل"
                 : `باقي ${remaining} ${remaining === 1 ? "دعوة" : "دعوات"} للحصول على ١٤ يومًا سوبر`}
             </p>
+          </Card>
+
+          <Card className="mt-3">
+            <h3 className="text-sm font-bold">هل لديك كود دعوة؟</h3>
+            <div className="mt-3 flex gap-2">
+              <input
+                value={friendCode}
+                onChange={(e) => setFriendCode(e.target.value.toUpperCase())}
+                placeholder="SAQRO-XXXXXX"
+                className="h-11 flex-1 rounded-2xl border border-border bg-card px-3 text-sm outline-none placeholder:text-muted-foreground"
+              />
+              <button
+                type="button"
+                onClick={() => void applyCode()}
+                className="press gradient-hero h-11 rounded-2xl px-4 text-sm font-bold text-primary-foreground"
+              >
+                تطبيق
+              </button>
+            </div>
+            {applyMsg && <p className="mt-2 text-[11px] text-muted-foreground">{applyMsg}</p>}
           </Card>
 
           <section className="mt-5">

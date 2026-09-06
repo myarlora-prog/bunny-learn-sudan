@@ -69,23 +69,20 @@ function HomePage() {
 
       <section className="mt-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg">موادك</h2>
+          <h2 className="text-lg">موادي</h2>
           <Link to="/curriculum" className="text-xs font-bold text-primary">
             عرض الكل
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          {subjects.slice(0, 4).map((s) => (
+        <div className="flex flex-col gap-2.5">
+          {subjects.map((s) => (
             <Link key={s.id} to="/curriculum/$subjectId" params={{ subjectId: s.id }}>
-              <Card className="h-full">
+              <Card className="flex items-center gap-3">
                 <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-soft text-xl">
                   {s.icon}
                 </span>
-                <h3 className="mt-3 text-sm font-bold">{s.name}</h3>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary">
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${s.progress}%` }} />
-                </div>
-                <p className="mt-1.5 text-[11px] text-muted-foreground">{s.progress}% مكتمل</p>
+                <h3 className="flex-1 text-sm font-bold">{s.name}</h3>
+                <ChevronLeft className="size-5 text-muted-foreground" />
               </Card>
             </Link>
           ))}
