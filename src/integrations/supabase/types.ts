@@ -83,6 +83,76 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_drafts: {
+        Row: {
+          content: Json
+          created_at: string
+          created_by: string | null
+          flags: Json
+          grade_id: string | null
+          id: string
+          published_at: string | null
+          source_name: string
+          source_text: string
+          stage_id: string | null
+          status: string
+          subject_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          flags?: Json
+          grade_id?: string | null
+          id?: string
+          published_at?: string | null
+          source_name?: string
+          source_text?: string
+          stage_id?: string | null
+          status?: string
+          subject_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          flags?: Json
+          grade_id?: string | null
+          id?: string
+          published_at?: string | null
+          source_name?: string
+          source_text?: string
+          stage_id?: string | null
+          status?: string
+          subject_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_drafts_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_drafts_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_drafts_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_files: {
         Row: {
           created_at: string
