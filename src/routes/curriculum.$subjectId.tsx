@@ -69,7 +69,7 @@ function SubjectPage() {
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate text-sm font-bold">{l.title}</h3>
                         <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Clock className="size-3" /> {l.minutes} دقيقة · {l.flashcards.length} بطاقة
+                          <Clock className="size-3" /> {l.minutes} دقيقة
                         </p>
                       </div>
                     </Card>
@@ -79,6 +79,9 @@ function SubjectPage() {
             </div>
           </section>
         ))}
+        {subject.units.length === 0 && (
+          <SaqroEmpty title="لا توجد وحدات بعد" desc="سيتم إضافة وحدات هذه المادة قريبًا." />
+        )}
       </div>
     </Screen>
   );
