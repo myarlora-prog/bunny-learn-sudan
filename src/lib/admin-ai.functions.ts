@@ -88,7 +88,7 @@ export const processBook = createServerFn({ method: "POST" })
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.7-flash",
+        model: "google/gemini-2.5-flash",
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: system },
