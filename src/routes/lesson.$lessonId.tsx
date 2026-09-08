@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { BookOpen, Sparkles, Layers, ListChecks, CheckCircle2, RotateCcw, Lightbulb } from "lucide-react";
+import { BookOpen, Sparkles, Layers, ListChecks, CheckCircle2, RotateCcw, Lightbulb, Loader2 } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { EnergyBadge, ZeroEnergyModal } from "@/components/energy";
 import { Saqro, SaqroEmpty } from "@/components/saqro";
 import { getLesson } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
+import { isDbId, useLessonData } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
@@ -29,13 +30,23 @@ const tabs = [
 
 function LessonPage() {
   const { lessonId } = Route.useParams();
-  const data = getLesson(lessonId);
+  const live = useLessonData(lessonId);
+  const data = isDbId(lessonId) ? live.data : getLesson(lessonId);
   const { state, toggleLesson, spendEnergy, isSuper } = useApp();
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>("explain");
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [blocked, setBlocked] = useState(false);
+
+  if (isDbId(lessonId) && live.isLoading) {
+    return (
+      <Screen>
+        <PageHeader title="الدرس" back />
+        <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
+      </Screen>
+    );
+  }
 
   if (!data) {
     return (
@@ -48,9 +59,10 @@ function LessonPage() {
 
   const { lesson, subject, unit } = data;
   const done = state.completedLessons.includes(lesson.id);
-  const card = lesson.flashcards[cardIndex]!;
+  const card = lesson.flashcards[cardIndex];
   const score = lesson.quiz.reduce((n, q, i) => n + (answers[i] === q.correct ? 1 : 0), 0);
   const answered = Object.keys(answers).length;
+
 
   return (
     <Screen>
