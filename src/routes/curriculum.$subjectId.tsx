@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, Circle, Clock } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Loader2 } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { getSubject } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
+import { isDbId, useSubjectTree } from "@/lib/curriculum-db";
 
 export const Route = createFileRoute("/curriculum/$subjectId")({
   head: () => ({
@@ -20,7 +21,17 @@ export const Route = createFileRoute("/curriculum/$subjectId")({
 function SubjectPage() {
   const { subjectId } = Route.useParams();
   const { state } = useApp();
-  const subject = getSubject(subjectId);
+  const live = useSubjectTree(subjectId);
+  const subject = isDbId(subjectId) ? live.data : getSubject(subjectId);
+
+  if (isDbId(subjectId) && live.isLoading) {
+    return (
+      <Screen>
+        <PageHeader title="المادة" back />
+        <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
+      </Screen>
+    );
+  }
 
   if (!subject) {
     return (
@@ -30,6 +41,7 @@ function SubjectPage() {
       </Screen>
     );
   }
+
 
   return (
     <Screen>
