@@ -116,7 +116,7 @@ function LessonPage() {
         </div>
       )}
 
-      {tab === "cards" && (
+      {tab === "cards" && card && (
         <div key="cards" className="page-enter">
           <button
             type="button"
@@ -127,6 +127,7 @@ function LessonPage() {
             <span className="text-lg font-bold leading-relaxed">{flipped ? card.a : card.q}</span>
             <span className="text-[11px] text-muted-foreground">اضغط لقلب البطاقة</span>
           </button>
+
 
           <div className="mt-4 flex items-center justify-between gap-3">
             <button
