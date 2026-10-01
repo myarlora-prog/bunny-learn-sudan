@@ -10,6 +10,7 @@ import {
   Sparkles,
   Smile,
   Flame,
+  ShieldCheck,
 } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { EnergyBadge } from "@/components/energy";
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const { state, signOut, isSuper, subscription } = useApp();
+  const { state, signOut, isSuper, subscription, isAdmin } = useApp();
   const navigate = useNavigate();
   const { data: stages } = useStages();
   const { data: grades } = useGrades(state.stageId);
@@ -119,6 +120,20 @@ function ProfilePage() {
             </Card>
           </Link>
         ))}
+        {isAdmin && (
+          <Link to="/admin">
+            <Card className="flex items-center gap-3 border-primary/40">
+              <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-soft">
+                <ShieldCheck className="size-5 text-primary" />
+              </span>
+              <div className="flex-1">
+                <h3 className="text-sm font-bold">Owner Admin</h3>
+                <p className="text-[11px] text-muted-foreground">لوحة تحكم المالك</p>
+              </div>
+              <ChevronLeft className="size-5 text-muted-foreground" />
+            </Card>
+          </Link>
+        )}
       </div>
 
       <button
