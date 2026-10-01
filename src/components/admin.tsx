@@ -401,7 +401,10 @@ export function AdminUpload() {
   const subjects = useAdminList<Row>("subjects", { column: "grade_id", value: gradeId || null });
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [pasted, setPasted] = useState("");
+  const [sourceTitle, setSourceTitle] = useState("");
   const [step, setStep] = useState<string>("");
+  const [errorMsg, setErrorMsg] = useState("");
   const run = useServerFn(processBook);
   const qc = useQueryClient();
 
@@ -414,26 +417,45 @@ export function AdminUpload() {
     [subjects.data, subjectId],
   );
 
+  const hasSource = !!file || pasted.trim().length > 0;
+
   const process = useMutation({
     mutationFn: async () => {
-      if (!file || !subjectId) throw new Error("اختر المادة والملف");
-      setStep("قراءة الملف…");
-      const text = await extractText(file);
-      if (text.trim().length < 50) throw new Error("لم نتمكن من قراءة نص من هذا الملف (قد يحتاج إلى نسخة نصية)");
+      setErrorMsg("");
+      if (!subjectId) throw new Error("اختر المادة أولًا");
+      if (!hasSource) throw new Error("ارفع ملفًا أو الصق نص الكتاب");
 
-      setStep("رفع الكتاب…");
-      const path = `${subjectId}/${Date.now()}-${file.name}`;
-      const up = await supabase.storage.from("curriculum-books").upload(path, file);
-      if (up.error) throw up.error;
-      await supabase.from("curriculum_files").insert({
-        grade_id: gradeId,
-        subject_id: subjectId,
-        file_name: file.name,
-        file_path: path,
-        status: "processing",
-      });
+      let text = pasted.trim();
+      let sourceName = sourceTitle.trim() || "نص ملصوق";
+      if (file) {
+        setStep("قراءة الملف…");
+        const fileText = await extractText(file);
+        text = text ? `${text}\n\n${fileText}` : fileText;
+        sourceName = sourceTitle.trim() || file.name;
+      }
+      if (text.trim().length < 50)
+        throw new Error("لم نتمكن من قراءة نص كافٍ (قد يكون الملف صورًا ممسوحة — الصق النص يدويًا)");
 
-      setStep("تحليل الكتاب بالذكاء الاصطناعي…");
+      if (file) {
+        setStep("رفع الكتاب…");
+        // Storage keys must be ASCII-safe; Arabic names/spaces are rejected.
+        const ext = file.name.toLowerCase().endsWith(".txt") ? "txt" : "pdf";
+        const path = `${subjectId}/${Date.now()}.${ext}`;
+        const up = await supabase.storage.from("curriculum-books").upload(path, file);
+        if (!up.error) {
+          await supabase.from("curriculum_files").insert({
+            grade_id: gradeId,
+            subject_id: subjectId,
+            file_name: file.name,
+            file_path: path,
+            status: "processing",
+          });
+        } else {
+          console.warn("Book file upload failed, continuing with text:", up.error.message);
+        }
+      }
+
+      setStep("تحليل الكتاب بالذكاء الاصطناعي… (قد يستغرق دقيقة)");
       const result = await run({ data: { text, subjectName, gradeName } });
 
       setStep("حفظ المسودة…");
@@ -441,7 +463,7 @@ export function AdminUpload() {
         stage_id: stageId,
         grade_id: gradeId,
         subject_id: subjectId,
-        source_name: file.name,
+        source_name: sourceName,
         source_text: text.slice(0, 200000),
         content: { units: result.units } as never,
         flags: result.flags as never,
@@ -453,13 +475,18 @@ export function AdminUpload() {
     onSuccess: (r) => {
       setStep("");
       setFile(null);
+      setPasted("");
+      setSourceTitle("");
       if (fileRef.current) fileRef.current.value = "";
       void qc.invalidateQueries({ queryKey: ["admin"] });
       toast.success(`تم استخراج ${r.units.length} وحدة — راجعها في المسودات`);
     },
     onError: (e) => {
       setStep("");
-      toast.error((e as Error).message);
+      const msg = (e as Error)?.message || "حدث خطأ غير متوقع";
+      console.error("Book processing failed:", e);
+      setErrorMsg(msg);
+      toast.error(msg);
     },
   });
 
@@ -496,9 +523,27 @@ export function AdminUpload() {
         />
       </label>
 
-      <button className={btn} disabled={process.isPending || !file || !subjectId} onClick={() => process.mutate()}>
+      <p className="text-center text-[11px] text-muted-foreground">أو الصق نص الكتاب مباشرة</p>
+      <input
+        className={input}
+        placeholder="عنوان المصدر (اختياري) — مثال: الوحدة الأولى"
+        value={sourceTitle}
+        onChange={(e) => setSourceTitle(e.target.value)}
+      />
+      <textarea
+        className={`${input} min-h-40 leading-relaxed`}
+        placeholder="الصق هنا نص الكتاب أو الدروس…"
+        value={pasted}
+        onChange={(e) => setPasted(e.target.value)}
+      />
+      {pasted && <p className="text-[10px] text-muted-foreground">{pasted.length.toLocaleString("ar")} حرف</p>}
+
+      <button className={btn} disabled={process.isPending || !hasSource || !subjectId} onClick={() => process.mutate()}>
         {process.isPending ? step || "جارٍ المعالجة…" : "معالجة الكتاب بالذكاء الاصطناعي"}
       </button>
+      {errorMsg && (
+        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">{errorMsg}</p>
+      )}
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         يعتمد التحليل على نص الكتاب المرفوع فقط. أي جزء ناقص أو غير واضح يُسجَّل كملاحظة للمراجعة بدل تخمينه.
       </p>
