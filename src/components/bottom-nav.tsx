@@ -1,12 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Library, Bot, Trophy, User } from "lucide-react";
+import { BookOpen, ClipboardCheck, Flame, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { to: "/home", label: "الرئيسية", Icon: Home },
-  { to: "/curriculum", label: "موادي", Icon: Library },
-  { to: "/saqro", label: "سَقرو AI", Icon: Bot },
-  { to: "/achievements", label: "الإنجازات", Icon: Trophy },
+  { to: "/curriculum", label: "المكتبة", Icon: BookOpen },
+  { to: "/quizzes", label: "اختباري", Icon: ClipboardCheck },
+  { to: "/streak", label: "الاستريك", Icon: Flame },
   { to: "/profile", label: "حسابي", Icon: User },
 ] as const;
 
