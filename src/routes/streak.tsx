@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Flame, Sparkles, Trophy } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import mascotAsset from "@/assets/saqro-streak-mascot.png.asset.json";
 import { Card, Screen } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -130,7 +130,7 @@ function MonthGrid({ month, activeDays }: { month: Date; activeDays: Set<string>
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: string | number }) {
   return (
     <div className="flex min-w-0 flex-col items-center gap-1 rounded-2xl border border-border px-1 py-3">
       {icon}

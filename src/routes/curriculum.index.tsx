@@ -7,9 +7,9 @@ import { useApp } from "@/lib/app-state";
 export const Route = createFileRoute("/curriculum/")({
   head: () => ({
     meta: [
-      { title: "المنهج | سَقرو" },
+      { title: "المكتبة | سَقرو" },
       { name: "description", content: "تصفّح مواد المنهج السوداني ووحداته ودروسه داخل تطبيق سَقرو." },
-      { property: "og:title", content: "المنهج | سَقرو" },
+      { property: "og:title", content: "المكتبة | سَقرو" },
       { property: "og:description", content: "كل موادك ووحداتك ودروسك في مكان واحد منظّم." },
     ],
   }),
@@ -24,7 +24,7 @@ function CurriculumPage() {
   return (
     <Screen>
       <PageHeader
-        title="المنهج"
+        title="المكتبة"
         subtitle={grade ? `${stage?.name} · ${grade.name}` : "اختر مادة لتبدأ المذاكرة"}
       />
 
