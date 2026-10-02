@@ -8,8 +8,10 @@ import { getLesson } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
 import { isDbId, useLessonData } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
+import { z } from "zod";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
+  validateSearch: z.object({ tab: z.enum(["explain", "summary", "cards", "quiz"]).optional() }),
   head: () => ({
     meta: [
       { title: "الدرس | سَقرو" },
@@ -30,10 +32,11 @@ const tabs = [
 
 function LessonPage() {
   const { lessonId } = Route.useParams();
+  const search = Route.useSearch();
   const live = useLessonData(lessonId);
   const data = isDbId(lessonId) ? live.data : getLesson(lessonId);
   const { state, toggleLesson, spendEnergy, isSuper } = useApp();
-  const [tab, setTab] = useState<(typeof tabs)[number]["id"]>("explain");
+  const [tab, setTab] = useState<(typeof tabs)[number]["id"]>(search.tab ?? "explain");
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [answers, setAnswers] = useState<Record<number, number>>({});
