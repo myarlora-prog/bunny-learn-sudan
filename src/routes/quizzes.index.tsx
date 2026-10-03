@@ -24,7 +24,7 @@ function QuizzesPage() {
   const startX = useRef<number | null>(null);
   const n = subjects.length;
   const go = (d: number) => setIndex((i) => (i + d + n) % n);
-  const current = subjects[index];
+  const current = subjects[index]!;
   const quizCount = current.units.reduce((a, u) => a + u.lessons.filter((l) => l.quiz.length).length, 0);
 
   return (
@@ -33,10 +33,10 @@ function QuizzesPage() {
 
       <div
         className="relative mx-auto mt-4 h-[300px] select-none [perspective:1000px]"
-        onTouchStart={(e) => (startX.current = e.touches[0].clientX)}
+        onTouchStart={(e) => (startX.current = e.touches[0]!.clientX)}
         onTouchEnd={(e) => {
           if (startX.current == null) return;
-          const dx = e.changedTouches[0].clientX - startX.current;
+          const dx = e.changedTouches[0]!.clientX - startX.current;
           if (Math.abs(dx) > 40) go(dx > 0 ? 1 : -1);
           startX.current = null;
         }}
