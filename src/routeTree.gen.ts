@@ -20,7 +20,6 @@ import { Route as HomeRouteImport } from './routes/home'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProgressRouteImport } from './routes/progress'
-import { Route as QuizzesRouteImport } from './routes/quizzes'
 import { Route as ReferralsRouteImport } from './routes/referrals'
 import { Route as SaqroRouteImport } from './routes/saqro'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -30,6 +29,7 @@ import { Route as SuperRouteImport } from './routes/super'
 import { Route as CurriculumIndexRouteImport } from './routes/curriculum.index'
 import { Route as CurriculumSubjectIdRouteImport } from './routes/curriculum.$subjectId'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
+import { Route as QuizzesIndexRouteImport } from './routes/quizzes.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -86,11 +86,6 @@ const ProgressRoute = ProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QuizzesRoute = QuizzesRouteImport.update({
-  id: '/quizzes',
-  path: '/quizzes',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ReferralsRoute = ReferralsRouteImport.update({
   id: '/referrals',
   path: '/referrals',
@@ -136,6 +131,11 @@ const LessonLessonIdRoute = LessonLessonIdRouteImport.update({
   path: '/lesson/$lessonId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuizzesIndexRoute = QuizzesIndexRouteImport.update({
+  id: '/quizzes/',
+  path: '/quizzes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -149,7 +149,6 @@ export interface FileRoutesByFullPath {
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
-  '/quizzes': typeof QuizzesRoute
   '/referrals': typeof ReferralsRoute
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
@@ -159,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum/': typeof CurriculumIndexRoute
+  '/quizzes/': typeof QuizzesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -172,7 +172,6 @@ export interface FileRoutesByTo {
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
-  '/quizzes': typeof QuizzesRoute
   '/referrals': typeof ReferralsRoute
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
@@ -182,6 +181,7 @@ export interface FileRoutesByTo {
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum': typeof CurriculumIndexRoute
+  '/quizzes': typeof QuizzesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -196,7 +196,6 @@ export interface FileRoutesById {
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
-  '/quizzes': typeof QuizzesRoute
   '/referrals': typeof ReferralsRoute
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
@@ -206,6 +205,7 @@ export interface FileRoutesById {
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/curriculum/': typeof CurriculumIndexRoute
+  '/quizzes/': typeof QuizzesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,7 +221,6 @@ export interface FileRouteTypes {
     | '/planner'
     | '/profile'
     | '/progress'
-    | '/quizzes'
     | '/referrals'
     | '/saqro'
     | '/settings'
@@ -231,6 +230,7 @@ export interface FileRouteTypes {
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
     | '/curriculum/'
+    | '/quizzes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -244,7 +244,6 @@ export interface FileRouteTypes {
     | '/planner'
     | '/profile'
     | '/progress'
-    | '/quizzes'
     | '/referrals'
     | '/saqro'
     | '/settings'
@@ -254,6 +253,7 @@ export interface FileRouteTypes {
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
     | '/curriculum'
+    | '/quizzes'
   id:
     | '__root__'
     | '/'
@@ -267,7 +267,6 @@ export interface FileRouteTypes {
     | '/planner'
     | '/profile'
     | '/progress'
-    | '/quizzes'
     | '/referrals'
     | '/saqro'
     | '/settings'
@@ -277,6 +276,7 @@ export interface FileRouteTypes {
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
     | '/curriculum/'
+    | '/quizzes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -291,7 +291,6 @@ export interface RootRouteChildren {
   PlannerRoute: typeof PlannerRoute
   ProfileRoute: typeof ProfileRoute
   ProgressRoute: typeof ProgressRoute
-  QuizzesRoute: typeof QuizzesRoute
   ReferralsRoute: typeof ReferralsRoute
   SaqroRoute: typeof SaqroRoute
   SettingsRoute: typeof SettingsRoute
@@ -301,6 +300,7 @@ export interface RootRouteChildren {
   CurriculumSubjectIdRoute: typeof CurriculumSubjectIdRoute
   LessonLessonIdRoute: typeof LessonLessonIdRoute
   CurriculumIndexRoute: typeof CurriculumIndexRoute
+  QuizzesIndexRoute: typeof QuizzesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -382,13 +382,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgressRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/quizzes': {
-      id: '/quizzes'
-      path: '/quizzes'
-      fullPath: '/quizzes'
-      preLoaderRoute: typeof QuizzesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/referrals': {
       id: '/referrals'
       path: '/referrals'
@@ -452,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LessonLessonIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quizzes/': {
+      id: '/quizzes/'
+      path: '/quizzes'
+      fullPath: '/quizzes/'
+      preLoaderRoute: typeof QuizzesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -467,7 +467,6 @@ const rootRouteChildren: RootRouteChildren = {
   PlannerRoute: PlannerRoute,
   ProfileRoute: ProfileRoute,
   ProgressRoute: ProgressRoute,
-  QuizzesRoute: QuizzesRoute,
   ReferralsRoute: ReferralsRoute,
   SaqroRoute: SaqroRoute,
   SettingsRoute: SettingsRoute,
@@ -477,6 +476,7 @@ const rootRouteChildren: RootRouteChildren = {
   CurriculumSubjectIdRoute: CurriculumSubjectIdRoute,
   LessonLessonIdRoute: LessonLessonIdRoute,
   CurriculumIndexRoute: CurriculumIndexRoute,
+  QuizzesIndexRoute: QuizzesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
