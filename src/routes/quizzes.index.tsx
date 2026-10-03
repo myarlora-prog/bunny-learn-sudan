@@ -32,7 +32,7 @@ function QuizzesPage() {
       <PageHeader title="اختباري" subtitle="اختر المادة واختبر نفسك" />
 
       <div
-        className="relative mx-auto mt-4 h-[300px] select-none [perspective:1000px]"
+        className="relative mx-auto mt-4 h-[300px] select-none overflow-hidden [perspective:1000px]"
         onTouchStart={(e) => (startX.current = e.touches[0]!.clientX)}
         onTouchEnd={(e) => {
           if (startX.current == null) return;

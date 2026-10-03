@@ -16,7 +16,7 @@ export function Screen({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const theme = themeForPath(pathname);
   return (
-    <div className={cn(theme, "relative min-h-screen w-full", theme && "bg-[image:var(--gradient-surface)]")}>
+    <div className={cn(theme, "relative min-h-screen w-full overflow-x-hidden", theme && "bg-[image:var(--gradient-surface)]")}>
       <div className="relative mx-auto min-h-screen w-full max-w-lg">
         <div className={cn("page-enter px-5 pt-6", nav ? "pb-32" : "pb-10", className)}>{children}</div>
         {nav && <BottomNav />}
