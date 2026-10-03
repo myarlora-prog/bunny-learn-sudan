@@ -4,7 +4,7 @@ import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { subjects } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
 
-export const Route = createFileRoute("/quizzes")({
+export const Route = createFileRoute("/quizzes/")({
   head: () => ({
     meta: [
       { title: "اختباري | سَقرو" },
