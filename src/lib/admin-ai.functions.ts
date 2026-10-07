@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { aiComplete } from "@/lib/gemini.server";
 
 export type DraftFlashcard = { front: string; back: string };
 export type DraftQuiz = {
@@ -81,33 +82,26 @@ export const processBook = createServerFn({ method: "POST" })
       `أعد JSON فقط بهذا الشكل: ${SCHEMA}`,
     ].join("\n");
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]!}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: system },
-          {
-            role: "user",
-            content: `المادة: ${data.subjectName}\nالصف: ${data.gradeName}\n\nنص الكتاب:\n${data.text}`,
-          },
-        ],
-      }),
+    const result = await aiComplete({
+      json: true,
+      messages: [
+        { role: "system", content: system },
+        {
+          role: "user",
+          content: `المادة: ${data.subjectName}\nالصف: ${data.gradeName}\n\nنص الكتاب:\n${data.text}`,
+        },
+      ],
     });
 
-    if (!res.ok) {
-      if (res.status === 429) throw new Error("الخدمة مزدحمة الآن، حاول بعد قليل");
-      if (res.status === 402) throw new Error("رصيد الذكاء الاصطناعي غير كافٍ");
+    if (!result.ok) {
+      if (result.status === 429) throw new Error("الخدمة مزدحمة الآن، حاول بعد قليل");
+      if (result.status === 402) throw new Error("رصيد الذكاء الاصطناعي غير كافٍ");
+      if (result.status === 400 || result.status === 401 || result.status === 403)
+        throw new Error("مفتاح Gemini غير صالح، راجع إعدادات المفتاح");
       throw new Error("تعذّرت معالجة الكتاب، حاول مرة أخرى");
     }
 
-    const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    const raw = json.choices?.[0]?.message?.content ?? "{}";
+    const raw = result.content || "{}";
     let parsed: DraftContent;
     try {
       parsed = JSON.parse(raw.replace(/^```json/i, "").replace(/```$/, "")) as DraftContent;
