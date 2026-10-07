@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { aiComplete } from "@/lib/gemini.server";
 
 export type DraftFlashcard = { front: string; back: string };
 export type DraftQuiz = {

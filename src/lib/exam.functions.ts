@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { aiComplete } from "@/lib/gemini.server";
 
 type ExamInput = { subject: string; source: string; count: number };
 export type ExamQuestion = { q: string; options: string[]; correct: number; hint: string };
