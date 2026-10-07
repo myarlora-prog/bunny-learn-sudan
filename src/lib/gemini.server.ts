@@ -18,7 +18,7 @@ export type AiResult =
   | { ok: true; content: string }
   | { ok: false; status: number; content: "" };
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.5-flash";
 
 async function callGeminiDirect(apiKey: string, opts: Options): Promise<AiResult> {
   const system = opts.messages.filter((m) => m.role === "system").map((m) => m.content).join("\n");
@@ -39,6 +39,7 @@ async function callGeminiDirect(apiKey: string, opts: Options): Promise<AiResult
         ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
         generationConfig: {
           temperature: 0.4,
+          maxOutputTokens: 16384,
           ...(opts.json ? { responseMimeType: "application/json" } : {}),
         },
       }),
