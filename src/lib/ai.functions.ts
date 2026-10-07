@@ -60,30 +60,21 @@ export const askSaqro = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join("\n");
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]!}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: system },
-          ...data.history,
-          { role: "user", content: data.message },
-        ],
-      }),
+    const result = await aiComplete({
+      messages: [
+        { role: "system", content: system },
+        ...data.history,
+        { role: "user", content: data.message },
+      ],
     });
 
-    if (!res.ok) {
-      if (res.status === 429) return { ok: false as const, reply: "الخدمة مزدحمة الآن، حاول بعد قليل." };
-      if (res.status === 402) return { ok: false as const, reply: "رصيد الذكاء الاصطناعي غير كافٍ حاليًا." };
+    if (!result.ok) {
+      if (result.status === 429) return { ok: false as const, reply: "الخدمة مزدحمة الآن، حاول بعد قليل." };
+      if (result.status === 402) return { ok: false as const, reply: "رصيد الذكاء الاصطناعي غير كافٍ حاليًا." };
       return { ok: false as const, reply: "تعذّر الوصول إلى سَقرو الآن، حاول مرة أخرى." };
     }
 
-    const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    const reply = json.choices?.[0]?.message?.content?.trim() || "لم أتمكن من صياغة إجابة، أعد صياغة سؤالك.";
+    const reply = result.content || "لم أتمكن من صياغة إجابة، أعد صياغة سؤالك.";
 
     await supabase.rpc("log_ai_message", { _role: "user", _content: data.message });
     await supabase.rpc("log_ai_message", { _role: "assistant", _content: reply });
