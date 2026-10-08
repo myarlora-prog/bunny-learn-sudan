@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
-import { Loader2, Plus, Trash2, Upload, Check, X, Pencil } from "lucide-react";
+import { Loader2, Plus, Trash2, Upload, Check, X, Pencil, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
