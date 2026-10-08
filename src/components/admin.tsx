@@ -832,11 +832,13 @@ function DraftReview({ draft, onDone }: { draft: AdminDraft; onDone: () => void 
         </Card>
       ))}
 
+      <PublishLocationPicker value={loc} onChange={setLoc} />
+
       <div className="flex gap-2">
         <button className={btn} disabled={busy} onClick={() => void save(false)}>
           <Check className="ml-1 inline size-4" /> حفظ المسودة
         </button>
-        <button className={ghost} disabled={busy} onClick={() => void save(true)}>
+        <button className={ghost} disabled={busy || !loc.subjectId} onClick={() => void save(true)}>
           نشر في المنهج
         </button>
       </div>
