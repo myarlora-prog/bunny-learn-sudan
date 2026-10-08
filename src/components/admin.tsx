@@ -744,7 +744,13 @@ function DraftReview({ draft, onDone }: { draft: AdminDraft; onDone: () => void 
         .eq("id", draft.id);
       if (error) throw error;
       if (publish) {
-        await publishDraft({ ...draft, ...loc, content });
+        await publishDraft({
+          ...draft,
+          stage_id: loc.stageId || null,
+          grade_id: loc.gradeId || null,
+          subject_id: loc.subjectId,
+          content,
+        });
         setPublishedSubjectId(loc.subjectId);
         toast.success("تم النشر في المنهج");
       } else {
