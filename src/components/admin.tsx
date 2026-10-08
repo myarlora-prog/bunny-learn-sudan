@@ -727,21 +727,53 @@ function DraftReview({ draft, onDone }: { draft: AdminDraft; onDone: () => void 
   }
 
   async function save(publish: boolean) {
+    if (publish && !loc.subjectId) {
+      toast.error("حدد مكان النشر أولًا: المرحلة والصف والمادة");
+      return;
+    }
     setBusy(true);
     try {
       const { error } = await supabase
         .from("curriculum_drafts")
-        .update({ content: content as never })
+        .update({
+          content: content as never,
+          stage_id: loc.stageId || null,
+          grade_id: loc.gradeId || null,
+          subject_id: loc.subjectId || null,
+        })
         .eq("id", draft.id);
       if (error) throw error;
-      if (publish) await publishDraft({ ...draft, content });
-      toast.success(publish ? "تم النشر في المنهج" : "تم حفظ المسودة");
-      onDone();
+      if (publish) {
+        await publishDraft({ ...draft, ...loc, content });
+        setPublishedSubjectId(loc.subjectId);
+        toast.success("تم النشر في المنهج");
+      } else {
+        toast.success("تم حفظ المسودة");
+        onDone();
+      }
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
     }
+  }
+
+  if (publishedSubjectId) {
+    return (
+      <Card className="flex flex-col items-center gap-3 p-6 text-center">
+        <Check className="size-10 text-primary" />
+        <p className="text-sm font-bold">تم نشر المحتوى في مكانه بنجاح</p>
+        <p className="text-[11px] text-muted-foreground">ستجده الآن ضمن المادة التي اخترتها في المكتبة.</p>
+        <Link
+          to="/curriculum/$subjectId"
+          params={{ subjectId: publishedSubjectId }}
+          className={btn}
+        >
+          الانتقال إلى القسم المنشور
+        </Link>
+        <button className={ghost} onClick={onDone}>رجوع للمسودات</button>
+      </Card>
+    );
   }
 
   return (
