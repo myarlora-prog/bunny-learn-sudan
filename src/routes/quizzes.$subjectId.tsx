@@ -135,9 +135,10 @@ function SubjectExam({ subject }: { subject: Subject }) {
   });
 
   useEffect(() => {
+    if (isDbId(subject.id) && sourceQ.isLoading) return;
     m.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subject.id]);
+  }, [subject.id, sourceQ.isLoading]);
 
   const q = questions[i];
   const done = questions.length > 0 && i >= questions.length;
