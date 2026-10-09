@@ -131,6 +131,36 @@ export function useSubjectTree(subjectId: string | null) {
   });
 }
 
+/** Quiz question counts per lesson for a subject's published lessons. */
+export function useSubjectQuizCounts(subjectId: string | null) {
+  return useQuery({
+    queryKey: ["subject-quiz-counts", subjectId],
+    enabled: !!subjectId && isDbId(subjectId ?? ""),
+    queryFn: async (): Promise<Record<string, number>> => {
+      const { data: units } = await supabase
+        .from("units")
+        .select("id")
+        .eq("subject_id", subjectId!)
+        .eq("published", true);
+      const unitIds = (units ?? []).map((u) => u.id);
+      const { data: lessons } = await supabase
+        .from("lessons")
+        .select("id")
+        .in("unit_id", unitIds.length ? unitIds : ["-"])
+        .eq("published", true);
+      const lessonIds = (lessons ?? []).map((l) => l.id);
+      const { data: qs } = await supabase
+        .from("quiz_questions")
+        .select("lesson_id")
+        .in("lesson_id", lessonIds.length ? lessonIds : ["-"]);
+      const counts: Record<string, number> = {};
+      for (const q of qs ?? []) counts[q.lesson_id] = (counts[q.lesson_id] ?? 0) + 1;
+      return counts;
+    },
+    staleTime: 60 * 1000,
+  });
+}
+
 /** Concatenated published lesson content for a subject — the source text for AI subject exams. */
 export function useSubjectExamSource(subjectId: string | null) {
   return useQuery({
