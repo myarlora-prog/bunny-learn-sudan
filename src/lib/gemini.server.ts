@@ -39,7 +39,7 @@ async function callGeminiDirect(apiKey: string, opts: Options): Promise<AiResult
         ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
         generationConfig: {
           temperature: 0.4,
-          maxOutputTokens: 16384,
+          maxOutputTokens: 32768,
           ...(opts.json ? { responseMimeType: "application/json" } : {}),
         },
       }),
