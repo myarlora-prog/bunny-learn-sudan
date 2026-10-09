@@ -41,8 +41,10 @@ function useSubjectCounts(subjectIds: string[]) {
       const counts: Record<string, { units: number; lessons: number }> = {};
       for (const id of subjectIds) counts[id] = { units: 0, lessons: 0 };
       for (const u of units ?? []) {
-        counts[u.subject_id].units += 1;
-        counts[u.subject_id].lessons += lessonsByUnit.get(u.id) ?? 0;
+        const c = counts[u.subject_id];
+        if (!c) continue;
+        c.units += 1;
+        c.lessons += lessonsByUnit.get(u.id) ?? 0;
       }
       return counts;
     },
