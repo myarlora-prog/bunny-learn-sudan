@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ClipboardList, Sparkles } from "lucide-react";
+import { ClipboardList, Loader2, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 import { PageHeader, Screen } from "@/components/app-shell";
-import { subjects } from "@/data/curriculum";
+import { SaqroEmpty } from "@/components/saqro";
+import { useApp } from "@/lib/app-state";
+import { useSubjects } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/quizzes/")({
