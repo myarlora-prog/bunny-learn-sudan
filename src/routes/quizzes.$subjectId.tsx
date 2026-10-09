@@ -104,6 +104,7 @@ function fallbackQuestions(subject: Subject): ExamQuestion[] {
 
 function SubjectExam({ subject }: { subject: Subject }) {
   const gen = useServerFn(generateSubjectExam);
+  const sourceQ = useSubjectExamSource(subject.id);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -111,11 +112,13 @@ function SubjectExam({ subject }: { subject: Subject }) {
 
   const m = useMutation({
     mutationFn: async () => {
-      const source = subject.units
-        .flatMap((u) =>
-          u.lessons.map((l) => `## ${u.title} - ${l.title}\n${l.explanation.join("\n")}\n${l.summary.join("\n")}`),
-        )
-        .join("\n\n");
+      const source = isDbId(subject.id)
+        ? (sourceQ.data ?? "")
+        : subject.units
+            .flatMap((u) =>
+              u.lessons.map((l) => `## ${u.title} - ${l.title}\n${l.explanation.join("\n")}\n${l.summary.join("\n")}`),
+            )
+            .join("\n\n");
       try {
         const r = await gen({ data: { subject: subject.name, source, count: 10 } });
         return r.ok ? r.questions : fallbackQuestions(subject);
