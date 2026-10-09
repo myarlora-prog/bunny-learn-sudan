@@ -8,6 +8,7 @@ import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { getSubject, type Subject } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
+import { isDbId, useSubjectExamSource, useSubjectTree } from "@/lib/curriculum-db";
 import { generateSubjectExam, type ExamQuestion } from "@/lib/exam.functions";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +30,16 @@ export const Route = createFileRoute("/quizzes/$subjectId")({
 function SubjectQuizPage() {
   const { subjectId } = Route.useParams();
   const { mode = "units" } = Route.useSearch();
-  const subject = getSubject(subjectId);
+  const live = useSubjectTree(subjectId);
+  const subject = isDbId(subjectId) ? live.data : getSubject(subjectId);
+  if (isDbId(subjectId) && live.isLoading) {
+    return (
+      <Screen>
+        <PageHeader title="اختباري" back />
+        <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
+      </Screen>
+    );
+  }
   if (!subject) {
     return (
       <Screen>
