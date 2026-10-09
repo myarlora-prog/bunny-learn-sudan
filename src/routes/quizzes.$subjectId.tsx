@@ -8,7 +8,7 @@ import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { getSubject, type Subject } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
-import { isDbId, useSubjectExamSource, useSubjectTree } from "@/lib/curriculum-db";
+import { isDbId, useSubjectExamSource, useSubjectQuizCounts, useSubjectTree } from "@/lib/curriculum-db";
 import { generateSubjectExam, type ExamQuestion } from "@/lib/exam.functions";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +53,9 @@ function SubjectQuizPage() {
 
 function UnitQuizzes({ subject }: { subject: Subject }) {
   const { state } = useApp();
+  const countsQ = useSubjectQuizCounts(subject.id);
+  const countOf = (lessonId: string) =>
+    isDbId(lessonId) ? (countsQ.data?.[lessonId] ?? 0) : 0;
   return (
     <Screen>
       <PageHeader title={`${subject.icon} اختبارات الوحدات`} subtitle={subject.name} back />
@@ -61,7 +64,9 @@ function UnitQuizzes({ subject }: { subject: Subject }) {
           <section key={unit.id}>
             <h2 className="mb-2 text-base">{unit.title}</h2>
             <div className="flex flex-col gap-2.5">
-              {unit.lessons.filter((l) => l.quiz.length).map((lesson) => (
+              {unit.lessons
+                .filter((l) => (isDbId(l.id) ? countOf(l.id) > 0 : l.quiz.length > 0))
+                .map((lesson) => (
                 <Link key={lesson.id} to="/lesson/$lessonId" params={{ lessonId: lesson.id }} search={{ tab: "quiz" }}>
                   <Card className="flex items-center gap-3">
                     <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-soft">
@@ -69,7 +74,9 @@ function UnitQuizzes({ subject }: { subject: Subject }) {
                     </span>
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-sm font-bold">{lesson.title}</h3>
-                      <p className="text-[11px] text-muted-foreground">{lesson.quiz.length} أسئلة</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {isDbId(lesson.id) ? countOf(lesson.id) : lesson.quiz.length} أسئلة
+                      </p>
                     </div>
                     {state.completedLessons.includes(lesson.id) ? (
                       <CheckCircle2 className="size-5 text-success" />
