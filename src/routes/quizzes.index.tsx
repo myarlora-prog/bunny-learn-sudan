@@ -22,12 +22,33 @@ export const Route = createFileRoute("/quizzes/")({
 });
 
 function QuizzesPage() {
+  const { state } = useApp();
+  const subjectsQ = useSubjects(state.gradeId);
+  const subjects = subjectsQ.data ?? [];
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
   const n = subjects.length;
+
+  if (subjectsQ.isLoading) {
+    return (
+      <Screen>
+        <PageHeader title="اختباري" subtitle="اختر المادة واختبر نفسك" />
+        <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
+      </Screen>
+    );
+  }
+  if (n === 0) {
+    return (
+      <Screen>
+        <PageHeader title="اختباري" subtitle="اختر المادة واختبر نفسك" />
+        <SaqroEmpty title="لا توجد مواد منشورة بعد" desc="ستظهر اختبارات صفك هنا فور نشرها." />
+      </Screen>
+    );
+  }
+
+  const safeIndex = Math.min(index, n - 1);
   const go = (d: number) => setIndex((i) => (i + d + n) % n);
-  const current = subjects[index]!;
-  const quizCount = current.units.reduce((a, u) => a + u.lessons.filter((l) => l.quiz.length).length, 0);
+  const current = subjects[safeIndex]!;
 
   return (
     <Screen>
