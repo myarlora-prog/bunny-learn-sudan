@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ClipboardList, Sparkles } from "lucide-react";
+import { ClipboardList, Loader2, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 import { PageHeader, Screen } from "@/components/app-shell";
-import { subjects } from "@/data/curriculum";
+import { SaqroEmpty } from "@/components/saqro";
+import { useApp } from "@/lib/app-state";
+import { useSubjects } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/quizzes/")({
@@ -20,12 +22,33 @@ export const Route = createFileRoute("/quizzes/")({
 });
 
 function QuizzesPage() {
+  const { state } = useApp();
+  const subjectsQ = useSubjects(state.gradeId);
+  const subjects = subjectsQ.data ?? [];
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
   const n = subjects.length;
+
+  if (subjectsQ.isLoading) {
+    return (
+      <Screen>
+        <PageHeader title="اختباري" subtitle="اختر المادة واختبر نفسك" />
+        <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
+      </Screen>
+    );
+  }
+  if (n === 0) {
+    return (
+      <Screen>
+        <PageHeader title="اختباري" subtitle="اختر المادة واختبر نفسك" />
+        <SaqroEmpty title="لا توجد مواد منشورة بعد" desc="ستظهر اختبارات صفك هنا فور نشرها." />
+      </Screen>
+    );
+  }
+
+  const safeIndex = Math.min(index, n - 1);
   const go = (d: number) => setIndex((i) => (i + d + n) % n);
-  const current = subjects[index]!;
-  const quizCount = current.units.reduce((a, u) => a + u.lessons.filter((l) => l.quiz.length).length, 0);
+  const current = subjects[safeIndex]!;
 
   return (
     <Screen>
@@ -42,7 +65,7 @@ function QuizzesPage() {
         }}
       >
         {subjects.map((s, i) => {
-          let off = i - index;
+          let off = i - safeIndex;
           if (off > n / 2) off -= n;
           if (off < -n / 2) off += n;
           const visible = Math.abs(off) <= 1;
@@ -80,14 +103,12 @@ function QuizzesPage() {
             type="button"
             aria-label={s.name}
             onClick={() => setIndex(i)}
-            className={cn("h-2 rounded-full transition-all", i === index ? "w-6 bg-primary" : "w-2 bg-primary/25")}
+            className={cn("h-2 rounded-full transition-all", i === safeIndex ? "w-6 bg-primary" : "w-2 bg-primary/25")}
           />
         ))}
       </div>
 
-      <p className="mb-4 text-center text-sm text-muted-foreground">
-        {current.units.length} وحدات · {quizCount} اختبارات دروس
-      </p>
+      <p className="mb-4 text-center text-sm text-muted-foreground">{current.name}</p>
 
       <div className="flex flex-col gap-3">
         <Link
