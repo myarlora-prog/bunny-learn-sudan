@@ -131,6 +131,51 @@ export function useSubjectTree(subjectId: string | null) {
   });
 }
 
+/** Concatenated published lesson content for a subject — the source text for AI subject exams. */
+export function useSubjectExamSource(subjectId: string | null) {
+  return useQuery({
+    queryKey: ["subject-exam-source", subjectId],
+    enabled: !!subjectId && isDbId(subjectId ?? ""),
+    queryFn: async (): Promise<string> => {
+      const { data: units } = await supabase
+        .from("units")
+        .select("id,title")
+        .eq("subject_id", subjectId!)
+        .eq("published", true)
+        .order("sort_order");
+      const unitIds = (units ?? []).map((u) => u.id);
+      const { data: lessons } = await supabase
+        .from("lessons")
+        .select("id,unit_id,title")
+        .in("unit_id", unitIds.length ? unitIds : ["-"])
+        .eq("published", true)
+        .order("sort_order");
+      const lessonIds = (lessons ?? []).map((l) => l.id);
+      const { data: contents } = await supabase
+        .from("lesson_content")
+        .select("lesson_id,explanation,summary,key_points")
+        .in("lesson_id", lessonIds.length ? lessonIds : ["-"]);
+      const byLesson = new Map((contents ?? []).map((c) => [c.lesson_id, c]));
+      const unitTitle = new Map((units ?? []).map((u) => [u.id, u.title]));
+      return (lessons ?? [])
+        .map((l) => {
+          const c = byLesson.get(l.id);
+          const parts = [
+            `## ${unitTitle.get(l.unit_id) ?? ""} - ${l.title}`,
+            String(c?.explanation ?? ""),
+            String(c?.summary ?? ""),
+            Array.isArray(c?.key_points) ? (c.key_points as unknown as string[]).join("\n") : "",
+          ];
+          return parts.filter(Boolean).join("\n");
+        })
+        .filter(Boolean)
+        .join("\n\n")
+        .slice(0, 60000);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 /** One published lesson with its content, flashcards and quiz, in the existing lesson-page shape. */
 export function useLessonData(lessonId: string | null) {
   return useQuery({
