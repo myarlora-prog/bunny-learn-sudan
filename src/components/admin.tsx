@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
-import { Loader2, Plus, Trash2, Upload, Check, X, Pencil, MapPin } from "lucide-react";
+import { Loader2, Plus, Trash2, Upload, Check, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
@@ -402,10 +401,7 @@ export function AdminUpload() {
   const subjects = useAdminList<Row>("subjects", { column: "grade_id", value: gradeId || null });
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [pasted, setPasted] = useState("");
-  const [sourceTitle, setSourceTitle] = useState("");
   const [step, setStep] = useState<string>("");
-  const [errorMsg, setErrorMsg] = useState("");
   const run = useServerFn(processBook);
   const qc = useQueryClient();
 
@@ -418,45 +414,26 @@ export function AdminUpload() {
     [subjects.data, subjectId],
   );
 
-  const hasSource = !!file || pasted.trim().length > 0;
-
   const process = useMutation({
     mutationFn: async () => {
-      setErrorMsg("");
-      if (!subjectId) throw new Error("اختر المادة أولًا");
-      if (!hasSource) throw new Error("ارفع ملفًا أو الصق نص الكتاب");
+      if (!file || !subjectId) throw new Error("اختر المادة والملف");
+      setStep("قراءة الملف…");
+      const text = await extractText(file);
+      if (text.trim().length < 50) throw new Error("لم نتمكن من قراءة نص من هذا الملف (قد يحتاج إلى نسخة نصية)");
 
-      let text = pasted.trim();
-      let sourceName = sourceTitle.trim() || "نص ملصوق";
-      if (file) {
-        setStep("قراءة الملف…");
-        const fileText = await extractText(file);
-        text = text ? `${text}\n\n${fileText}` : fileText;
-        sourceName = sourceTitle.trim() || file.name;
-      }
-      if (text.trim().length < 50)
-        throw new Error("لم نتمكن من قراءة نص كافٍ (قد يكون الملف صورًا ممسوحة — الصق النص يدويًا)");
+      setStep("رفع الكتاب…");
+      const path = `${subjectId}/${Date.now()}-${file.name}`;
+      const up = await supabase.storage.from("curriculum-books").upload(path, file);
+      if (up.error) throw up.error;
+      await supabase.from("curriculum_files").insert({
+        grade_id: gradeId,
+        subject_id: subjectId,
+        file_name: file.name,
+        file_path: path,
+        status: "processing",
+      });
 
-      if (file) {
-        setStep("رفع الكتاب…");
-        // Storage keys must be ASCII-safe; Arabic names/spaces are rejected.
-        const ext = file.name.toLowerCase().endsWith(".txt") ? "txt" : "pdf";
-        const path = `${subjectId}/${Date.now()}.${ext}`;
-        const up = await supabase.storage.from("curriculum-books").upload(path, file);
-        if (!up.error) {
-          await supabase.from("curriculum_files").insert({
-            grade_id: gradeId,
-            subject_id: subjectId,
-            file_name: file.name,
-            file_path: path,
-            status: "processing",
-          });
-        } else {
-          console.warn("Book file upload failed, continuing with text:", up.error.message);
-        }
-      }
-
-      setStep("تحليل الكتاب بالذكاء الاصطناعي… (قد يستغرق دقيقة)");
+      setStep("تحليل الكتاب بالذكاء الاصطناعي…");
       const result = await run({ data: { text, subjectName, gradeName } });
 
       setStep("حفظ المسودة…");
@@ -464,7 +441,7 @@ export function AdminUpload() {
         stage_id: stageId,
         grade_id: gradeId,
         subject_id: subjectId,
-        source_name: sourceName,
+        source_name: file.name,
         source_text: text.slice(0, 200000),
         content: { units: result.units } as never,
         flags: result.flags as never,
@@ -476,18 +453,13 @@ export function AdminUpload() {
     onSuccess: (r) => {
       setStep("");
       setFile(null);
-      setPasted("");
-      setSourceTitle("");
       if (fileRef.current) fileRef.current.value = "";
       void qc.invalidateQueries({ queryKey: ["admin"] });
       toast.success(`تم استخراج ${r.units.length} وحدة — راجعها في المسودات`);
     },
     onError: (e) => {
       setStep("");
-      const msg = (e as Error)?.message || "حدث خطأ غير متوقع";
-      console.error("Book processing failed:", e);
-      setErrorMsg(msg);
-      toast.error(msg);
+      toast.error((e as Error).message);
     },
   });
 
@@ -524,27 +496,9 @@ export function AdminUpload() {
         />
       </label>
 
-      <p className="text-center text-[11px] text-muted-foreground">أو الصق نص الكتاب مباشرة</p>
-      <input
-        className={input}
-        placeholder="عنوان المصدر (اختياري) — مثال: الوحدة الأولى"
-        value={sourceTitle}
-        onChange={(e) => setSourceTitle(e.target.value)}
-      />
-      <textarea
-        className={`${input} min-h-40 leading-relaxed`}
-        placeholder="الصق هنا نص الكتاب أو الدروس…"
-        value={pasted}
-        onChange={(e) => setPasted(e.target.value)}
-      />
-      {pasted && <p className="text-[10px] text-muted-foreground">{pasted.length.toLocaleString("ar")} حرف</p>}
-
-      <button className={btn} disabled={process.isPending || !hasSource || !subjectId} onClick={() => process.mutate()}>
+      <button className={btn} disabled={process.isPending || !file || !subjectId} onClick={() => process.mutate()}>
         {process.isPending ? step || "جارٍ المعالجة…" : "معالجة الكتاب بالذكاء الاصطناعي"}
       </button>
-      {errorMsg && (
-        <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">{errorMsg}</p>
-      )}
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         يعتمد التحليل على نص الكتاب المرفوع فقط. أي جزء ناقص أو غير واضح يُسجَّل كملاحظة للمراجعة بدل تخمينه.
       </p>
@@ -579,143 +533,9 @@ export function AdminDrafts() {
   );
 }
 
-type PublishLoc = { stageId: string; gradeId: string; subjectId: string };
-
-function PublishLocationPicker({ value, onChange }: { value: PublishLoc; onChange: (v: PublishLoc) => void }) {
-  type Row = Record<string, unknown>;
-  const qc = useQueryClient();
-  const stages = useAdminList<Row>("stages");
-  const grades = useAdminList<Row>("grades", { column: "stage_id", value: value.stageId || null });
-  const subjects = useAdminList<Row>("subjects", { column: "grade_id", value: value.gradeId || null });
-  const [adding, setAdding] = useState<"stage" | "grade" | "subject" | null>(null);
-  const [name, setName] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  async function addNew() {
-    const n = name.trim();
-    if (!n || !adding) return;
-    setSaving(true);
-    try {
-      if (adding === "stage") {
-        const { data, error } = await supabase
-          .from("stages")
-          .insert({ name: n, sort_order: (stages.data?.length ?? 0) + 1 })
-          .select("id")
-          .single();
-        if (error) throw error;
-        onChange({ stageId: data.id, gradeId: "", subjectId: "" });
-      } else if (adding === "grade") {
-        const { data, error } = await supabase
-          .from("grades")
-          .insert({ stage_id: value.stageId, name: n, access_type: "free", sort_order: (grades.data?.length ?? 0) + 1 })
-          .select("id")
-          .single();
-        if (error) throw error;
-        onChange({ ...value, gradeId: data.id, subjectId: "" });
-      } else {
-        const { data, error } = await supabase
-          .from("subjects")
-          .insert({ grade_id: value.gradeId, name: n, icon: "📚", color: "#3B82F6", sort_order: (subjects.data?.length ?? 0) + 1 })
-          .select("id")
-          .single();
-        if (error) throw error;
-        onChange({ ...value, subjectId: data.id });
-      }
-      setAdding(null);
-      setName("");
-      void qc.invalidateQueries({ queryKey: ["admin"] });
-      toast.success("تمت الإضافة");
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function row(
-    label: string,
-    kind: "stage" | "grade" | "subject",
-    items: Row[],
-    selected: string,
-    disabled: boolean,
-    onSelect: (id: string) => void,
-  ) {
-    return (
-      <div className="flex items-center gap-2">
-        <select
-          className={input}
-          value={selected}
-          disabled={disabled}
-          onChange={(e) => onSelect(e.target.value)}
-        >
-          <option value="">{label}</option>
-          {items.map((it) => (
-            <option key={String(it["id"])} value={String(it["id"])}>
-              {String(it["name"])}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className={cn(ghost, "shrink-0 px-2.5")}
-          disabled={disabled}
-          title={`إضافة ${label} جديد`}
-          onClick={() => {
-            setAdding(adding === kind ? null : kind);
-            setName("");
-          }}
-        >
-          <Plus className="size-4" />
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <Card className="flex flex-col gap-2 border-primary/30 bg-primary-soft/40">
-      <p className="flex items-center gap-1.5 text-xs font-bold">
-        <MapPin className="size-4 text-primary" /> مكان النشر
-      </p>
-      {row("اختر المرحلة", "stage", stages.data ?? [], value.stageId, false, (id) =>
-        onChange({ stageId: id, gradeId: "", subjectId: "" }),
-      )}
-      {row("اختر الصف", "grade", grades.data ?? [], value.gradeId, !value.stageId, (id) =>
-        onChange({ ...value, gradeId: id, subjectId: "" }),
-      )}
-      {row("اختر المادة", "subject", subjects.data ?? [], value.subjectId, !value.gradeId, (id) =>
-        onChange({ ...value, subjectId: id }),
-      )}
-      {adding && (
-        <div className="flex items-center gap-2">
-          <input
-            className={input}
-            placeholder={
-              adding === "stage" ? "اسم المرحلة الجديدة" : adding === "grade" ? "اسم الصف الجديد" : "اسم المادة الجديدة"
-            }
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button type="button" className={cn(btn, "shrink-0 px-3 py-2")} disabled={saving || !name.trim()} onClick={() => void addNew()}>
-            {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-          </button>
-          <button type="button" className={cn(ghost, "shrink-0 px-2.5")} onClick={() => setAdding(null)}>
-            <X className="size-4" />
-          </button>
-        </div>
-      )}
-    </Card>
-  );
-}
-
 function DraftReview({ draft, onDone }: { draft: AdminDraft; onDone: () => void }) {
   const [content, setContent] = useState(draft.content ?? { units: [], flags: [] });
   const [busy, setBusy] = useState(false);
-  const [loc, setLoc] = useState<PublishLoc>({
-    stageId: draft.stage_id ?? "",
-    gradeId: draft.grade_id ?? "",
-    subjectId: draft.subject_id ?? "",
-  });
-  const [publishedSubjectId, setPublishedSubjectId] = useState<string | null>(null);
 
   function updateLesson(ui: number, li: number, key: string, value: string) {
     setContent((c) => {
@@ -727,59 +547,21 @@ function DraftReview({ draft, onDone }: { draft: AdminDraft; onDone: () => void 
   }
 
   async function save(publish: boolean) {
-    if (publish && !loc.subjectId) {
-      toast.error("حدد مكان النشر أولًا: المرحلة والصف والمادة");
-      return;
-    }
     setBusy(true);
     try {
       const { error } = await supabase
         .from("curriculum_drafts")
-        .update({
-          content: content as never,
-          stage_id: loc.stageId || null,
-          grade_id: loc.gradeId || null,
-          subject_id: loc.subjectId || null,
-        })
+        .update({ content: content as never })
         .eq("id", draft.id);
       if (error) throw error;
-      if (publish) {
-        await publishDraft({
-          ...draft,
-          stage_id: loc.stageId || null,
-          grade_id: loc.gradeId || null,
-          subject_id: loc.subjectId,
-          content,
-        });
-        setPublishedSubjectId(loc.subjectId);
-        toast.success("تم النشر في المنهج");
-      } else {
-        toast.success("تم حفظ المسودة");
-        onDone();
-      }
+      if (publish) await publishDraft({ ...draft, content });
+      toast.success(publish ? "تم النشر في المنهج" : "تم حفظ المسودة");
+      onDone();
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
     }
-  }
-
-  if (publishedSubjectId) {
-    return (
-      <Card className="flex flex-col items-center gap-3 p-6 text-center">
-        <Check className="size-10 text-primary" />
-        <p className="text-sm font-bold">تم نشر المحتوى في مكانه بنجاح</p>
-        <p className="text-[11px] text-muted-foreground">ستجده الآن ضمن المادة التي اخترتها في المكتبة.</p>
-        <Link
-          to="/curriculum/$subjectId"
-          params={{ subjectId: publishedSubjectId }}
-          className={btn}
-        >
-          الانتقال إلى القسم المنشور
-        </Link>
-        <button className={ghost} onClick={onDone}>رجوع للمسودات</button>
-      </Card>
-    );
   }
 
   return (
@@ -832,13 +614,11 @@ function DraftReview({ draft, onDone }: { draft: AdminDraft; onDone: () => void 
         </Card>
       ))}
 
-      <PublishLocationPicker value={loc} onChange={setLoc} />
-
       <div className="flex gap-2">
         <button className={btn} disabled={busy} onClick={() => void save(false)}>
           <Check className="ml-1 inline size-4" /> حفظ المسودة
         </button>
-        <button className={ghost} disabled={busy || !loc.subjectId} onClick={() => void save(true)}>
+        <button className={ghost} disabled={busy} onClick={() => void save(true)}>
           نشر في المنهج
         </button>
       </div>

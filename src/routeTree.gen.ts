@@ -24,13 +24,10 @@ import { Route as ReferralsRouteImport } from './routes/referrals'
 import { Route as SaqroRouteImport } from './routes/saqro'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StageRouteImport } from './routes/stage'
-import { Route as StreakRouteImport } from './routes/streak'
 import { Route as SuperRouteImport } from './routes/super'
 import { Route as CurriculumIndexRouteImport } from './routes/curriculum.index'
 import { Route as CurriculumSubjectIdRouteImport } from './routes/curriculum.$subjectId'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
-import { Route as QuizzesIndexRouteImport } from './routes/quizzes.index'
-import { Route as QuizzesSubjectIdRouteImport } from './routes/quizzes.$subjectId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -107,11 +104,6 @@ const StageRoute = StageRouteImport.update({
   path: '/stage',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StreakRoute = StreakRouteImport.update({
-  id: '/streak',
-  path: '/streak',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SuperRoute = SuperRouteImport.update({
   id: '/super',
   path: '/super',
@@ -132,16 +124,6 @@ const LessonLessonIdRoute = LessonLessonIdRouteImport.update({
   path: '/lesson/$lessonId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QuizzesIndexRoute = QuizzesIndexRouteImport.update({
-  id: '/quizzes/',
-  path: '/quizzes/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuizzesSubjectIdRoute = QuizzesSubjectIdRouteImport.update({
-  id: '/quizzes/$subjectId',
-  path: '/quizzes/$subjectId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -159,13 +141,10 @@ export interface FileRoutesByFullPath {
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
-  '/streak': typeof StreakRoute
   '/super': typeof SuperRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
-  '/quizzes/$subjectId': typeof QuizzesSubjectIdRoute
   '/curriculum/': typeof CurriculumIndexRoute
-  '/quizzes/': typeof QuizzesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -183,13 +162,10 @@ export interface FileRoutesByTo {
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
-  '/streak': typeof StreakRoute
   '/super': typeof SuperRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
-  '/quizzes/$subjectId': typeof QuizzesSubjectIdRoute
   '/curriculum': typeof CurriculumIndexRoute
-  '/quizzes': typeof QuizzesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -208,13 +184,10 @@ export interface FileRoutesById {
   '/saqro': typeof SaqroRoute
   '/settings': typeof SettingsRoute
   '/stage': typeof StageRoute
-  '/streak': typeof StreakRoute
   '/super': typeof SuperRoute
   '/curriculum/$subjectId': typeof CurriculumSubjectIdRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
-  '/quizzes/$subjectId': typeof QuizzesSubjectIdRoute
   '/curriculum/': typeof CurriculumIndexRoute
-  '/quizzes/': typeof QuizzesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -234,13 +207,10 @@ export interface FileRouteTypes {
     | '/saqro'
     | '/settings'
     | '/stage'
-    | '/streak'
     | '/super'
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
-    | '/quizzes/$subjectId'
     | '/curriculum/'
-    | '/quizzes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -258,13 +228,10 @@ export interface FileRouteTypes {
     | '/saqro'
     | '/settings'
     | '/stage'
-    | '/streak'
     | '/super'
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
-    | '/quizzes/$subjectId'
     | '/curriculum'
-    | '/quizzes'
   id:
     | '__root__'
     | '/'
@@ -282,13 +249,10 @@ export interface FileRouteTypes {
     | '/saqro'
     | '/settings'
     | '/stage'
-    | '/streak'
     | '/super'
     | '/curriculum/$subjectId'
     | '/lesson/$lessonId'
-    | '/quizzes/$subjectId'
     | '/curriculum/'
-    | '/quizzes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -307,13 +271,10 @@ export interface RootRouteChildren {
   SaqroRoute: typeof SaqroRoute
   SettingsRoute: typeof SettingsRoute
   StageRoute: typeof StageRoute
-  StreakRoute: typeof StreakRoute
   SuperRoute: typeof SuperRoute
   CurriculumSubjectIdRoute: typeof CurriculumSubjectIdRoute
   LessonLessonIdRoute: typeof LessonLessonIdRoute
-  QuizzesSubjectIdRoute: typeof QuizzesSubjectIdRoute
   CurriculumIndexRoute: typeof CurriculumIndexRoute
-  QuizzesIndexRoute: typeof QuizzesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -423,13 +384,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StageRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/streak': {
-      id: '/streak'
-      path: '/streak'
-      fullPath: '/streak'
-      preLoaderRoute: typeof StreakRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/super': {
       id: '/super'
       path: '/super'
@@ -458,20 +412,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LessonLessonIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/quizzes/': {
-      id: '/quizzes/'
-      path: '/quizzes'
-      fullPath: '/quizzes/'
-      preLoaderRoute: typeof QuizzesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/quizzes/$subjectId': {
-      id: '/quizzes/$subjectId'
-      path: '/quizzes/$subjectId'
-      fullPath: '/quizzes/$subjectId'
-      preLoaderRoute: typeof QuizzesSubjectIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -491,13 +431,10 @@ const rootRouteChildren: RootRouteChildren = {
   SaqroRoute: SaqroRoute,
   SettingsRoute: SettingsRoute,
   StageRoute: StageRoute,
-  StreakRoute: StreakRoute,
   SuperRoute: SuperRoute,
   CurriculumSubjectIdRoute: CurriculumSubjectIdRoute,
   LessonLessonIdRoute: LessonLessonIdRoute,
-  QuizzesSubjectIdRoute: QuizzesSubjectIdRoute,
   CurriculumIndexRoute: CurriculumIndexRoute,
-  QuizzesIndexRoute: QuizzesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
