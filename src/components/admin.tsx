@@ -634,10 +634,7 @@ export function AdminSubscriptions() {
   const [days, setDays] = useState("30");
 
   async function grant(userId: string, gradeId: string | null) {
-    if (!gradeId) {
-      toast.error("الطالب لم يختر صفًا بعد");
-      return;
-    }
+    if (!gradeId) return toast.error("الطالب لم يختر صفًا بعد");
     const expires = new Date(Date.now() + Number(days || 30) * 86400000).toISOString();
     const { error } = await supabase
       .from("subscriptions")
