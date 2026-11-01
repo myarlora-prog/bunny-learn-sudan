@@ -8,7 +8,6 @@ import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { getSubject, type Subject } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
-import { isDbId, useSubjectExamSource, useSubjectQuizCounts, useSubjectTree } from "@/lib/curriculum-db";
 import { generateSubjectExam, type ExamQuestion } from "@/lib/exam.functions";
 import { cn } from "@/lib/utils";
 
@@ -30,16 +29,7 @@ export const Route = createFileRoute("/quizzes/$subjectId")({
 function SubjectQuizPage() {
   const { subjectId } = Route.useParams();
   const { mode = "units" } = Route.useSearch();
-  const live = useSubjectTree(subjectId);
-  const subject = isDbId(subjectId) ? live.data : getSubject(subjectId);
-  if (isDbId(subjectId) && live.isLoading) {
-    return (
-      <Screen>
-        <PageHeader title="اختباري" back />
-        <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
-      </Screen>
-    );
-  }
+  const subject = getSubject(subjectId);
   if (!subject) {
     return (
       <Screen>
@@ -53,9 +43,6 @@ function SubjectQuizPage() {
 
 function UnitQuizzes({ subject }: { subject: Subject }) {
   const { state } = useApp();
-  const countsQ = useSubjectQuizCounts(subject.id);
-  const countOf = (lessonId: string) =>
-    isDbId(lessonId) ? (countsQ.data?.[lessonId] ?? 0) : 0;
   return (
     <Screen>
       <PageHeader title={`${subject.icon} اختبارات الوحدات`} subtitle={subject.name} back />
@@ -64,9 +51,7 @@ function UnitQuizzes({ subject }: { subject: Subject }) {
           <section key={unit.id}>
             <h2 className="mb-2 text-base">{unit.title}</h2>
             <div className="flex flex-col gap-2.5">
-              {unit.lessons
-                .filter((l) => (isDbId(l.id) ? countOf(l.id) > 0 : l.quiz.length > 0))
-                .map((lesson) => (
+              {unit.lessons.filter((l) => l.quiz.length).map((lesson) => (
                 <Link key={lesson.id} to="/lesson/$lessonId" params={{ lessonId: lesson.id }} search={{ tab: "quiz" }}>
                   <Card className="flex items-center gap-3">
                     <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-soft">
@@ -74,9 +59,7 @@ function UnitQuizzes({ subject }: { subject: Subject }) {
                     </span>
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-sm font-bold">{lesson.title}</h3>
-                      <p className="text-[11px] text-muted-foreground">
-                        {isDbId(lesson.id) ? countOf(lesson.id) : lesson.quiz.length} أسئلة
-                      </p>
+                      <p className="text-[11px] text-muted-foreground">{lesson.quiz.length} أسئلة</p>
                     </div>
                     {state.completedLessons.includes(lesson.id) ? (
                       <CheckCircle2 className="size-5 text-success" />
@@ -104,7 +87,6 @@ function fallbackQuestions(subject: Subject): ExamQuestion[] {
 
 function SubjectExam({ subject }: { subject: Subject }) {
   const gen = useServerFn(generateSubjectExam);
-  const sourceQ = useSubjectExamSource(subject.id);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -112,13 +94,11 @@ function SubjectExam({ subject }: { subject: Subject }) {
 
   const m = useMutation({
     mutationFn: async () => {
-      const source = isDbId(subject.id)
-        ? (sourceQ.data ?? "")
-        : subject.units
-            .flatMap((u) =>
-              u.lessons.map((l) => `## ${u.title} - ${l.title}\n${l.explanation.join("\n")}\n${l.summary.join("\n")}`),
-            )
-            .join("\n\n");
+      const source = subject.units
+        .flatMap((u) =>
+          u.lessons.map((l) => `## ${u.title} - ${l.title}\n${l.explanation.join("\n")}\n${l.summary.join("\n")}`),
+        )
+        .join("\n\n");
       try {
         const r = await gen({ data: { subject: subject.name, source, count: 10 } });
         return r.ok ? r.questions : fallbackQuestions(subject);
@@ -135,10 +115,9 @@ function SubjectExam({ subject }: { subject: Subject }) {
   });
 
   useEffect(() => {
-    if (isDbId(subject.id) && sourceQ.isLoading) return;
     m.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subject.id, sourceQ.isLoading]);
+  }, [subject.id]);
 
   const q = questions[i];
   const done = questions.length > 0 && i >= questions.length;
