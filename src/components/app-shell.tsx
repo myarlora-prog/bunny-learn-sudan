@@ -1,7 +1,7 @@
-import { useRouter } from "@tanstack/react-router";
+import { useRouter, useRouterState } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { BottomNav } from "@/components/bottom-nav";
+import { BottomNav, themeForPath } from "@/components/bottom-nav";
 import { cn } from "@/lib/utils";
 
 export function Screen({
@@ -13,10 +13,14 @@ export function Screen({
   nav?: boolean;
   className?: string;
 }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const theme = themeForPath(pathname);
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-lg">
-      <div className={cn("page-enter px-5 pt-6", nav ? "pb-32" : "pb-10", className)}>{children}</div>
-      {nav && <BottomNav />}
+    <div className={cn(theme, "relative min-h-screen w-full overflow-x-hidden", theme && "bg-[image:var(--gradient-surface)]")}>
+      <div className="relative mx-auto min-h-screen w-full max-w-lg">
+        <div className={cn("page-enter px-5 pt-6", nav ? "pb-32" : "pb-10", className)}>{children}</div>
+        {nav && <BottomNav />}
+      </div>
     </div>
   );
 }
