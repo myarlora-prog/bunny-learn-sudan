@@ -29,9 +29,9 @@ function AchievementsPage() {
       <Card className="gradient-hero flex items-center gap-3 border-transparent">
         <Saqro size={70} float />
         <div className="flex-1 text-primary-foreground">
-          <p className="text-xs text-primary-foreground/85">رصيد نقاطك</p>
-          <h2 className="text-2xl text-primary-foreground">{state.points}</h2>
-          <p className="text-xs text-primary-foreground/85">استمر! كل درس يمنحك ٢٥ نقطة</p>
+          <p className="text-xs text-primary-foreground/85">الدروس المكتملة</p>
+          <h2 className="text-2xl text-primary-foreground">{state.completedLessons.length}</h2>
+          <p className="text-xs text-primary-foreground/85">استمر! كل درس تكمله يقرّبك من وسام جديد</p>
         </div>
       </Card>
 
