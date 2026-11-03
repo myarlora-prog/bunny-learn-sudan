@@ -14,10 +14,10 @@ export const Route = createFileRoute("/lesson/$lessonId")({
   validateSearch: z.object({ tab: z.enum(["explain", "summary", "cards", "quiz"]).optional() }),
   head: () => ({
     meta: [
-      { title: "الدرس | سَقرو" },
+      { title: "الدرس | نوابغ" },
       { name: "description", content: "شرح مبسّط، ملخص ذكي، بطاقات مراجعة، واختبار مولّد بالذكاء الاصطناعي لكل درس." },
-      { property: "og:title", content: "الدرس | سَقرو" },
-      { property: "og:description", content: "اشرح، لخّص، راجع، واختبر نفسك في الدرس مع سَقرو." },
+      { property: "og:title", content: "الدرس | نوابغ" },
+      { property: "og:description", content: "اشرح، لخّص، راجع، واختبر نفسك في الدرس مع نوابغ." },
     ],
   }),
   component: LessonPage,
@@ -104,7 +104,7 @@ function LessonPage() {
         <div key="summary" className="page-enter">
           <Card className="gradient-hero flex items-center gap-3 border-transparent">
             <Saqro size={56} />
-            <p className="text-sm font-bold text-primary-foreground">ملخص سَقرو الذكي — أهم ما يجب أن تتذكره</p>
+            <p className="text-sm font-bold text-primary-foreground">ملخص نوابغ الذكي — أهم ما يجب أن تتذكره</p>
           </Card>
           <div className="mt-3 flex flex-col gap-2.5">
             {lesson.summary.map((s, i) => (

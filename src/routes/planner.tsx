@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/planner")({
   head: () => ({
     meta: [
-      { title: "الخطة اليومية | سَقرو" },
-      { name: "description", content: "نظّم يومك الدراسي مع سَقرو: مهام محددة بالوقت لكل مادة ومتابعة إنجازك." },
-      { property: "og:title", content: "الخطة اليومية | سَقرو" },
+      { title: "الخطة اليومية | نوابغ" },
+      { name: "description", content: "نظّم يومك الدراسي مع نوابغ: مهام محددة بالوقت لكل مادة ومتابعة إنجازك." },
+      { property: "og:title", content: "الخطة اليومية | نوابغ" },
       { property: "og:description", content: "خطة مذاكرة يومية بسيطة تساعدك على الالتزام." },
     ],
   }),

@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/achievements")({
   head: () => ({
     meta: [
-      { title: "الإنجازات والمكافآت | سَقرو" },
-      { name: "description", content: "اجمع الأوسمة والنقاط كلما أكملت دروسك والتزمت بخطتك الدراسية مع سَقرو." },
-      { property: "og:title", content: "الإنجازات والمكافآت | سَقرو" },
+      { title: "الإنجازات والمكافآت | نوابغ" },
+      { name: "description", content: "اجمع الأوسمة والنقاط كلما أكملت دروسك والتزمت بخطتك الدراسية مع نوابغ." },
+      { property: "og:title", content: "الإنجازات والمكافآت | نوابغ" },
       { property: "og:description", content: "أوسمة تحفّزك على الاستمرار في المذاكرة كل يوم." },
     ],
   }),
@@ -29,9 +29,9 @@ function AchievementsPage() {
       <Card className="gradient-hero flex items-center gap-3 border-transparent">
         <Saqro size={70} float />
         <div className="flex-1 text-primary-foreground">
-          <p className="text-xs text-primary-foreground/85">رصيد نقاطك</p>
-          <h2 className="text-2xl text-primary-foreground">{state.points}</h2>
-          <p className="text-xs text-primary-foreground/85">استمر! كل درس يمنحك ٢٥ نقطة</p>
+          <p className="text-xs text-primary-foreground/85">الدروس المكتملة</p>
+          <h2 className="text-2xl text-primary-foreground">{state.completedLessons.length}</h2>
+          <p className="text-xs text-primary-foreground/85">استمر! كل درس تكمله يقرّبك من وسام جديد</p>
         </div>
       </Card>
 

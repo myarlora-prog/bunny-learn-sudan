@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/quizzes/")({
   head: () => ({
     meta: [
-      { title: "اختباري | سَقرو" },
-      { name: "description", content: "اختر مادتك وابدأ اختبارًا شاملًا أو اختبارات الوحدات في سَقرو." },
-      { property: "og:title", content: "اختباري | سَقرو" },
-      { property: "og:description", content: "اختبارات المواد والوحدات للمنهج السوداني مع سَقرو." },
+      { title: "اختباري | نوابغ" },
+      { name: "description", content: "اختر مادتك وابدأ اختبارًا شاملًا أو اختبارات الوحدات في نوابغ." },
+      { property: "og:title", content: "اختباري | نوابغ" },
+      { property: "og:description", content: "اختبارات المواد والوحدات للمنهج السوداني مع نوابغ." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

@@ -7,9 +7,9 @@ import { useApp } from "@/lib/app-state";
 export const Route = createFileRoute("/progress")({
   head: () => ({
     meta: [
-      { title: "تقدمي | سَقرو" },
-      { name: "description", content: "تابع ساعات مذاكرتك، نسبة إنجاز كل مادة، وسلسلة أيامك المتواصلة مع سَقرو." },
-      { property: "og:title", content: "تقدمي | سَقرو" },
+      { title: "تقدمي | نوابغ" },
+      { name: "description", content: "تابع ساعات مذاكرتك، نسبة إنجاز كل مادة، وسلسلة أيامك المتواصلة مع نوابغ." },
+      { property: "og:title", content: "تقدمي | نوابغ" },
       { property: "og:description", content: "إحصائيات واضحة تحفّزك على الاستمرار في المذاكرة." },
     ],
   }),
@@ -31,7 +31,6 @@ function ProgressPage() {
           { label: "أيام متواصلة", value: state.streak, Icon: Flame },
           { label: "دقائق هذا الأسبوع", value: total, Icon: Clock },
           { label: "إنجاز المنهج", value: `${percent}%`, Icon: Target },
-          { label: "نقاطي", value: state.points, Icon: Trophy },
         ].map(({ label, value, Icon }) => (
           <Card key={label}>
             <Icon className="size-5 text-primary" />

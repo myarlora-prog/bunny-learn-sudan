@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/avatar")({
   head: () => ({
     meta: [
-      { title: "تخصيص الشخصية | سَقرو" },
-      { name: "description", content: "اختر شخصيتك داخل سَقرو: وجوه وتعبيرات وإطلالات مختلفة لمشتركي السوبر." },
-      { property: "og:title", content: "تخصيص الشخصية | سَقرو" },
-      { property: "og:description", content: "خصّص شخصيتك داخل تطبيق سَقرو." },
+      { title: "تخصيص الشخصية | نوابغ" },
+      { name: "description", content: "اختر شخصيتك داخل نوابغ: وجوه وتعبيرات وإطلالات مختلفة لمشتركي السوبر." },
+      { property: "og:title", content: "تخصيص الشخصية | نوابغ" },
+      { property: "og:description", content: "خصّص شخصيتك داخل تطبيق نوابغ." },
     ],
   }),
   component: AvatarPage,
@@ -37,7 +37,7 @@ function AvatarPage() {
           {state.avatar}
         </span>
         <div className="flex-1 text-primary-foreground">
-          <h2 className="text-lg text-primary-foreground">{state.name || "طالب سَقرو"}</h2>
+          <h2 className="text-lg text-primary-foreground">{state.name || "طالب نوابغ"}</h2>
           <p className="text-xs text-primary-foreground/85">
             {isSuper ? "تخصيص كامل مفعّل ✨" : "اشترك في السوبر لفتح كل الشخصيات"}
           </p>

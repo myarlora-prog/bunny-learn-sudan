@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/heroes")({
   head: () => ({
     meta: [
-      { title: "أبطال Saqro 🏆 | لوحة الصدارة" },
-      { name: "description", content: "تنافس مع طلاب صفك في سَقرو واصعد إلى قمة أبطال Saqro بالنقاط." },
-      { property: "og:title", content: "أبطال Saqro 🏆" },
+      { title: "أبطال نوابغ 🏆 | لوحة الصدارة" },
+      { name: "description", content: "تنافس مع طلاب صفك في نوابغ واصعد إلى قمة أبطال نوابغ بالنقاط." },
+      { property: "og:title", content: "أبطال نوابغ 🏆" },
       { property: "og:description", content: "لوحة صدارة خاصة بصفك الدراسي." },
     ],
   }),
@@ -31,7 +31,7 @@ function HeroesPage() {
 
   return (
     <Screen>
-      <PageHeader title="أبطال Saqro 🏆" subtitle="الترتيب داخل صفك الدراسي" back />
+      <PageHeader title="أبطال نوابغ 🏆" subtitle="الترتيب داخل صفك الدراسي" back />
 
       <Card className="gradient-hero flex items-center gap-4 border-transparent">
         <span className="flex size-14 items-center justify-center rounded-3xl bg-primary-foreground/15 text-2xl">
@@ -39,7 +39,7 @@ function HeroesPage() {
         </span>
         <div className="flex-1 text-primary-foreground">
           <h2 className="text-lg text-primary-foreground">ترتيبك: {me ? `#${me.rank}` : "—"}</h2>
-          <p className="text-xs text-primary-foreground/85">{state.points} نقطة</p>
+          <p className="text-xs text-primary-foreground/85">ترتيبك داخل صفك</p>
         </div>
         <Trophy className="size-7 text-primary-foreground" />
       </Card>
@@ -69,7 +69,7 @@ function HeroesPage() {
                 {h.avatar_emoji || "🦅"}
               </span>
               <h3 className="flex-1 truncate text-sm font-bold">{h.display_name}</h3>
-              <span className="text-sm font-bold text-primary">{h.points}</span>
+              
             </Card>
           ))}
         </div>

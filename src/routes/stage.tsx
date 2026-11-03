@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/stage")({
   head: () => ({
     meta: [
-      { title: "اختر المرحلة الدراسية | سَقرو" },
-      { name: "description", content: "اختر مرحلتك الدراسية في المنهج السوداني ليجهّز سَقرو محتواك التعليمي." },
-      { property: "og:title", content: "اختر المرحلة الدراسية | سَقرو" },
+      { title: "اختر المرحلة الدراسية | نوابغ" },
+      { name: "description", content: "اختر مرحلتك الدراسية في المنهج السوداني ليجهّز نوابغ محتواك التعليمي." },
+      { property: "og:title", content: "اختر المرحلة الدراسية | نوابغ" },
       { property: "og:description", content: "الأساس، الثانوي، أو الشهادة السودانية — اختر ما يناسبك." },
     ],
   }),

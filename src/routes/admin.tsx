@@ -31,10 +31,10 @@ import {
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "لوحة التحكم | سَقرو" },
-      { name: "description", content: "لوحة تحكم خاصة بمالك تطبيق سَقرو لإدارة المنهج والمستخدمين والاشتراكات." },
-      { property: "og:title", content: "لوحة التحكم | سَقرو" },
-      { property: "og:description", content: "إدارة المنهج والمستخدمين والاشتراكات في سَقرو." },
+      { title: "لوحة التحكم | نوابغ" },
+      { name: "description", content: "لوحة تحكم خاصة بمالك تطبيق نوابغ لإدارة المنهج والمستخدمين والاشتراكات." },
+      { property: "og:title", content: "لوحة التحكم | نوابغ" },
+      { property: "og:description", content: "إدارة المنهج والمستخدمين والاشتراكات في نوابغ." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),

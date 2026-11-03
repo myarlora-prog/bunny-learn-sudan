@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Flame, Sparkles, Trophy } from "lucide-react";
+import { Flame, Trophy } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
-import mascotAsset from "@/assets/saqro-streak-mascot.png.asset.json";
 import { Card, Screen } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,9 +11,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/streak")({
   head: () => ({
     meta: [
-      { title: "الاستريك | سَقرو" },
-      { name: "description", content: "تابع سلسلة تعلّمك اليومية ونشاطك المستمر في سَقرو." },
-      { property: "og:title", content: "الاستريك | سَقرو" },
+      { title: "الاستريك | نوابغ" },
+      { name: "description", content: "تابع سلسلة تعلّمك اليومية ونشاطك المستمر في نوابغ." },
+      { property: "og:title", content: "الاستريك | نوابغ" },
       { property: "og:description", content: "حافظ على حماسك وتابع أيام تعلّمك المتواصلة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -60,19 +59,12 @@ function StreakPage() {
 
   return (
     <Screen className="pt-3">
-      <div className="relative mx-auto h-48 w-full overflow-hidden">
-        <img
-          src={mascotAsset.url}
-          alt="طالب سوداني يحمل كتباً وشعلة الاستمرار"
-          className="mx-auto h-64 w-auto object-contain object-top"
-        />
-      </div>
 
-      <Card className="relative z-10 -mt-3 p-5 text-center">
+      <Card className="relative z-10 p-5 text-center">
         <h1 className="text-2xl">{state.streak} {state.streak === 1 ? "يوم على التوالي!" : "أيام على التوالي!"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">لا توقف الحماس، حافظ على شعلتك!</p>
 
-        <div className="mt-5 grid grid-cols-3 gap-3 rounded-2xl border border-border p-3">
+        <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl border border-border p-3">
           {months.map((month) => (
             <MonthGrid key={month.toISOString()} month={month} activeDays={activityDays} />
           ))}
@@ -80,7 +72,6 @@ function StreakPage() {
       </Card>
 
       <Card className="mt-3 grid grid-cols-3 gap-2 p-3 text-center">
-        <Stat icon={<Sparkles className="size-5 text-primary" />} label="نقاط التعلم" value={state.points.toLocaleString("ar-EG")} />
         <Stat icon={<Flame className="size-5 text-warning" />} label="الاستريك الحالي" value={state.streak} />
         <Stat icon={<Trophy className="size-5 text-warning" />} label="أعلى استريك" value={state.longestStreak} />
       </Card>

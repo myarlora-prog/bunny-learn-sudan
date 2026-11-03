@@ -10,9 +10,9 @@ import { useGrades, useStages, useSubjects } from "@/lib/curriculum-db";
 export const Route = createFileRoute("/curriculum/")({
   head: () => ({
     meta: [
-      { title: "المكتبة | سَقرو" },
-      { name: "description", content: "تصفّح مواد المنهج السوداني ووحداته ودروسه داخل تطبيق سَقرو." },
-      { property: "og:title", content: "المكتبة | سَقرو" },
+      { title: "المكتبة | نوابغ" },
+      { name: "description", content: "تصفّح مواد المنهج السوداني ووحداته ودروسه داخل تطبيق نوابغ." },
+      { property: "og:title", content: "المكتبة | نوابغ" },
       { property: "og:description", content: "كل موادك ووحداتك ودروسك في مكان واحد منظّم." },
     ],
   }),

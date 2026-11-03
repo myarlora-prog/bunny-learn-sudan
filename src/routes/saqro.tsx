@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/saqro")({
   head: () => ({
     meta: [
-      { title: "سَقرو AI | المساعد الدراسي الذكي" },
-      { name: "description", content: "اسأل سَقرو الذكي عن أي درس: شرح مبسّط، تلخيص، أمثلة، أو اختبار سريع." },
-      { property: "og:title", content: "سَقرو AI | المساعد الدراسي الذكي" },
+      { title: "نوابغ AI | المساعد الدراسي الذكي" },
+      { name: "description", content: "اسأل نوابغ الذكي عن أي درس: شرح مبسّط، تلخيص، أمثلة، أو اختبار سريع." },
+      { property: "og:title", content: "نوابغ AI | المساعد الدراسي الذكي" },
       { property: "og:description", content: "مساعد دراسي ذكي يجيبك بلغة بسيطة في أي وقت." },
     ],
   }),
@@ -38,7 +38,7 @@ function SaqroAI() {
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
-      content: "أهلاً 👋 أنا سَقرو، مساعدك الدراسي. اسألني عن أي درس في منهجك وسأشرحه لك ببساطة.",
+      content: "أهلاً 👋 أنا نوابغ، مساعدك الدراسي. اسألني عن أي درس في منهجك وسأشرحه لك ببساطة.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -49,7 +49,7 @@ function SaqroAI() {
     const q = text.trim();
     if (!q || typing) return;
     if (!session) {
-      setMessages((m) => [...m, { role: "assistant", content: "سجّل دخولك أولًا لتتمكن من سؤال سَقرو." }]);
+      setMessages((m) => [...m, { role: "assistant", content: "سجّل دخولك أولًا لتتمكن من سؤال نوابغ." }]);
       return;
     }
     if (!isSuper) {
@@ -78,7 +78,7 @@ function SaqroAI() {
       <div className="mb-4 flex items-center gap-3">
         <Saqro size={64} float priority />
         <div className="flex-1">
-          <h1 className="text-xl">سَقرو الذكي</h1>
+          <h1 className="text-xl">نوابغ الذكي</h1>
           <p className="text-xs text-success">متصل الآن · جاهز لمساعدتك</p>
         </div>
         <EnergyBadge />
@@ -147,12 +147,6 @@ function SaqroAI() {
         ))}
       </div>
 
-      {!isSuper && (
-        <p className="mt-3 text-center text-[11px] text-muted-foreground">
-          كل سؤال يستهلك نقطة طاقة واحدة · لديك {energy?.available ?? 0}
-        </p>
-      )}
-
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -164,7 +158,7 @@ function SaqroAI() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="اكتب سؤالك لسَقرو..."
+            placeholder="اكتب سؤالك لنوابغ..."
             className="h-11 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
           />
           <button

@@ -380,6 +380,7 @@ export type Database = {
         Row: {
           created_at: string
           duration_minutes: number
+          free_access: boolean
           id: string
           published: boolean
           sort_order: number
@@ -390,6 +391,7 @@ export type Database = {
         Insert: {
           created_at?: string
           duration_minutes?: number
+          free_access?: boolean
           id?: string
           published?: boolean
           sort_order?: number
@@ -400,6 +402,7 @@ export type Database = {
         Update: {
           created_at?: string
           duration_minutes?: number
+          free_access?: boolean
           id?: string
           published?: boolean
           sort_order?: number
@@ -918,6 +921,7 @@ export type Database = {
         Args: { _minutes: number; _points: number; _uid: string }
         Returns: undefined
       }
+      can_access_lesson: { Args: { _lesson_id: string }; Returns: boolean }
       complete_lesson: { Args: { _lesson_id: string }; Returns: Json }
       energy_state: { Args: never; Returns: Json }
       gen_referral_code: { Args: never; Returns: string }
@@ -931,6 +935,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      has_active_super: { Args: { _uid: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

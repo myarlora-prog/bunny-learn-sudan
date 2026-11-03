@@ -9,9 +9,9 @@ import { useRequireAuth } from "@/lib/guards";
 export const Route = createFileRoute("/referrals")({
   head: () => ({
     meta: [
-      { title: "دعوة الأصدقاء | سَقرو" },
-      { name: "description", content: "ادعُ أصدقاءك إلى سَقرو واحصل على 14 يومًا سوبر مجانًا عند 10 دعوات ناجحة." },
-      { property: "og:title", content: "دعوة الأصدقاء | سَقرو" },
+      { title: "دعوة الأصدقاء | نوابغ" },
+      { name: "description", content: "ادعُ أصدقاءك إلى نوابغ واحصل على 14 يومًا سوبر مجانًا عند 10 دعوات ناجحة." },
+      { property: "og:title", content: "دعوة الأصدقاء | نوابغ" },
       { property: "og:description", content: "شارك كودك واربح اشتراك سوبر مجاني." },
     ],
   }),
@@ -52,7 +52,7 @@ function ReferralsPage() {
   };
 
   const share = async () => {
-    const text = `انضم معي إلى تطبيق سَقرو 🦅 للمنهج السوداني واستخدم كودي: ${code}`;
+    const text = `انضم معي إلى تطبيق نوابغ 🦅 للمنهج السوداني واستخدم كودي: ${code}`;
     if (navigator.share) await navigator.share({ text }).catch(() => undefined);
     else await copy();
   };
