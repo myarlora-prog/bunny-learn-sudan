@@ -74,7 +74,7 @@ export function ZeroEnergyModal({ open, onClose }: { open: boolean; onClose: () 
         </span>
         <h2 className="mt-3 text-xl">انتهت طاقتك</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          تُستهلك الطاقة عند الإجابة الخاطئة أو عند سؤال سَقرو AI. القراءة والملخصات والبطاقات مجانية دائمًا.
+          تُستهلك الطاقة عند الإجابة الخاطئة أو عند سؤال نوابغ AI. القراءة والملخصات والبطاقات مجانية دائمًا.
         </p>
 
         {countdown ? (

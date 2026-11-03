@@ -6,7 +6,7 @@ const LEVELS: { name: string; min: number }[] = [
   { name: "متقدم", min: 1500 },
   { name: "خبير", min: 3500 },
   { name: "محترف", min: 7000 },
-  { name: "بطل Saqro", min: 12000 },
+  { name: "بطل نوابغ", min: 12000 },
 ];
 
 export function levelFor(points: number): Level {

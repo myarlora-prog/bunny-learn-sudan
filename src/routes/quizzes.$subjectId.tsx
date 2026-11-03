@@ -16,9 +16,9 @@ export const Route = createFileRoute("/quizzes/$subjectId")({
   validateSearch: z.object({ mode: z.enum(["exam", "units"]).optional() }),
   head: () => ({
     meta: [
-      { title: "اختبار المادة | سَقرو" },
-      { name: "description", content: "اختبار شامل للمادة واختبارات الوحدات داخل سَقرو." },
-      { property: "og:title", content: "اختبار المادة | سَقرو" },
+      { title: "اختبار المادة | نوابغ" },
+      { name: "description", content: "اختبار شامل للمادة واختبارات الوحدات داخل نوابغ." },
+      { property: "og:title", content: "اختبار المادة | نوابغ" },
       { property: "og:description", content: "اختبر فهمك للمادة كاملة أو وحدة بوحدة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -149,7 +149,7 @@ function SubjectExam({ subject }: { subject: Subject }) {
       {m.isPending && (
         <Card className="flex flex-col items-center gap-3 py-10 text-center">
           <Loader2 className="size-7 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">سَقرو يجهّز اختبار المادة…</p>
+          <p className="text-sm text-muted-foreground">نوابغ يجهّز اختبار المادة…</p>
         </Card>
       )}
       {!m.isPending && questions.length === 0 && (

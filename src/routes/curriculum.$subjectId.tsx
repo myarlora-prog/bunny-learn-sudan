@@ -9,9 +9,9 @@ import { isDbId, useSubjectTree } from "@/lib/curriculum-db";
 export const Route = createFileRoute("/curriculum/$subjectId")({
   head: () => ({
     meta: [
-      { title: "وحدات المادة | سَقرو" },
-      { name: "description", content: "استعرض وحدات المادة ودروسها ومدة كل درس داخل تطبيق سَقرو التعليمي." },
-      { property: "og:title", content: "وحدات المادة | سَقرو" },
+      { title: "وحدات المادة | نوابغ" },
+      { name: "description", content: "استعرض وحدات المادة ودروسها ومدة كل درس داخل تطبيق نوابغ التعليمي." },
+      { property: "og:title", content: "وحدات المادة | نوابغ" },
       { property: "og:description", content: "وحدات ودروس منظّمة مع متابعة إنجازك في كل درس." },
     ],
   }),

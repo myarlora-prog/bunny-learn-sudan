@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/grade")({
   head: () => ({
     meta: [
-      { title: "اختر الصف الدراسي | سَقرو" },
-      { name: "description", content: "حدّد صفك الدراسي داخل المنهج السوداني ليعرض سَقرو موادك ووحداتك." },
-      { property: "og:title", content: "اختر الصف الدراسي | سَقرو" },
-      { property: "og:description", content: "اختر صفك ليبدأ سَقرو في تجهيز الدروس والملخصات." },
+      { title: "اختر الصف الدراسي | نوابغ" },
+      { name: "description", content: "حدّد صفك الدراسي داخل المنهج السوداني ليعرض نوابغ موادك ووحداتك." },
+      { property: "og:title", content: "اختر الصف الدراسي | نوابغ" },
+      { property: "og:description", content: "اختر صفك ليبدأ نوابغ في تجهيز الدروس والملخصات." },
     ],
   }),
   component: GradePage,

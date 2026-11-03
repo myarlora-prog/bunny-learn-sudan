@@ -8,10 +8,10 @@ import { useApp } from "@/lib/app-state";
 export const Route = createFileRoute("/super")({
   head: () => ({
     meta: [
-      { title: "سَقرو سوبر | الاشتراك المميز" },
-      { name: "description", content: "اشترك في سَقرو سوبر: طاقة غير محدودة، شرح أعمق، بطاقات وأسئلة أكثر، ومنافسة أبطال Saqro." },
-      { property: "og:title", content: "سَقرو سوبر | الاشتراك المميز" },
-      { property: "og:description", content: "طاقة غير محدودة وشرح أعمق مع سَقرو سوبر." },
+      { title: "نوابغ سوبر | الاشتراك المميز" },
+      { name: "description", content: "اشترك في نوابغ سوبر: طاقة غير محدودة، شرح أعمق، بطاقات وأسئلة أكثر، ومنافسة أبطال نوابغ." },
+      { property: "og:title", content: "نوابغ سوبر | الاشتراك المميز" },
+      { property: "og:description", content: "طاقة غير محدودة وشرح أعمق مع نوابغ سوبر." },
     ],
   }),
   component: SuperPage,
@@ -21,9 +21,9 @@ const FEATURES = [
   "طاقة غير محدودة — بدون انتظار",
   "شرح أعمق وملخصات أشمل لكل درس",
   "بطاقات مراجعة وأسئلة اختبار أكثر",
-  "سَقرو AI بلا حدود وتدريب متقدم",
+  "نوابغ AI بلا حدود وتدريب متقدم",
   "تخصيص كامل لشخصيتك",
-  "منافسة أبطال Saqro 🏆 كاملة",
+  "منافسة أبطال نوابغ 🏆 كاملة",
 ];
 
 function fmt(date: string) {
@@ -37,7 +37,7 @@ function SuperPage() {
 
   return (
     <Screen>
-      <PageHeader title="سَقرو سوبر" subtitle="افتح تجربة التعلّم الكاملة" back />
+      <PageHeader title="نوابغ سوبر" subtitle="افتح تجربة التعلّم الكاملة" back />
 
       <Card className="gradient-hero flex items-center gap-4 border-transparent">
         <Saqro size={78} float priority />
@@ -75,7 +75,7 @@ function SuperPage() {
             <MessageCircle className="size-5" /> اشترك في السوبر
           </a>
           <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-            سيتم تحويلك إلى واتساب لإتمام الاشتراك، ويقوم فريق سَقرو بتفعيل حسابك مباشرة بعد التأكيد.
+            سيتم تحويلك إلى واتساب لإتمام الاشتراك، ويقوم فريق نوابغ بتفعيل حسابك مباشرة بعد التأكيد.
           </p>
         </>
       )}

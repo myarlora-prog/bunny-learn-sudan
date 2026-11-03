@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/streak")({
   head: () => ({
     meta: [
-      { title: "الاستريك | سَقرو" },
-      { name: "description", content: "تابع سلسلة تعلّمك اليومية ونشاطك المستمر في سَقرو." },
-      { property: "og:title", content: "الاستريك | سَقرو" },
+      { title: "الاستريك | نوابغ" },
+      { name: "description", content: "تابع سلسلة تعلّمك اليومية ونشاطك المستمر في نوابغ." },
+      { property: "og:title", content: "الاستريك | نوابغ" },
       { property: "og:description", content: "حافظ على حماسك وتابع أيام تعلّمك المتواصلة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "تسجيل الدخول | سَقرو" },
-      { name: "description", content: "سجّل الدخول أو أنشئ حسابًا جديدًا في سَقرو وابدأ رحلتك مع المنهج السوداني." },
-      { property: "og:title", content: "تسجيل الدخول | سَقرو" },
-      { property: "og:description", content: "ادخل إلى حسابك في سَقرو وتابع خطتك الدراسية." },
+      { title: "تسجيل الدخول | نوابغ" },
+      { name: "description", content: "سجّل الدخول أو أنشئ حسابًا جديدًا في نوابغ وابدأ رحلتك مع المنهج السوداني." },
+      { property: "og:title", content: "تسجيل الدخول | نوابغ" },
+      { property: "og:description", content: "ادخل إلى حسابك في نوابغ وتابع خطتك الدراسية." },
     ],
   }),
   component: AuthPage,
@@ -71,7 +71,7 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth`,
-            data: { display_name: name || "طالب سَقرو" },
+            data: { display_name: name || "طالب نوابغ" },
           },
         });
         if (err) throw err;
@@ -101,7 +101,7 @@ function AuthPage() {
         <Saqro size={130} float priority />
         <h1 className="mt-3 text-2xl">{mode === "login" ? "مرحبًا بعودتك!" : "أنشئ حسابك"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {mode === "login" ? "سَقرو في انتظارك لنكمل المذاكرة" : "دقيقة واحدة وتبدأ رحلتك التعليمية"}
+          {mode === "login" ? "نوابغ في انتظارك لنكمل المذاكرة" : "دقيقة واحدة وتبدأ رحلتك التعليمية"}
         </p>
       </div>
 
@@ -175,7 +175,7 @@ function AuthPage() {
       </button>
 
       <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
-        بمتابعتك أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بتطبيق سَقرو.
+        بمتابعتك أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بتطبيق نوابغ.
       </p>
     </div>
   );

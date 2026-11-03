@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/achievements")({
   head: () => ({
     meta: [
-      { title: "الإنجازات والمكافآت | سَقرو" },
-      { name: "description", content: "اجمع الأوسمة والنقاط كلما أكملت دروسك والتزمت بخطتك الدراسية مع سَقرو." },
-      { property: "og:title", content: "الإنجازات والمكافآت | سَقرو" },
+      { title: "الإنجازات والمكافآت | نوابغ" },
+      { name: "description", content: "اجمع الأوسمة والنقاط كلما أكملت دروسك والتزمت بخطتك الدراسية مع نوابغ." },
+      { property: "og:title", content: "الإنجازات والمكافآت | نوابغ" },
       { property: "og:description", content: "أوسمة تحفّزك على الاستمرار في المذاكرة كل يوم." },
     ],
   }),

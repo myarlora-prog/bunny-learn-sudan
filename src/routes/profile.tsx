@@ -21,10 +21,10 @@ import { levelFor } from "@/lib/levels";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "حسابي | سَقرو" },
-      { name: "description", content: "ملفك الشخصي في سَقرو: مرحلتك وصفك ونقاطك واشتراكك وإعداداتك الدراسية." },
-      { property: "og:title", content: "حسابي | سَقرو" },
-      { property: "og:description", content: "أدر بياناتك الدراسية واشتراكك داخل تطبيق سَقرو." },
+      { title: "حسابي | نوابغ" },
+      { name: "description", content: "ملفك الشخصي في نوابغ: مرحلتك وصفك ونقاطك واشتراكك وإعداداتك الدراسية." },
+      { property: "og:title", content: "حسابي | نوابغ" },
+      { property: "og:description", content: "أدر بياناتك الدراسية واشتراكك داخل تطبيق نوابغ." },
     ],
   }),
   component: ProfilePage,
@@ -43,8 +43,8 @@ function ProfilePage() {
     { to: "/stage", label: "البيانات الأكاديمية", desc: grade ? `${stage?.name ?? ""} · ${grade.name}` : "اختر مرحلتك وصفك", Icon: GraduationCap },
     { to: "/avatar", label: "تخصيص الشخصية", desc: isSuper ? "كل الشخصيات مفتوحة" : "الشخصية الأساسية", Icon: Smile },
     { to: "/referrals", label: "دعوة الأصدقاء 🎁", desc: "١٠ دعوات = ١٤ يومًا سوبر", Icon: Gift },
-    { to: "/heroes", label: "أبطال Saqro 🏆", desc: "ترتيب صفك الدراسي", Icon: Trophy },
-    { to: "/super", label: "سَقرو سوبر", desc: isSuper ? "اشتراكك مفعّل" : "افتح التجربة الكاملة", Icon: Sparkles },
+    { to: "/heroes", label: "أبطال نوابغ 🏆", desc: "ترتيب صفك الدراسي", Icon: Trophy },
+    { to: "/super", label: "نوابغ سوبر", desc: isSuper ? "اشتراكك مفعّل" : "افتح التجربة الكاملة", Icon: Sparkles },
     { to: "/planner", label: "الخطة اليومية", desc: "نظّم مذاكرتك ساعة بساعة", Icon: CalendarDays },
     { to: "/settings", label: "الإعدادات", desc: "المظهر، التنبيهات، اللغة", Icon: Settings },
   ] as const;
@@ -58,7 +58,7 @@ function ProfilePage() {
           {state.avatar}
         </span>
         <div className="flex-1 text-primary-foreground">
-          <h2 className="text-lg text-primary-foreground">{state.name || "طالب سَقرو"}</h2>
+          <h2 className="text-lg text-primary-foreground">{state.name || "طالب نوابغ"}</h2>
           <p className="text-xs text-primary-foreground/85">{state.email || "لم يتم إدخال بريد إلكتروني"}</p>
           <p className="mt-1 text-xs text-primary-foreground/85">
             {grade ? `${stage?.name} · ${grade.name}` : "اختر مرحلتك الدراسية"}

@@ -14,7 +14,7 @@ export function Saqro({ variant = "wave", size = 120, float = false, className, 
   return (
     <img
       src={variant === "study" ? saqroStudyImg : saqroImg}
-      alt="سَقرو، رفيق المذاكرة"
+      alt="نوابغ، رفيق المذاكرة"
       width={816}
       height={816}
       loading={priority ? "eager" : "lazy"}
