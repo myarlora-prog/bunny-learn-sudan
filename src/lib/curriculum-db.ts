@@ -79,7 +79,11 @@ export function useSubjectTree(subjectId: string | null) {
   return useQuery({
     queryKey: ["subject-tree", subjectId],
     enabled: !!subjectId && isDbId(subjectId ?? ""),
-    queryFn: async (): Promise<UiSubject | null> => {
+    queryFn: () => fetchSubjectTree(subjectId!),
+  });
+}
+
+export async function fetchSubjectTree(subjectId: string): Promise<UiSubject | null> {
       const { data: subject, error } = await supabase
         .from("subjects")
         .select("id,name,icon,color")
@@ -98,7 +102,7 @@ export function useSubjectTree(subjectId: string | null) {
       const unitIds = (units ?? []).map((u) => u.id);
       const { data: lessons } = await supabase
         .from("lessons")
-        .select("id,unit_id,title,duration_minutes,sort_order,published")
+        .select("id,unit_id,title,duration_minutes,sort_order,published,free_access")
         .in("unit_id", unitIds.length ? unitIds : ["-"])
         .eq("published", true)
         .order("sort_order");
@@ -112,6 +116,7 @@ export function useSubjectTree(subjectId: string | null) {
             id: l.id,
             title: l.title,
             minutes: l.duration_minutes,
+            freeAccess: l.free_access,
             explanation: [],
             summary: [],
             flashcards: [],
@@ -127,8 +132,6 @@ export function useSubjectTree(subjectId: string | null) {
         progress: 0,
         units: uiUnits,
       };
-    },
-  });
 }
 
 /** Quiz question counts per lesson for a subject's published lessons. */
@@ -211,10 +214,14 @@ export function useLessonData(lessonId: string | null) {
   return useQuery({
     queryKey: ["lesson", lessonId],
     enabled: !!lessonId && isDbId(lessonId ?? ""),
-    queryFn: async (): Promise<{ lesson: UiLesson; subject: UiSubject; unit: UiUnit } | null> => {
+    queryFn: () => fetchLessonData(lessonId!),
+  });
+}
+
+export async function fetchLessonData(lessonId: string): Promise<{ lesson: UiLesson; subject: UiSubject; unit: UiUnit } | null> {
       const { data: lesson, error } = await supabase
         .from("lessons")
-        .select("id,title,duration_minutes,published,units(id,title,subjects(id,name,icon,color))")
+        .select("id,title,duration_minutes,published,free_access,units(id,title,subjects(id,name,icon,color))")
         .eq("id", lessonId!)
         .eq("published", true)
         .maybeSingle();
@@ -243,6 +250,7 @@ export function useLessonData(lessonId: string | null) {
           id: lesson.id,
           title: lesson.title,
           minutes: lesson.duration_minutes,
+          freeAccess: lesson.free_access,
           explanation: explanationText
             .split(/\n{2,}/)
             .map((p) => p.trim())
@@ -269,6 +277,11 @@ export function useLessonData(lessonId: string | null) {
         },
         unit: { id: lesson.units.id, title: lesson.units.title, lessons: [] },
       };
-    },
-  });
+}
+
+
+/** All published subjects of a grade with their lesson ids — used for automatic offline sync. */
+export async function fetchGradeSubjectIds(gradeId: string): Promise<string[]> {
+  const { data } = await supabase.from("subjects").select("id").eq("grade_id", gradeId);
+  return (data ?? []).map((s) => s.id);
 }

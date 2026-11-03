@@ -12,6 +12,8 @@ export type Lesson = {
   summary: string[];
   flashcards: Flashcard[];
   quiz: QuizQuestion[];
+  /** true when Free users may open it (DB lessons only; demo lessons are always open) */
+  freeAccess?: boolean;
 };
 
 export type Unit = { id: string; title: string; lessons: Lesson[] };
