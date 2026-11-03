@@ -218,16 +218,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [session]);
 
   const spendEnergy = useCallback(
-    async (amount = 1) => {
-      if (!session) return { ok: false, state: null };
-      if (subscription) return { ok: true, state: energy };
-      const { data, error } = await supabase.rpc("spend_energy", { _amount: amount });
-      if (error) return { ok: false, state: energy };
-      const res = data as unknown as { ok: boolean; state: EnergyState };
-      setEnergy(res.state);
-      return { ok: res.ok, state: res.state };
-    },
-    [session, energy, subscription],
+    async (_amount = 1) => ({ ok: true, state: energy }),
+    [energy],
   );
 
   const signOut = useCallback(async () => {

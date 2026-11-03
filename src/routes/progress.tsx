@@ -31,7 +31,6 @@ function ProgressPage() {
           { label: "أيام متواصلة", value: state.streak, Icon: Flame },
           { label: "دقائق هذا الأسبوع", value: total, Icon: Clock },
           { label: "إنجاز المنهج", value: `${percent}%`, Icon: Target },
-          { label: "نقاطي", value: state.points, Icon: Trophy },
         ].map(({ label, value, Icon }) => (
           <Card key={label}>
             <Icon className="size-5 text-primary" />

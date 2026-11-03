@@ -85,7 +85,6 @@ function ProfilePage() {
 
       <div className="mt-3 grid grid-cols-4 gap-2.5">
         {[
-          { label: "نقاطي", value: state.points },
           { label: "دروس", value: state.completedLessons.length },
           { label: "أيام متواصلة", value: state.streak },
           { label: "أطول تتابع", value: state.longestStreak },
@@ -101,7 +100,7 @@ function ProfilePage() {
         <Flame className="size-5 text-warning" />
         <p className="flex-1 text-xs text-muted-foreground">
           مستواك الحالي: <span className="font-bold text-foreground">{level.name}</span>
-          {level.next !== null ? ` · ${level.next - state.points} نقطة للمستوى التالي` : " · أعلى مستوى 🎉"}
+          
         </p>
       </Card>
 

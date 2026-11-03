@@ -147,12 +147,6 @@ function SaqroAI() {
         ))}
       </div>
 
-      {!isSuper && (
-        <p className="mt-3 text-center text-[11px] text-muted-foreground">
-          كل سؤال يستهلك نقطة طاقة واحدة · لديك {energy?.available ?? 0}
-        </p>
-      )}
-
       <form
         onSubmit={(e) => {
           e.preventDefault();

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Flame, Sparkles, Trophy } from "lucide-react";
+import { Flame, Trophy } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Card, Screen } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -64,7 +64,7 @@ function StreakPage() {
         <h1 className="text-2xl">{state.streak} {state.streak === 1 ? "يوم على التوالي!" : "أيام على التوالي!"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">لا توقف الحماس، حافظ على شعلتك!</p>
 
-        <div className="mt-5 grid grid-cols-3 gap-3 rounded-2xl border border-border p-3">
+        <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl border border-border p-3">
           {months.map((month) => (
             <MonthGrid key={month.toISOString()} month={month} activeDays={activityDays} />
           ))}
