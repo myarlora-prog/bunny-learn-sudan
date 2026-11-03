@@ -20,7 +20,8 @@ export function setupPersistence(queryClient: QueryClient) {
     throttleTime: 2000,
   });
   const [unsubscribe] = persistQueryClient({
-    queryClient,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queryClient: queryClient as any,
     persister,
     maxAge: WEEK,
     buster: "nawabig-v1",
