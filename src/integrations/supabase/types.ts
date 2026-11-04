@@ -468,6 +468,7 @@ export type Database = {
           referral_reward_granted: boolean
           referred_by: string | null
           stage_id: string | null
+          time_zone: string
           updated_at: string
         }
         Insert: {
@@ -481,6 +482,7 @@ export type Database = {
           referral_reward_granted?: boolean
           referred_by?: string | null
           stage_id?: string | null
+          time_zone?: string
           updated_at?: string
         }
         Update: {
@@ -494,6 +496,7 @@ export type Database = {
           referral_reward_granted?: boolean
           referred_by?: string | null
           stage_id?: string | null
+          time_zone?: string
           updated_at?: string
         }
         Relationships: [
