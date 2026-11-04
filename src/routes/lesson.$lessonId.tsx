@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { BookOpen, Sparkles, Layers, ListChecks, CheckCircle2, RotateCcw, Lightbulb, Loader2 } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
@@ -35,7 +35,7 @@ function LessonPage() {
   const search = Route.useSearch();
   const live = useLessonData(lessonId);
   const data = isDbId(lessonId) ? live.data : getLesson(lessonId);
-  const { state, toggleLesson, spendEnergy, isSuper } = useApp();
+  const { state, toggleLesson, spendEnergy, isSuper, isAdmin } = useApp();
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>(search.tab ?? "explain");
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
