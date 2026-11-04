@@ -9,7 +9,8 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { flushPending, queueLesson, readPending } from "@/lib/offline";
+import { useQueryClient } from "@tanstack/react-query";
+import { flushPending, queueLesson, readPending, setupPersistence, syncGradeContent } from "@/lib/offline";
 
 export type EnergyState = {
   daily_max: number;
@@ -247,6 +248,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setIsAdmin(false);
     setSubscription(null);
   }, []);
+
+  // automatic offline: persist curriculum cache, pre-download the grade, and send queued completions
+  const queryClient = useQueryClient();
+  useEffect(() => setupPersistence(queryClient), [queryClient]);
+  const uid = session?.user.id ?? null;
+  const gradeId = state.gradeId;
+  useEffect(() => {
+    if (!uid) return;
+    const sync = async () => {
+      const sent = await flushPending();
+      if (sent) await loadUser(uid);
+      if (gradeId) void syncGradeContent(queryClient, gradeId);
+    };
+    void sync();
+    window.addEventListener("online", sync);
+    return () => window.removeEventListener("online", sync);
+  }, [uid, gradeId, queryClient, loadUser]);
 
   const reset = useCallback(() => setState((s) => ({ ...DEFAULT, dark: s.dark })), []);
 
