@@ -12,9 +12,11 @@ import {
   FileCheck2,
   Gift,
   ArrowRight,
+  Lock,
 } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { useRequireAdmin } from "@/lib/guards";
+import { AdminLessonAccess } from "@/components/admin-lesson-access";
 import {
   AdminAnnouncements,
   AdminCurriculum,
@@ -55,6 +57,7 @@ type SectionId =
   | "upload"
   | "drafts"
   | "published"
+  | "access"
   | "users"
   | "subs"
   | "announcements"
@@ -66,6 +69,7 @@ const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookO
   { id: "upload", label: "رفع كتاب ومعالجته", desc: "PDF أو TXT ← تحليل بالذكاء الاصطناعي", Icon: Upload },
   { id: "drafts", label: "مراجعة المسودات", desc: "تعديل المحتوى المستخرج ثم النشر", Icon: FileCheck2 },
   { id: "published", label: "المنهج المنشور", desc: "نشر أو إلغاء نشر الدروس", Icon: Layers },
+  { id: "access", label: "إدارة إتاحة الدروس", desc: "فتح أو قفل الدروس لمستخدمي Free", Icon: Lock },
   { id: "users", label: "إدارة المستخدمين", desc: "الأدوار، النقاط، الاشتراك", Icon: Users },
   { id: "subs", label: "الاشتراكات", desc: "تفعيل وتمديد السوبر", Icon: CreditCard },
   { id: "announcements", label: "الإشعارات", desc: "إرسال إعلان لكل الطلاب", Icon: Megaphone },
@@ -78,6 +82,7 @@ function SectionBody({ id }: { id: SectionId }) {
   if (id === "upload") return <AdminUpload />;
   if (id === "drafts") return <AdminDrafts />;
   if (id === "published") return <AdminPublished />;
+  if (id === "access") return <AdminLessonAccess />;
   if (id === "users") return <AdminUsers />;
   if (id === "subs") return <AdminSubscriptions />;
   if (id === "announcements") return <AdminAnnouncements />;
