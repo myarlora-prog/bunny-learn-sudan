@@ -9,6 +9,7 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { flushPending, queueLesson, readPending } from "@/lib/offline";
 
 export type EnergyState = {
   daily_max: number;
@@ -128,6 +129,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     setSubscription((sub.data as Subscription | null) ?? null);
 
+    // keep the student's own time zone so streak days follow their local calendar
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz && profile.data && (profile.data as { time_zone?: string }).time_zone !== tz) {
+        void supabase.from("profiles").update({ time_zone: tz }).eq("id", uid);
+      }
+    } catch {
+      /* ignore */
+    }
+
     setIsAdmin(admin.data === true);
     setEnergy((energyRes.data as unknown as EnergyState) ?? null);
     setState((s) => ({
@@ -144,7 +155,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       points: stats.data?.points ?? 0,
       studyDays: stats.data?.study_days ?? 0,
       totalMinutes: stats.data?.total_minutes ?? 0,
-      completedLessons: (progress.data ?? []).map((p) => p.lesson_id),
+      completedLessons: Array.from(
+        new Set([...(progress.data ?? []).map((p) => p.lesson_id), ...readPending().map((p) => p.lessonId)]),
+      ),
     }));
     setHydrated(true);
   }, []);
@@ -202,8 +215,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     async (id: string) => {
       if (!session) return;
       if (state.completedLessons.includes(id)) return;
+      const markLocal = () => {
+        queueLesson(id);
+        setState((s) => ({ ...s, completedLessons: [...s.completedLessons, id] }));
+      };
+      if (typeof navigator !== "undefined" && !navigator.onLine) return markLocal();
       const { error } = await supabase.rpc("complete_lesson", { _lesson_id: id });
-      if (error) return;
+      if (error) return markLocal();
       await refresh();
     },
     [session, state.completedLessons, refresh],
