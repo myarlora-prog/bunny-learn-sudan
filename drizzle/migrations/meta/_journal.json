@@ -8,6 +8,13 @@
       "when": 1793672249928,
       "tag": "0000_lesson_free_access",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793804270209,
+      "tag": "0001_streak_local_timezone",
+      "breakpoints": true
     }
   ]
 }

@@ -66,6 +66,20 @@ function LessonPage() {
   const score = lesson.quiz.reduce((n, q, i) => n + (answers[i] === q.correct ? 1 : 0), 0);
   const answered = Object.keys(answers).length;
 
+  if (lesson.freeAccess === false && !isSuper && !isAdmin) {
+    return (
+      <Screen>
+        <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back />
+        <SaqroEmpty title="هذا الدرس يتطلب السوبر 💎" desc="هذا الدرس متاح لمشتركي السوبر فقط. اشترك في السوبر لفتح جميع الدروس." />
+        <Link to="/super" className="press gradient-hero mt-4 block rounded-2xl py-3 text-center text-sm font-bold text-primary-foreground">
+          اشترك في السوبر
+        </Link>
+      </Screen>
+    );
+  }
+
+
+
 
   return (
     <Screen>
