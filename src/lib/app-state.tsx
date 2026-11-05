@@ -119,7 +119,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       supabase.rpc("energy_state"),
       supabase
         .from("subscriptions")
-        .select("plan,status,expires_at,grade_id")
+        .select("plan,status,starts_at,expires_at,grade_id")
         .eq("user_id", uid)
         .eq("status", "active")
         .gt("expires_at", new Date().toISOString())
