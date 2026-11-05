@@ -271,6 +271,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("online", sync);
   }, [uid, gradeId, queryClient, loadUser]);
 
+  // when Super status changes, drop cached lesson content so locked content never lingers
+  const superKey = subscription ? `${subscription.grade_id}:${subscription.expires_at}` : "free";
+  useEffect(() => {
+    void queryClient.invalidateQueries();
+    queryClient.removeQueries({ queryKey: ["lesson"] });
+  }, [superKey, queryClient]);
+  // re-check subscription expiry periodically (server decides via expires_at)
+  useEffect(() => {
+    if (!subscription) return;
+    const ms = new Date(subscription.expires_at).getTime() - Date.now();
+    if (ms <= 0 || ms > 2 ** 31 - 1) return;
+    const t = setTimeout(() => void refresh(), ms + 1000);
+    return () => clearTimeout(t);
+  }, [subscription, refresh]);
+
   const reset = useCallback(() => setState((s) => ({ ...DEFAULT, dark: s.dark })), []);
 
   const value = useMemo<Ctx>(
