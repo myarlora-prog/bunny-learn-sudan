@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BookOpen, ClipboardCheck, Flame, UserRound } from "lucide-react";
+import { Home, BookOpen, ClipboardCheck, Flame, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const tabs = [
+  { to: "/home", label: "الرئيسية", Icon: Home, theme: "" },
   { to: "/curriculum", label: "المكتبة", Icon: BookOpen, theme: "" },
-  { to: "/quizzes", label: "اختباري", Icon: ClipboardCheck, theme: "theme-quiz" },
   { to: "/streak", label: "الاستريك", Icon: Flame, theme: "theme-streak" },
+  { to: "/quizzes", label: "اختباراتي", Icon: ClipboardCheck, theme: "theme-quiz" },
   { to: "/profile", label: "حسابي", Icon: UserRound, theme: "theme-account" },
 ] as const;
 

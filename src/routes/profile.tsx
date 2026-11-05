@@ -41,10 +41,8 @@ function ProfilePage() {
 
   const links = [
     { to: "/stage", label: "البيانات الأكاديمية", desc: grade ? `${stage?.name ?? ""} · ${grade.name}` : "اختر مرحلتك وصفك", Icon: GraduationCap },
-    { to: "/avatar", label: "تخصيص الشخصية", desc: isSuper ? "كل الشخصيات مفتوحة" : "الشخصية الأساسية", Icon: Smile },
     { to: "/referrals", label: "دعوة الأصدقاء 🎁", desc: "١٠ دعوات = ١٤ يومًا سوبر", Icon: Gift },
-    { to: "/heroes", label: "أبطال نوابغ 🏆", desc: "ترتيب صفك الدراسي", Icon: Trophy },
-    { to: "/super", label: "نوابغ سوبر", desc: isSuper ? "اشتراكك مفعّل" : "افتح التجربة الكاملة", Icon: Sparkles },
+    { to: "/super", label: "كيفية فتح جميع الدروس", desc: isSuper ? "اشتراكك مفعّل" : "تواصل معنا عبر واتساب", Icon: Sparkles },
     { to: "/planner", label: "الخطة اليومية", desc: "نظّم مذاكرتك ساعة بساعة", Icon: CalendarDays },
     { to: "/settings", label: "الإعدادات", desc: "المظهر، التنبيهات، اللغة", Icon: Settings },
   ] as const;
