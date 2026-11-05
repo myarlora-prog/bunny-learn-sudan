@@ -80,6 +80,9 @@ export function useSubjectTree(subjectId: string | null) {
     queryKey: ["subject-tree", subjectId],
     enabled: !!subjectId && isDbId(subjectId ?? ""),
     queryFn: () => fetchSubjectTree(subjectId!),
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
 }
 
@@ -215,6 +218,8 @@ export function useLessonData(lessonId: string | null) {
     queryKey: ["lesson", lessonId],
     enabled: !!lessonId && isDbId(lessonId ?? ""),
     queryFn: () => fetchLessonData(lessonId!),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 
