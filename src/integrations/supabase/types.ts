@@ -693,6 +693,33 @@ export type Database = {
           },
         ]
       }
+      subscription_requests: {
+        Row: {
+          action: string
+          created_at: string
+          created_by: string | null
+          request_key: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          created_by?: string | null
+          request_key: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          created_by?: string | null
+          request_key?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -919,6 +946,16 @@ export type Database = {
     }
     Functions: {
       activate_referral: { Args: { _uid: string }; Returns: undefined }
+      admin_cancel_super: { Args: { _user_id: string }; Returns: Json }
+      admin_grant_super: {
+        Args: {
+          _days: number
+          _months: number
+          _request_key: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       apply_referral_code: { Args: { _code: string }; Returns: Json }
       bump_streak: {
         Args: { _minutes: number; _points: number; _uid: string }
@@ -947,6 +984,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      lesson_grade: { Args: { _lesson_id: string }; Returns: string }
       log_ai_message: {
         Args: { _content: string; _role: string }
         Returns: undefined

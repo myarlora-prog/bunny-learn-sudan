@@ -869,45 +869,43 @@ export function AdminSubscriptions() {
     },
   });
 
+  const [target, setTarget] = useState<{ id: string; display_name: string; email: string; grade_id: string | null; sub: { expires_at: string } | null } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [reqKey, setReqKey] = useState(() => crypto.randomUUID());
+
   function addPeriod(from: Date) {
     const d = new Date(from);
     if (months === "custom") d.setDate(d.getDate() + Math.max(1, Number(customDays) || 0));
     else d.setMonth(d.getMonth() + Number(months));
     return d;
   }
+  const durationLabel = months === "custom" ? `${customDays || 0} يومًا` : months === "1" ? "شهر واحد" : months === "2" ? "شهرين" : "3 أشهر";
 
-  async function grant(u: { id: string; grade_id: string | null; sub: { id: string; expires_at: string } | null }) {
-    if (!u.grade_id) {
-      toast.error("لا يمكن التفعيل: الطالب لم يحدد المرحلة والصف بعد");
-      return;
-    }
-    if (months === "custom" && !(Number(customDays) > 0)) {
+  async function confirmGrant() {
+    if (!target || busy) return;
+    if (months === "custom" && !(Number(customDays) > 0 && Number.isInteger(Number(customDays)))) {
       toast.error("أدخل عدد أيام صحيح للمدة المخصصة");
       return;
     }
-    const { error } = u.sub
-      ? await supabase
-          .from("subscriptions")
-          .update({ expires_at: addPeriod(new Date(u.sub.expires_at)).toISOString() })
-          .eq("id", u.sub.id)
-      : await supabase.from("subscriptions").insert({
-          user_id: u.id,
-          grade_id: u.grade_id,
-          plan: "super",
-          status: "active",
-          starts_at: new Date().toISOString(),
-          expires_at: addPeriod(new Date()).toISOString(),
-        });
-    if (error) toast.error(error.message);
-    else {
-      toast.success(u.sub ? "تم تمديد السوبر" : "تم تفعيل السوبر");
-      void refetch();
-    }
+    setBusy(true);
+    const { data: res, error } = await supabase.rpc("admin_grant_super", {
+      _user_id: target.id,
+      _months: months === "custom" ? 0 : Number(months),
+      _days: months === "custom" ? Number(customDays) : 0,
+      _request_key: reqKey,
+    });
+    setBusy(false);
+    if (error) return void toast.error(error.message);
+    const r = res as { extended?: boolean; duplicate?: boolean };
+    toast.success(r.duplicate ? "تم تنفيذ هذا الطلب مسبقًا" : r.extended ? "تم تمديد السوبر" : "تم تفعيل السوبر");
+    setTarget(null);
+    setReqKey(crypto.randomUUID());
+    void refetch();
   }
 
-  async function cancel(subId: string) {
-    if (!window.confirm("إلغاء السوبر وإرجاع الطالب إلى Free؟")) return;
-    const { error } = await supabase.from("subscriptions").update({ status: "cancelled" }).eq("id", subId);
+  async function cancel(userId: string) {
+    if (!window.confirm("إلغاء السوبر وإرجاع الطالب إلى Free؟ سيبقى السجل محفوظًا.")) return;
+    const { error } = await supabase.rpc("admin_cancel_super", { _user_id: userId });
     if (error) toast.error(error.message);
     else {
       toast.success("تم الإلغاء — الطالب الآن على Free");
@@ -920,11 +918,27 @@ export function AdminSubscriptions() {
   return (
     <div className="flex flex-col gap-3">
       <input className={input} placeholder="ابحث بالاسم أو البريد الإلكتروني" value={search} onChange={(e) => setSearch(e.target.value)} />
+      {target && (
+        <Card className="flex flex-col gap-2 border-primary/50">
+          <p className="text-sm font-bold">{target.sub ? "تمديد السوبر" : "تفعيل السوبر"}</p>
+          <p className="text-[11px]">الطالب: <b>{target.display_name || "بدون اسم"}</b></p>
+          <p className="text-[11px]" dir="ltr">{target.email}</p>
+          <p className="text-[11px]">المدة: {durationLabel}</p>
+          <p className="text-[11px]">تاريخ البدء: {fmt((target.sub ? new Date(target.sub.expires_at) : new Date()).toISOString())}</p>
+          <p className="text-[11px]">تاريخ الانتهاء المتوقع: <b>{fmt(addPeriod(target.sub ? new Date(target.sub.expires_at) : new Date()).toISOString())}</b></p>
+          <div className="flex gap-2">
+            <button className={btn} disabled={busy} onClick={() => void confirmGrant()}>
+              {busy ? <Loader2 className="inline size-4 animate-spin" /> : "تأكيد"}
+            </button>
+            <button className={ghost} disabled={busy} onClick={() => setTarget(null)}>إلغاء</button>
+          </div>
+        </Card>
+      )}
       <div className="flex gap-2">
         <select className={input} value={months} onChange={(e) => setMonths(e.target.value)}>
           <option value="1">شهر واحد</option>
-          <option value="2">شهران</option>
-          <option value="3">٣ أشهر</option>
+          <option value="2">شهرين</option>
+          <option value="3">3 أشهر</option>
           <option value="custom">مدة مخصصة (بالأيام)</option>
         </select>
         {months === "custom" && (
@@ -950,11 +964,11 @@ export function AdminSubscriptions() {
                 {u.sub ? `سوبر من ${fmt(u.sub.starts_at)} حتى ${fmt(u.sub.expires_at)}` : "الخطة المجانية (Free)"}
               </p>
               <div className="flex gap-2">
-                <button className={ghost} disabled={incomplete} onClick={() => void grant(u)}>
+                <button className={ghost} disabled={incomplete} onClick={() => { setTarget(u); setReqKey(crypto.randomUUID()); }}>
                   {u.sub ? "تمديد السوبر" : "تفعيل السوبر"}
                 </button>
                 {u.sub && (
-                  <button className={cn(ghost, "text-destructive")} onClick={() => void cancel(u.sub!.id)}>
+                  <button className={cn(ghost, "text-destructive")} onClick={() => void cancel(u.id)}>
                     إلغاء / إرجاع إلى Free
                   </button>
                 )}
