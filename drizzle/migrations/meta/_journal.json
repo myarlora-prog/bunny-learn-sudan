@@ -36,6 +36,13 @@
       "when": 1793890835440,
       "tag": "0004_owner_super_rpcs_grade_scoped_access",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793892081785,
+      "tag": "0005_subscriptions_plan_check_allow_super",
+      "breakpoints": true
     }
   ]
 }
