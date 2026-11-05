@@ -10,12 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AvatarRouteImport } from './routes/avatar'
 import { Route as GradeRouteImport } from './routes/grade'
-import { Route as HeroesRouteImport } from './routes/heroes'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -37,11 +34,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AchievementsRoute = AchievementsRouteImport.update({
-  id: '/achievements',
-  path: '/achievements',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -52,19 +44,9 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AvatarRoute = AvatarRouteImport.update({
-  id: '/avatar',
-  path: '/avatar',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GradeRoute = GradeRouteImport.update({
   id: '/grade',
   path: '/grade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HeroesRoute = HeroesRouteImport.update({
-  id: '/heroes',
-  path: '/heroes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -145,12 +127,9 @@ const QuizzesSubjectIdRoute = QuizzesSubjectIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/avatar': typeof AvatarRoute
   '/grade': typeof GradeRoute
-  '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
@@ -169,12 +148,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/avatar': typeof AvatarRoute
   '/grade': typeof GradeRoute
-  '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
@@ -194,12 +170,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
-  '/avatar': typeof AvatarRoute
   '/grade': typeof GradeRoute
-  '/heroes': typeof HeroesRoute
   '/home': typeof HomeRoute
   '/planner': typeof PlannerRoute
   '/profile': typeof ProfileRoute
@@ -220,12 +193,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/achievements'
     | '/admin'
     | '/auth'
-    | '/avatar'
     | '/grade'
-    | '/heroes'
     | '/home'
     | '/planner'
     | '/profile'
@@ -244,12 +214,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/achievements'
     | '/admin'
     | '/auth'
-    | '/avatar'
     | '/grade'
-    | '/heroes'
     | '/home'
     | '/planner'
     | '/profile'
@@ -268,12 +235,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/achievements'
     | '/admin'
     | '/auth'
-    | '/avatar'
     | '/grade'
-    | '/heroes'
     | '/home'
     | '/planner'
     | '/profile'
@@ -293,12 +257,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AchievementsRoute: typeof AchievementsRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
-  AvatarRoute: typeof AvatarRoute
   GradeRoute: typeof GradeRoute
-  HeroesRoute: typeof HeroesRoute
   HomeRoute: typeof HomeRoute
   PlannerRoute: typeof PlannerRoute
   ProfileRoute: typeof ProfileRoute
@@ -325,13 +286,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/achievements': {
-      id: '/achievements'
-      path: '/achievements'
-      fullPath: '/achievements'
-      preLoaderRoute: typeof AchievementsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -346,25 +300,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/avatar': {
-      id: '/avatar'
-      path: '/avatar'
-      fullPath: '/avatar'
-      preLoaderRoute: typeof AvatarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/grade': {
       id: '/grade'
       path: '/grade'
       fullPath: '/grade'
       preLoaderRoute: typeof GradeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/heroes': {
-      id: '/heroes'
-      path: '/heroes'
-      fullPath: '/heroes'
-      preLoaderRoute: typeof HeroesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -477,12 +417,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AchievementsRoute: AchievementsRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
-  AvatarRoute: AvatarRoute,
   GradeRoute: GradeRoute,
-  HeroesRoute: HeroesRoute,
   HomeRoute: HomeRoute,
   PlannerRoute: PlannerRoute,
   ProfileRoute: ProfileRoute,

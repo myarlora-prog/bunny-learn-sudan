@@ -851,62 +851,115 @@ function DraftReview({ draft, onDone }: { draft: AdminDraft; onDone: () => void 
 export function AdminSubscriptions() {
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useAdminUsers(search);
-  const [days, setDays] = useState("30");
+  const [months, setMonths] = useState("1");
+  const [customDays, setCustomDays] = useState("");
+  const { data: names } = useQuery({
+    queryKey: ["admin", "stage-grade-names"],
+    queryFn: async () => {
+      const [{ data: st }, { data: gr }] = await Promise.all([
+        supabase.from("stages").select("id,name"),
+        supabase.from("grades").select("id,name"),
+      ]);
+      return {
+        stage: Object.fromEntries((st ?? []).map((x) => [x.id, x.name])) as Record<string, string>,
+        grade: Object.fromEntries((gr ?? []).map((x) => [x.id, x.name])) as Record<string, string>,
+      };
+    },
+  });
 
-  async function grant(userId: string, gradeId: string | null) {
-    if (!gradeId) {
-      toast.error("الطالب لم يختر صفًا بعد");
+  function addPeriod(from: Date) {
+    const d = new Date(from);
+    if (months === "custom") d.setDate(d.getDate() + Math.max(1, Number(customDays) || 0));
+    else d.setMonth(d.getMonth() + Number(months));
+    return d;
+  }
+
+  async function grant(u: { id: string; grade_id: string | null; sub: { id: string; expires_at: string } | null }) {
+    if (!u.grade_id) {
+      toast.error("لا يمكن التفعيل: الطالب لم يحدد المرحلة والصف بعد");
       return;
     }
-    const expires = new Date(Date.now() + Number(days || 30) * 86400000).toISOString();
-    const { error } = await supabase
-      .from("subscriptions")
-      .insert({ user_id: userId, grade_id: gradeId, plan: "super", status: "active", expires_at: expires });
+    if (months === "custom" && !(Number(customDays) > 0)) {
+      toast.error("أدخل عدد أيام صحيح للمدة المخصصة");
+      return;
+    }
+    const { error } = u.sub
+      ? await supabase
+          .from("subscriptions")
+          .update({ expires_at: addPeriod(new Date(u.sub.expires_at)).toISOString() })
+          .eq("id", u.sub.id)
+      : await supabase.from("subscriptions").insert({
+          user_id: u.id,
+          grade_id: u.grade_id,
+          plan: "super",
+          status: "active",
+          starts_at: new Date().toISOString(),
+          expires_at: addPeriod(new Date()).toISOString(),
+        });
     if (error) toast.error(error.message);
     else {
-      toast.success("تم تفعيل السوبر");
+      toast.success(u.sub ? "تم تمديد السوبر" : "تم تفعيل السوبر");
       void refetch();
     }
   }
 
-  async function cancel(userId: string) {
-    const { error } = await supabase
-      .from("subscriptions")
-      .update({ status: "cancelled" })
-      .eq("user_id", userId)
-      .eq("status", "active");
+  async function cancel(subId: string) {
+    if (!window.confirm("إلغاء السوبر وإرجاع الطالب إلى Free؟")) return;
+    const { error } = await supabase.from("subscriptions").update({ status: "cancelled" }).eq("id", subId);
     if (error) toast.error(error.message);
     else {
-      toast.success("تم الإلغاء");
+      toast.success("تم الإلغاء — الطالب الآن على Free");
       void refetch();
     }
   }
+
+  const fmt = (d: string) => new Date(d).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
 
   return (
     <div className="flex flex-col gap-3">
-      <input className={input} placeholder="ابحث عن طالب" value={search} onChange={(e) => setSearch(e.target.value)} />
-      <input className={input} placeholder="عدد الأيام" value={days} onChange={(e) => setDays(e.target.value)} />
+      <input className={input} placeholder="ابحث بالاسم أو البريد الإلكتروني" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex gap-2">
+        <select className={input} value={months} onChange={(e) => setMonths(e.target.value)}>
+          <option value="1">شهر واحد</option>
+          <option value="2">شهران</option>
+          <option value="3">٣ أشهر</option>
+          <option value="custom">مدة مخصصة (بالأيام)</option>
+        </select>
+        {months === "custom" && (
+          <input className={input} inputMode="numeric" placeholder="عدد الأيام" value={customDays} onChange={(e) => setCustomDays(e.target.value)} />
+        )}
+      </div>
       {isLoading ? (
         <Spinner />
       ) : (
-        (data ?? []).map((u) => (
-          <Card key={u.id} className="flex flex-col gap-2">
-            <p className="text-sm font-bold">{u.display_name || u.email}</p>
-            <p className="text-[11px] text-muted-foreground">
-              {u.sub ? `سوبر حتى ${new Date(u.sub.expires_at).toLocaleDateString("ar")}` : "الخطة المجانية"}
-            </p>
-            <div className="flex gap-2">
-              <button className={ghost} onClick={() => void grant(u.id, u.grade_id)}>
-                تفعيل / تمديد
-              </button>
-              {u.sub && (
-                <button className={cn(ghost, "text-destructive")} onClick={() => void cancel(u.id)}>
-                  إلغاء
+        (data ?? []).map((u) => {
+          const incomplete = !u.stage_id || !u.grade_id;
+          return (
+            <Card key={u.id} className={cn("flex flex-col gap-1.5", incomplete && "border-warning/60")}>
+              <p className="text-sm font-bold">{u.display_name || "بدون اسم"}</p>
+              <p className="text-[11px] text-muted-foreground" dir="ltr">{u.email}</p>
+              <p className="text-[11px]">
+                {u.stage_id ? names?.stage[u.stage_id] ?? "—" : <span className="text-destructive">المرحلة غير محددة</span>}
+                {" · "}
+                {u.grade_id ? names?.grade[u.grade_id] ?? "—" : <span className="text-destructive">الصف غير محدد</span>}
+              </p>
+              {incomplete && <p className="text-[11px] text-destructive">ملف غير مكتمل — لا يمكن تفعيل السوبر حتى يختار الطالب مرحلته وصفه</p>}
+              <p className="text-[11px] text-muted-foreground">
+                {u.sub ? `سوبر من ${fmt(u.sub.starts_at)} حتى ${fmt(u.sub.expires_at)}` : "الخطة المجانية (Free)"}
+              </p>
+              <div className="flex gap-2">
+                <button className={ghost} disabled={incomplete} onClick={() => void grant(u)}>
+                  {u.sub ? "تمديد السوبر" : "تفعيل السوبر"}
                 </button>
-              )}
-            </div>
-          </Card>
-        ))
+                {u.sub && (
+                  <button className={cn(ghost, "text-destructive")} onClick={() => void cancel(u.sub!.id)}>
+                    إلغاء / إرجاع إلى Free
+                  </button>
+                )}
+              </div>
+            </Card>
+          );
+        })
       )}
     </div>
   );

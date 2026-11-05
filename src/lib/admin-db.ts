@@ -89,9 +89,9 @@ export function useAdminUsers(search: string) {
     queryFn: async () => {
       let q = supabase
         .from("profiles")
-        .select("id,display_name,email,grade_id,avatar_emoji,created_at")
+        .select("id,display_name,email,grade_id,stage_id,avatar_emoji,created_at")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(500);
       if (search.trim()) q = q.or(`display_name.ilike.%${search}%,email.ilike.%${search}%`);
       const { data, error } = await q;
       if (error) throw error;
@@ -100,15 +100,16 @@ export function useAdminUsers(search: string) {
         supabase.from("user_roles").select("user_id,role").in("user_id", ids.length ? ids : ["-"]),
         supabase
           .from("subscriptions")
-          .select("user_id,status,expires_at,plan")
+          .select("id,user_id,status,expires_at,starts_at,plan,grade_id")
           .in("user_id", ids.length ? ids : ["-"])
-          .eq("status", "active"),
+          .eq("status", "active")
+          .gt("expires_at", new Date().toISOString()),
         supabase.from("user_stats").select("user_id,points,streak").in("user_id", ids.length ? ids : ["-"]),
       ]);
       return (data ?? []).map((p) => ({
         ...p,
         roles: (roles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role as string),
-        sub: (subs ?? []).find((s) => s.user_id === p.id) ?? null,
+        sub: (subs ?? []).find((s) => s.user_id === p.id && s.grade_id === p.grade_id) ?? null,
         stats: (stats ?? []).find((s) => s.user_id === p.id) ?? null,
       }));
     },

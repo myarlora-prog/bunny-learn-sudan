@@ -58,6 +58,7 @@ const DEFAULT: AppState = {
 export type Subscription = {
   plan: string;
   status: string;
+  starts_at?: string;
   expires_at: string;
   grade_id: string;
 };
@@ -119,16 +120,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       supabase.rpc("energy_state"),
       supabase
         .from("subscriptions")
-        .select("plan,status,expires_at,grade_id")
+        .select("plan,status,starts_at,expires_at,grade_id")
         .eq("user_id", uid)
         .eq("status", "active")
         .gt("expires_at", new Date().toISOString())
-        .order("expires_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+        .order("expires_at", { ascending: false }),
     ]);
 
-    setSubscription((sub.data as Subscription | null) ?? null);
+    // Super belongs to the student's current grade only (email + stage + grade).
+    const currentGrade = (profile.data as { grade_id?: string | null } | null)?.grade_id ?? null;
+    const subs = (sub.data as Subscription[] | null) ?? [];
+    setSubscription(subs.find((s) => currentGrade && s.grade_id === currentGrade) ?? null);
 
     // keep the student's own time zone so streak days follow their local calendar
     try {

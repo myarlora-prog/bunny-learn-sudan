@@ -24,7 +24,7 @@ function useSubjectCounts(subjectIds: string[]) {
   return useQuery({
     queryKey: ["subject-counts", subjectIds],
     enabled: subjectIds.length > 0,
-    queryFn: async (): Promise<Record<string, { units: number; lessons: number }>> => {
+    queryFn: async (): Promise<Record<string, { units: number; lessons: number; ids: string[] }>> => {
       const { data: units } = await supabase
         .from("units")
         .select("id,subject_id")
@@ -36,15 +36,17 @@ function useSubjectCounts(subjectIds: string[]) {
         .select("id,unit_id")
         .in("unit_id", unitIds.length ? unitIds : ["-"])
         .eq("published", true);
-      const lessonsByUnit = new Map<string, number>();
-      for (const l of lessons ?? []) lessonsByUnit.set(l.unit_id, (lessonsByUnit.get(l.unit_id) ?? 0) + 1);
-      const counts: Record<string, { units: number; lessons: number }> = {};
-      for (const id of subjectIds) counts[id] = { units: 0, lessons: 0 };
+      const lessonsByUnit = new Map<string, string[]>();
+      for (const l of lessons ?? []) lessonsByUnit.set(l.unit_id, [...(lessonsByUnit.get(l.unit_id) ?? []), l.id]);
+      const counts: Record<string, { units: number; lessons: number; ids: string[] }> = {};
+      for (const id of subjectIds) counts[id] = { units: 0, lessons: 0, ids: [] };
       for (const u of units ?? []) {
         const c = counts[u.subject_id];
         if (!c) continue;
         c.units += 1;
-        c.lessons += lessonsByUnit.get(u.id) ?? 0;
+        const ls = lessonsByUnit.get(u.id) ?? [];
+        c.lessons += ls.length;
+        c.ids.push(...ls);
       }
       return counts;
     },
@@ -81,7 +83,9 @@ function CurriculumPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {(subjectsQ.data ?? []).map((s) => {
-            const c = countsQ.data?.[s.id] ?? { units: 0, lessons: 0 };
+            const c = countsQ.data?.[s.id] ?? { units: 0, lessons: 0, ids: [] };
+            const doneCount = c.ids.filter((id) => state.completedLessons.includes(id)).length;
+            const pct = c.lessons ? Math.round((doneCount / c.lessons) * 100) : 0;
             return (
               <Link key={s.id} to="/curriculum/$subjectId" params={{ subjectId: s.id }}>
                 <Card className="flex items-center gap-4">
@@ -99,7 +103,7 @@ function CurriculumPage() {
                     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
                       <div
                         className="h-full rounded-full"
-                        style={{ width: "0%", background: s.color }}
+                        style={{ width: `${pct}%`, background: s.color }}
                       />
                     </div>
                   </div>
