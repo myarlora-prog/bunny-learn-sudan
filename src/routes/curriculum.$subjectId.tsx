@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/curriculum/$subjectId")({
 function SubjectPage() {
   const { subjectId } = Route.useParams();
   const { state, isSuper, isAdmin } = useApp();
+  const navigate = useNavigate();
   const live = useSubjectTree(subjectId);
   const subject = isDbId(subjectId) ? live.data : getSubject(subjectId);
 
@@ -93,7 +94,10 @@ function SubjectPage() {
                       <button
                         type="button"
                         className="press flex flex-col items-center"
-                        onClick={() => toast("هذا الدرس متاح لمشتركي السوبر فقط 💎", { description: "اشترك في السوبر لفتح جميع الدروس." })}
+                        onClick={() => {
+                          toast("هذا الدرس متاح لمشتركي السوبر فقط 💎");
+                          void navigate({ to: "/super" });
+                        }}
                       >
                         {body}
                       </button>

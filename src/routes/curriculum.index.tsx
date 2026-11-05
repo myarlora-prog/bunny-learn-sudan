@@ -55,7 +55,7 @@ function useSubjectCounts(subjectIds: string[]) {
 }
 
 function CurriculumPage() {
-  const { state } = useApp();
+  const { state, isSuper } = useApp();
   const stagesQ = useStages();
   const gradesQ = useGrades(state.stageId);
   const subjectsQ = useSubjects(state.gradeId);
@@ -71,6 +71,11 @@ function CurriculumPage() {
       <PageHeader
         title="المكتبة"
         subtitle={grade ? `${stage?.name} · ${grade.name}` : "اختر مادة لتبدأ المذاكرة"}
+        action={
+          isSuper ? (
+            <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">💎 سوبر</span>
+          ) : undefined
+        }
       />
 
       {loading ? (
