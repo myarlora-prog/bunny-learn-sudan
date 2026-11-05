@@ -15,6 +15,13 @@
       "when": 1793804270209,
       "tag": "0001_streak_local_timezone",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793877690215,
+      "tag": "0002_super_scoped_to_grade",
+      "breakpoints": true
     }
   ]
 }
