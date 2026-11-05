@@ -58,6 +58,7 @@ const DEFAULT: AppState = {
 export type Subscription = {
   plan: string;
   status: string;
+  starts_at?: string;
   expires_at: string;
   grade_id: string;
 };
