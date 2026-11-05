@@ -73,15 +73,7 @@ function ProgressPage() {
         ))}
       </div>
 
-      <Link to="/achievements">
-        <Card className="mt-4 flex items-center gap-3">
-          <Trophy className="size-6 text-warning" />
-          <div className="flex-1">
-            <h3 className="text-sm font-bold">إنجازاتي ومكافآتي</h3>
-            <p className="text-[11px] text-muted-foreground">اكتشف الأوسمة التي حصلت عليها</p>
-          </div>
-        </Card>
-      </Link>
+
     </Screen>
   );
 }

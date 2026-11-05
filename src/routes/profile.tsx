@@ -2,13 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Settings,
   CalendarDays,
-  Trophy,
   GraduationCap,
   ChevronLeft,
   LogOut,
   Gift,
   Sparkles,
-  Smile,
   Flame,
   ShieldCheck,
 } from "lucide-react";
