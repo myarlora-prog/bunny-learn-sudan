@@ -20,6 +20,7 @@ import {
 } from "@/lib/admin-db";
 import { extractText } from "@/lib/pdf-text";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/lib/app-state";
 
 const input =
   "w-full rounded-2xl border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary";
@@ -851,6 +852,7 @@ function DraftReview({ draft, onDone }: { draft: AdminDraft; onDone: () => void 
 export function AdminSubscriptions() {
   const [search, setSearch] = useState("");
   const { data, isLoading, refetch } = useAdminUsers(search);
+  const ownerId = useApp().session?.user.id;
   const [months, setMonths] = useState("1");
   const [customDays, setCustomDays] = useState("");
   const { data: names } = useQuery({
@@ -932,7 +934,7 @@ export function AdminSubscriptions() {
       {isLoading ? (
         <Spinner />
       ) : (
-        (data ?? []).map((u) => {
+        (data ?? []).filter((u) => u.id !== ownerId).map((u) => {
           const incomplete = !u.stage_id || !u.grade_id;
           return (
             <Card key={u.id} className={cn("flex flex-col gap-1.5", incomplete && "border-warning/60")}>

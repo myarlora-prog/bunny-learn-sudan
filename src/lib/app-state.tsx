@@ -192,7 +192,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const update = useCallback(
     (patch: Partial<AppState>) => {
       setState((s) => ({ ...s, ...patch }));
-      const uid = session?.user.id;
+      void (async () => {
+      const uid = session?.user.id ?? (await supabase.auth.getSession()).data.session?.user.id;
       if (!uid) return;
       const profilePatch: {
         display_name?: string;
@@ -205,11 +206,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       if (patch.gradeId !== undefined) profilePatch.grade_id = patch.gradeId;
       if (patch.avatar !== undefined) profilePatch.avatar_emoji = patch.avatar;
       if (Object.keys(profilePatch).length) {
-        void supabase.from("profiles").update(profilePatch).eq("id", uid);
+        const { error } = await supabase.from("profiles").update(profilePatch).eq("id", uid);
+        if (error) console.error("profile save failed", error);
       }
       if (patch.dark !== undefined) {
         void supabase.from("user_settings").upsert({ user_id: uid, dark_mode: patch.dark });
       }
+      })();
     },
     [session],
   );

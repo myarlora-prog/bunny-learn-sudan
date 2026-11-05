@@ -49,7 +49,7 @@ function StagePage() {
               key={s.id}
               type="button"
               onClick={() => {
-                update({ stageId: s.id, gradeId: null });
+                update(state.stageId === s.id ? { stageId: s.id } : { stageId: s.id, gradeId: null });
                 void navigate({ to: "/grade" });
               }}
               className={cn(
