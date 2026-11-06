@@ -41,3 +41,56 @@ export const generateSubjectExam = createServerFn({ method: "POST" })
       return { ok: false as const, questions: [] as ExamQuestion[] };
     }
   });
+
+type ChunkInput = { subject: string; chunk: string; count: number; part: number; parts: number; avoid: string[] };
+
+/** Owner-only: generate questions for one chunk of a long source text. Client loops chunks sequentially. */
+export const generateExamChunk = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: ChunkInput) => {
+    if (!input || typeof input.chunk !== "string" || input.chunk.trim().length < 20) throw new Error("النص قصير جدًا");
+    return {
+      subject: String(input.subject ?? "").slice(0, 100),
+      chunk: input.chunk.slice(0, 20000),
+      count: Math.min(Math.max(Number(input.count) || 5, 1), 20),
+      part: Number(input.part) || 1,
+      parts: Number(input.parts) || 1,
+      avoid: (Array.isArray(input.avoid) ? input.avoid : []).slice(-60).map((s) => String(s).slice(0, 200)),
+    };
+  })
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("is_admin");
+    if (!isAdmin) throw new Error("Forbidden");
+    const result = await aiComplete({
+      json: true,
+      messages: [
+        {
+          role: "system",
+          content: [
+            "أنت معد اختبارات للمنهج السوداني. اقرأ النص كاملًا واستخرج المفاهيم المهمة، ثم أنشئ أسئلة اختيار من متعدد بالعربية اعتمادًا فقط على النص.",
+            "لا تخترع معلومات خارج النص. وزّع الأسئلة على أجزاء النص المختلفة ولا تكرر أسئلة.",
+            "إذا كان النص غير واضح أو ناقصًا فلا تخمّن؛ اكتب المشكلة في issues.",
+            'أعد JSON فقط: {"questions": [{"q": "...", "options": ["","","",""], "correct": 0, "hint": "تفسير مختصر"}], "issues": ["..."]}',
+            "لكل سؤال 4 خيارات بالضبط، وcorrect موضع الإجابة الصحيحة (0-3) موزعًا عشوائيًا.",
+          ].join("\n"),
+        },
+        {
+          role: "user",
+          content: `المادة: ${data.subject}\nالجزء ${data.part} من ${data.parts}\nعدد الأسئلة المطلوب: ${data.count}\n${
+            data.avoid.length ? `لا تكرر هذه الأسئلة:\n- ${data.avoid.join("\n- ")}\n` : ""
+          }\nالنص:\n${data.chunk}`,
+        },
+      ],
+    });
+    if (!result.ok) return { ok: false as const, questions: [] as ExamQuestion[], issues: ["تعذر الاتصال بالذكاء الاصطناعي"] };
+    try {
+      const args = JSON.parse(result.content.replace(/^```json/i, "").replace(/```$/, ""));
+      const questions = (args.questions ?? []).filter(
+        (q: ExamQuestion) => q?.q && Array.isArray(q.options) && q.options.length === 4 && q.correct >= 0 && q.correct < 4,
+      ) as ExamQuestion[];
+      const issues = (Array.isArray(args.issues) ? args.issues : []).map(String);
+      return { ok: true as const, questions, issues };
+    } catch {
+      return { ok: false as const, questions: [] as ExamQuestion[], issues: ["رد غير صالح من الذكاء الاصطناعي"] };
+    }
+  });
