@@ -72,7 +72,7 @@ function StreakPage() {
         </div>
       </Card>
 
-      <Card className="mt-3 grid grid-cols-3 gap-2 p-3 text-center">
+      <Card className="mt-3 grid grid-cols-2 gap-2 p-3 text-center">
         <Stat icon={<Flame className="size-5 text-warning" />} label="الاستريك الحالي" value={state.streak} />
         <Stat icon={<Trophy className="size-5 text-warning" />} label="أعلى استريك" value={state.longestStreak} />
       </Card>
