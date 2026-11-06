@@ -56,7 +56,7 @@ function AuthPage() {
 
   useEffect(() => {
     if (session && hydrated) {
-      void navigate({ to: state.gradeId ? "/home" : "/stage", replace: true });
+      void navigate({ to: state.gradeId ? "/curriculum" : "/stage", replace: true });
     }
   }, [session, hydrated, state.gradeId, navigate]);
 

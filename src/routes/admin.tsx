@@ -147,7 +147,7 @@ function AdminPage() {
         </>
       )}
 
-      <Link to="/home" className="mt-6 inline-block text-xs font-bold text-primary">
+      <Link to="/curriculum" className="mt-6 inline-block text-xs font-bold text-primary">
         العودة للتطبيق
       </Link>
     </div>

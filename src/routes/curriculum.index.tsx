@@ -5,6 +5,7 @@ import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-state";
+import { WeekActivityCard } from "@/components/week-activity-card";
 import { useGrades, useStages, useSubjects } from "@/lib/curriculum-db";
 
 export const Route = createFileRoute("/curriculum/")({
@@ -77,6 +78,8 @@ function CurriculumPage() {
           ) : undefined
         }
       />
+
+      <WeekActivityCard />
 
       {loading ? (
         <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
