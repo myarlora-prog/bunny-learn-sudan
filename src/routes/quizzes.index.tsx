@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/quizzes/")({
   head: () => ({
     meta: [
-      { title: "اختباري | نوابغ" },
+      { title: "اختباراتي | نوابغ" },
       { name: "description", content: "اختر مادتك وابدأ اختبارًا شاملًا أو اختبارات الوحدات في نوابغ." },
-      { property: "og:title", content: "اختباري | نوابغ" },
+      { property: "og:title", content: "اختباراتي | نوابغ" },
       { property: "og:description", content: "اختبارات المواد والوحدات للمنهج السوداني مع نوابغ." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -32,7 +32,7 @@ function QuizzesPage() {
   if (subjectsQ.isLoading) {
     return (
       <Screen>
-        <PageHeader title="اختباري" subtitle="اختر المادة واختبر نفسك" />
+        <PageHeader title="اختباراتي" subtitle="اختر المادة واختبر نفسك" />
         <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
       </Screen>
     );
@@ -40,7 +40,7 @@ function QuizzesPage() {
   if (n === 0) {
     return (
       <Screen>
-        <PageHeader title="اختباري" subtitle="اختر المادة واختبر نفسك" />
+        <PageHeader title="اختباراتي" subtitle="اختر المادة واختبر نفسك" />
         <SaqroEmpty title="لا توجد مواد منشورة بعد" desc="ستظهر اختبارات صفك هنا فور نشرها." />
       </Screen>
     );
@@ -52,10 +52,10 @@ function QuizzesPage() {
 
   return (
     <Screen>
-      <PageHeader title="اختباري" subtitle="اختر المادة واختبر نفسك" />
+      <PageHeader title="اختباراتي" subtitle="اختر المادة واختبر نفسك" />
 
       <div
-        className="relative mx-auto mt-4 h-[300px] select-none overflow-hidden [perspective:1000px]"
+        className="relative mx-auto mt-4 h-[340px] select-none overflow-hidden [perspective:1000px]"
         onTouchStart={(e) => (startX.current = e.touches[0]!.clientX)}
         onTouchEnd={(e) => {
           if (startX.current == null) return;
@@ -84,12 +84,15 @@ function QuizzesPage() {
               }}
             >
               <div
-                className="relative flex h-full w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-[28px] border-4 border-card p-5 shadow-[var(--shadow-float)]"
-                style={{ background: `linear-gradient(160deg, ${s.color}, color-mix(in oklab, ${s.color} 55%, black))` }}
+                className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[18px] p-5 shadow-[0_30px_50px_-24px_color-mix(in_oklab,var(--primary)_55%,transparent)]"
+                style={{ background: `linear-gradient(150deg, color-mix(in oklab, ${s.color} 62%, white), ${s.color} 55%)` }}
               >
-                <span className="absolute inset-y-0 right-0 w-3 bg-card/25" />
-                <span className="text-7xl drop-shadow-lg">{s.icon}</span>
-                <span className="font-display text-xl font-bold text-primary-foreground drop-shadow">{s.name}</span>
+                <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(150deg,color-mix(in_oklab,white_30%,transparent)_0%,transparent_45%)]" />
+                <span className="absolute inset-y-0 right-5 w-px bg-card/40" />
+                <span className="absolute inset-y-2 -left-1 w-1.5 rounded bg-[repeating-linear-gradient(0deg,var(--border)_0_2px,transparent_2px_4px)]" />
+                <Sparkles className="relative size-7 text-primary-foreground/90" />
+                <span className="relative self-start text-5xl drop-shadow">{s.icon}</span>
+                <span className="relative font-display text-2xl font-bold text-primary-foreground drop-shadow">{s.name}</span>
               </div>
             </button>
           );
@@ -115,7 +118,7 @@ function QuizzesPage() {
           to="/quizzes/$subjectId"
           params={{ subjectId: current.id }}
           search={{ mode: "exam" }}
-          className="press gradient-hero flex items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground shadow-[var(--shadow-card)]"
+          className="press flex items-center justify-center gap-2 rounded-[22px] border-b-4 border-primary/70 bg-primary py-4 text-base font-bold text-primary-foreground shadow-[var(--shadow-card)]"
         >
           <Sparkles className="size-5" /> اختبر في هذه المادة
         </Link>
@@ -123,7 +126,7 @@ function QuizzesPage() {
           to="/quizzes/$subjectId"
           params={{ subjectId: current.id }}
           search={{ mode: "units" }}
-          className="press flex items-center justify-center gap-2 rounded-2xl border-2 border-primary/30 bg-card py-4 text-base font-bold text-primary"
+          className="press flex items-center justify-center gap-2 rounded-[22px] border-b-4 border-border bg-card py-4 text-base font-bold text-primary shadow-[var(--shadow-soft)]"
         >
           <ClipboardList className="size-5" /> اختبارات الوحدات
         </Link>

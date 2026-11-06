@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/streak")({
   head: () => ({
     meta: [
-      { title: "الاستريك | نوابغ" },
+      { title: "التقدم | نوابغ" },
       { name: "description", content: "تابع سلسلة تعلّمك اليومية ونشاطك المستمر في نوابغ." },
-      { property: "og:title", content: "الاستريك | نوابغ" },
+      { property: "og:title", content: "التقدم | نوابغ" },
       { property: "og:description", content: "حافظ على حماسك وتابع أيام تعلّمك المتواصلة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -54,13 +54,14 @@ function StreakPage() {
   const [showGuide, setShowGuide] = useState(false);
   const months = useMemo(() => {
     const today = new Date();
-    return [2, 1, 0].map((offset) => new Date(today.getFullYear(), today.getMonth() - offset, 1));
+    return [1, 0].map((offset) => new Date(today.getFullYear(), today.getMonth() - offset, 1));
   }, []);
 
   return (
     <Screen className="pt-3">
+      <FlameHero />
 
-      <Card className="relative z-10 p-5 text-center">
+      <Card className="relative z-10 -mt-6 p-5 text-center">
         <h1 className="text-2xl">{state.streak} {state.streak === 1 ? "يوم على التوالي!" : "أيام على التوالي!"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">لا توقف الحماس، حافظ على شعلتك!</p>
 
@@ -95,13 +96,13 @@ function StreakPage() {
 
 function MonthGrid({ month, activeDays }: { month: Date; activeDays: Set<string> }) {
   const count = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-  const days = Array.from({ length: 35 }, (_, index) => index + 1);
+  const days = Array.from({ length: count }, (_, index) => index + 1);
 
   return (
     <div className="min-w-0">
       <div className="grid grid-cols-5 gap-1.5" aria-label={`نشاط ${arabicMonths[month.getMonth()]}`}>
         {days.map((day) => {
-          const valid = day <= count;
+          const valid = true;
           const active = valid && activeDays.has(dateKey(new Date(month.getFullYear(), month.getMonth(), day)));
           const today = valid && dateKey(new Date(month.getFullYear(), month.getMonth(), day)) === dateKey(new Date());
           return (
@@ -127,6 +128,30 @@ function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: s
       {icon}
       <span className="text-[11px] font-bold text-muted-foreground">{label}</span>
       <strong className="text-lg">{value}</strong>
+    </div>
+  );
+}
+function FlameHero() {
+  return (
+    <div className="relative mx-auto flex h-48 w-48 items-center justify-center" aria-hidden>
+      <span className="flame-glow absolute size-32 rounded-full" />
+      <span className="flame-orbit absolute inset-4">
+        <span className="flame-spark absolute left-1/2 top-0 size-2.5 -translate-x-1/2 rounded-full" />
+      </span>
+      <svg viewBox="0 0 64 80" className="flame-body relative h-28 w-24">
+        <defs>
+          <linearGradient id="fo" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stopColor="var(--flame-1)" />
+            <stop offset="1" stopColor="var(--flame-2)" />
+          </linearGradient>
+          <linearGradient id="fi" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stopColor="var(--flame-3)" />
+            <stop offset="1" stopColor="var(--flame-2)" />
+          </linearGradient>
+        </defs>
+        <path d="M32 2C36 18 54 28 54 50a22 22 0 0 1-44 0c0-10 5-16 10-21 0 8 4 12 8 12-2-14 2-28 6-39Z" fill="url(#fo)" />
+        <path className="flame-inner" d="M32 38c3 8 12 12 12 22a12 12 0 0 1-24 0c0-6 4-9 6-12 1 4 3 6 5 6-1-6 0-12 1-16Z" fill="url(#fi)" />
+      </svg>
     </div>
   );
 }

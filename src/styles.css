@@ -265,3 +265,15 @@
 .dark .theme-quiz { --primary: oklch(0.72 0.16 298); --primary-soft: oklch(0.3 0.06 298); --gradient-surface: linear-gradient(180deg, oklch(0.22 0.04 298), oklch(0.19 0.025 280)); }
 .dark .theme-streak { --primary: oklch(0.76 0.16 55); --primary-soft: oklch(0.32 0.06 55); --gradient-surface: linear-gradient(180deg, oklch(0.23 0.04 50), oklch(0.19 0.02 40)); }
 .dark .theme-account { --primary: oklch(0.75 0.02 258); --primary-soft: oklch(0.3 0.015 258); }
+
+/* Progress flame */
+:root { --flame-1: oklch(0.66 0.21 38); --flame-2: oklch(0.84 0.16 75); --flame-3: oklch(0.93 0.12 95); }
+.flame-glow { background: radial-gradient(circle, color-mix(in oklab, var(--flame-2) 55%, transparent), transparent 70%); animation: flame-pulse 1.8s ease-in-out infinite; }
+.flame-body { transform-origin: 50% 90%; animation: flame-flicker 1.2s ease-in-out infinite; filter: drop-shadow(0 6px 18px color-mix(in oklab, var(--flame-1) 60%, transparent)); }
+.flame-inner { transform-origin: 50% 90%; animation: flame-flicker 0.8s ease-in-out infinite reverse; }
+.flame-orbit { animation: flame-spin 3.2s linear infinite; border-radius: 9999px; border: 1.5px solid color-mix(in oklab, var(--flame-2) 45%, transparent); }
+.flame-spark { background: var(--flame-2); box-shadow: 0 0 10px 3px var(--flame-2); }
+@keyframes flame-flicker { 0%,100% { transform: scale(1,1) rotate(0); } 25% { transform: scale(0.97,1.04) rotate(-2deg); } 50% { transform: scale(1.03,0.97) rotate(1deg); } 75% { transform: scale(0.98,1.03) rotate(2deg); } }
+@keyframes flame-pulse { 0%,100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.12); opacity: 1; } }
+@keyframes flame-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .flame-body,.flame-inner,.flame-orbit,.flame-glow { animation: none; } }
