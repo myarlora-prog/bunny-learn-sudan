@@ -47,7 +47,7 @@ function GradePage() {
               type="button"
               onClick={() => {
                 update({ gradeId: g.id });
-                void navigate({ to: "/home" });
+                void navigate({ to: "/curriculum" });
               }}
               className={cn(
                 "surface-card press rise flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center text-sm font-bold",

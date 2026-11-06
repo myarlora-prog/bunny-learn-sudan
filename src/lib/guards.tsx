@@ -19,7 +19,7 @@ export function useRequireAdmin() {
   useEffect(() => {
     if (!hydrated) return;
     if (!session) void navigate({ to: "/auth", replace: true });
-    else if (!isAdmin) void navigate({ to: "/home", replace: true });
+    else if (!isAdmin) void navigate({ to: "/curriculum", replace: true });
   }, [hydrated, session, isAdmin, navigate]);
   return { isAdmin, hydrated };
 }
