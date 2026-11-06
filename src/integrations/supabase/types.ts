@@ -350,6 +350,38 @@ export type Database = {
           },
         ]
       }
+      lesson_content_revisions: {
+        Row: {
+          created_at: string
+          edited_by: string | null
+          explanation: string
+          id: string
+          lesson_id: string
+        }
+        Insert: {
+          created_at?: string
+          edited_by?: string | null
+          explanation: string
+          id?: string
+          lesson_id: string
+        }
+        Update: {
+          created_at?: string
+          edited_by?: string | null
+          explanation?: string
+          id?: string
+          lesson_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_content_revisions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_progress: {
         Row: {
           completed_at: string
@@ -651,6 +683,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      subject_exams: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          published_at: string | null
+          questions: Json
+          source_text: string
+          status: string
+          subject_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published_at?: string | null
+          questions?: Json
+          source_text?: string
+          status?: string
+          subject_id: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published_at?: string | null
+          questions?: Json
+          source_text?: string
+          status?: string
+          subject_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subject_exams_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subjects: {
         Row: {
@@ -954,6 +1033,10 @@ export type Database = {
           _request_key: string
           _user_id: string
         }
+        Returns: Json
+      }
+      admin_save_lesson_explanation: {
+        Args: { _explanation: string; _lesson_id: string }
         Returns: Json
       }
       apply_referral_code: { Args: { _code: string }; Returns: Json }

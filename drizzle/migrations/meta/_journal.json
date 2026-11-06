@@ -43,6 +43,13 @@
       "when": 1793892081785,
       "tag": "0005_subscriptions_plan_check_allow_super",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793966115850,
+      "tag": "0006_migration",
+      "breakpoints": true
     }
   ]
 }
