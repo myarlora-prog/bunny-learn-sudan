@@ -9,7 +9,7 @@ export function WeekActivityCard() {
   const { data } = useWeekActivity(session?.user.id ?? null, state.completedLessons.length);
   const today = localKey(new Date());
   return (
-    <Card className="mb-4">
+    <Card className="sticky top-0 z-30 mb-4 !transform-none">
       <h2 className="text-base">فرصة جديدة تبدأ من اليوم</h2>
       <p className="mt-1 text-[11px] text-muted-foreground">
         هذا الأسبوع: {data?.totalLessons ?? 0} دروس · {data?.totalQuizzes ?? 0} اختبارات

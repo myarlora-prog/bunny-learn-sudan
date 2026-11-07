@@ -277,3 +277,11 @@
 @keyframes flame-pulse { 0%,100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.12); opacity: 1; } }
 @keyframes flame-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .flame-body,.flame-inner,.flame-orbit,.flame-glow { animation: none; } }
+
+.lesson-rich p { margin-block: .6rem; }
+.lesson-rich h2 { font-size: 1.25rem; margin-block: 1rem .5rem; }
+.lesson-rich h3 { font-size: 1.1rem; margin-block: .8rem .4rem; }
+.lesson-rich ul { list-style: disc; padding-inline-start: 1.5rem; }
+.lesson-rich ol { list-style: decimal; padding-inline-start: 1.5rem; }
+.lesson-rich blockquote { border-inline-start: 3px solid var(--primary); padding-inline-start: 1rem; }
+.lesson-rich { overflow-wrap: anywhere; line-height: 1.9; }

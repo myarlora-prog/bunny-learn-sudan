@@ -49,11 +49,11 @@ function ProfilePage() {
     <Screen>
       <PageHeader title="حسابي" action={<EnergyBadge />} />
 
-      <Card className="gradient-hero flex items-center gap-4 border-transparent">
+      <Card className="gradient-hero sticky top-0 z-30 flex !transform-none items-center gap-4 border-transparent">
         <span className="flex size-[72px] items-center justify-center rounded-3xl bg-primary-foreground/15 text-4xl">
           {state.avatar}
         </span>
-        <div className="flex-1 text-primary-foreground">
+        <div className="min-w-0 flex-1 break-words text-primary-foreground">
           <h2 className="text-lg text-primary-foreground">{state.name || "طالب نوابغ"}</h2>
           <p className="text-xs text-primary-foreground/85">{state.email || "لم يتم إدخال بريد إلكتروني"}</p>
           <p className="mt-1 text-xs text-primary-foreground/85">

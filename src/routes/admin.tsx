@@ -17,6 +17,8 @@ import {
 import { PageHeader } from "@/components/app-shell";
 import { useRequireAdmin } from "@/lib/guards";
 import { AdminLessonAccess } from "@/components/admin-lesson-access";
+import { AdminExplanationEditor } from "@/components/admin-explanation-editor";
+import { AdminSubjectExams } from "@/components/admin-subject-exams";
 import {
   AdminAnnouncements,
   AdminCurriculum,
@@ -53,6 +55,8 @@ const SETTING_KEYS = [
 ];
 
 type SectionId =
+  | "explanations"
+  | "exams"
   | "curriculum"
   | "upload"
   | "drafts"
@@ -65,6 +69,8 @@ type SectionId =
   | "settings";
 
 const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookOpen }[] = [
+  { id: "explanations", label: "تعديل شرح الدروس", desc: "تحرير شرح الدروس الموجودة وحفظ النسخ السابقة", Icon: BookOpen },
+  { id: "exams", label: "إضافة اختبار للمادة", desc: "إنشاء ومراجعة وحفظ ونشر الاختبارات", Icon: FileCheck2 },
   { id: "curriculum", label: "إدارة المنهج", desc: "المراحل، الصفوف، المواد، الوحدات، الدروس", Icon: BookOpen },
   { id: "upload", label: "رفع كتاب ومعالجته", desc: "PDF أو TXT ← تحليل بالذكاء الاصطناعي", Icon: Upload },
   { id: "drafts", label: "مراجعة المسودات", desc: "تعديل المحتوى المستخرج ثم النشر", Icon: FileCheck2 },
@@ -78,6 +84,8 @@ const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookO
 ];
 
 function SectionBody({ id }: { id: SectionId }) {
+  if (id === "explanations") return <AdminExplanationEditor />;
+  if (id === "exams") return <AdminSubjectExams />;
   if (id === "curriculum") return <AdminCurriculum />;
   if (id === "upload") return <AdminUpload />;
   if (id === "drafts") return <AdminDrafts />;
