@@ -46,6 +46,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 const SETTING_KEYS = [
+  { key: "whatsapp_by_country", label: "أرقام دعم واتساب حسب الدولة", hint: 'JSON: {"السودان":"رقم الدعم الحقيقي","السعودية":"رقم الدعم الحقيقي"}' },
   { key: "whatsapp_link", label: "رابط واتساب للاشتراك", hint: "مثال: https://wa.me/2499XXXXXXX" },
   { key: "energy_daily", label: "الطاقة اليومية", hint: "العدد الأساسي يوميًا" },
   { key: "energy_regen_minutes", label: "دقائق تجديد الطاقة" },
