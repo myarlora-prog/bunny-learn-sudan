@@ -9,6 +9,7 @@ import { useApp } from "@/lib/app-state";
 import { isDbId, useLessonData } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { explanationHtml } from "@/lib/sanitize-html";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
   validateSearch: z.object({ tab: z.enum(["explain", "summary", "cards", "quiz"]).optional() }),
@@ -44,7 +45,7 @@ function LessonPage() {
 
   if (isDbId(lessonId) && live.isLoading) {
     return (
-      <Screen>
+      <Screen nav={false}>
         <PageHeader title="الدرس" back />
         <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
       </Screen>
@@ -53,7 +54,7 @@ function LessonPage() {
 
   if (!data) {
     return (
-      <Screen>
+      <Screen nav={false}>
         <PageHeader title="الدرس غير متوفر" back />
         <SaqroEmpty title="لم أعثر على هذا الدرس" desc="عد إلى المنهج واختر درسًا آخر، وأنا في انتظارك." />
       </Screen>
@@ -68,7 +69,7 @@ function LessonPage() {
 
   if (lesson.freeAccess === false && !isSuper && !isAdmin) {
     return (
-      <Screen>
+      <Screen nav={false}>
         <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back />
         <SaqroEmpty title="هذا الدرس يتطلب السوبر 💎" desc="هذا الدرس متاح لمشتركي السوبر فقط. اشترك في السوبر لفتح جميع الدروس." />
         <Link to="/super" className="press gradient-hero mt-4 block rounded-2xl py-3 text-center text-sm font-bold text-primary-foreground">
@@ -82,7 +83,7 @@ function LessonPage() {
 
 
   return (
-    <Screen>
+    <Screen nav={false}>
       <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back action={<EnergyBadge />} />
 
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
@@ -108,7 +109,7 @@ function LessonPage() {
         <div key="explain" className="page-enter flex flex-col gap-3">
           {lesson.explanation.map((p, i) => (
             <Card key={i} className="text-sm leading-loose">
-              {p}
+              <div className="lesson-rich" dangerouslySetInnerHTML={{ __html: explanationHtml(p) }} />
             </Card>
           ))}
         </div>
