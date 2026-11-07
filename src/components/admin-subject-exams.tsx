@@ -69,7 +69,7 @@ function ExamBuilder({ subjectId, subject }: { subjectId: string; subject: strin
     const nextId = id ?? crypto.randomUUID();
     setId(nextId);
     try {
-      const { error } = await supabase.from("subject_exams").upsert({ id: nextId, subject_id: subjectId, title, source_text: source, questions: questions as unknown as Json, status, created_by: session?.user.id, published_at: status === "published" ? new Date().toISOString() : null });
+      const { error } = await supabase.from("subject_exams").upsert({ id: nextId, subject_id: subjectId, title, source_text: source, questions: questions as unknown as Json, status, created_by: session?.user.id ?? null, published_at: status === "published" ? new Date().toISOString() : null });
       if (error) throw error;
       await cache.invalidateQueries({ queryKey: ["admin-exams", subjectId] });
       await cache.invalidateQueries({ queryKey: ["published-exams", subjectId] });
