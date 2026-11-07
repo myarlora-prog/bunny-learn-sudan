@@ -1,15 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, ChevronLeft, ClipboardCheck, Loader2, RotateCcw, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { getSubject, type Subject } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
-import { isDbId, useSubjectExamSource, useSubjectQuizCounts, useSubjectTree } from "@/lib/curriculum-db";
-import { generateSubjectExam, type ExamQuestion } from "@/lib/exam.functions";
+import { isDbId, useSubjectQuizCounts, useSubjectTree } from "@/lib/curriculum-db";
+import type { ExamQuestion } from "@/lib/exam.functions";
+import { validExamQuestions } from "@/lib/exam-utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/quizzes/$subjectId")({
@@ -95,67 +97,36 @@ function UnitQuizzes({ subject }: { subject: Subject }) {
   );
 }
 
-function fallbackQuestions(subject: Subject): ExamQuestion[] {
-  return subject.units
-    .flatMap((u) => u.lessons.flatMap((l) => l.quiz))
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 10);
+function SubjectExam({ subject }: { subject: Subject }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const exams = useQuery({ queryKey: ["published-exams", subject.id], staleTime: 0, refetchOnMount: "always", refetchInterval: 15000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("subject_exams").select("id,title,questions").eq("subject_id", subject.id).eq("status", "published").order("published_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).filter((exam) => validExamQuestions(exam.questions));
+    },
+  });
+  const exam = exams.data?.find((e) => e.id === selected) ?? exams.data?.[0];
+  if (exams.isPending) return <Screen><PageHeader title={`اختبار ${subject.name}`} back /><Loader2 className="mx-auto animate-spin text-primary" /></Screen>;
+  if (exams.isError) return <Screen><PageHeader title={`اختبار ${subject.name}`} back /><p className="text-destructive">تعذر تحميل الاختبارات</p><Button onClick={() => void exams.refetch()}>إعادة المحاولة</Button></Screen>;
+  if (!exam) return <Screen><PageHeader title={`اختبار ${subject.name}`} back /><SaqroEmpty title="لا يوجد اختبار منشور لهذه المادة بعد" desc="سيظهر هنا بعد نشره من المالك." /></Screen>;
+  return <ExamRunner key={exam.id} subject={subject} title={exam.title} questions={exam.questions as unknown as ExamQuestion[]} selector={
+    (exams.data?.length ?? 0) > 1 ? <select aria-label="اختر الاختبار" value={exam.id} onChange={(e) => setSelected(e.target.value)} className="mb-4 w-full rounded-lg border border-border bg-card p-3">{exams.data?.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}</select> : null
+  } />;
 }
 
-function SubjectExam({ subject }: { subject: Subject }) {
-  const gen = useServerFn(generateSubjectExam);
-  const sourceQ = useSubjectExamSource(subject.id);
-  const [questions, setQuestions] = useState<ExamQuestion[]>([]);
+function ExamRunner({ subject, title, questions, selector }: { subject: Subject; title: string; questions: ExamQuestion[]; selector: React.ReactNode }) {
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
-
-  const m = useMutation({
-    mutationFn: async () => {
-      const source = isDbId(subject.id)
-        ? (sourceQ.data ?? "")
-        : subject.units
-            .flatMap((u) =>
-              u.lessons.map((l) => `## ${u.title} - ${l.title}\n${l.explanation.join("\n")}\n${l.summary.join("\n")}`),
-            )
-            .join("\n\n");
-      try {
-        const r = await gen({ data: { subject: subject.name, source, count: 10 } });
-        return r.ok ? r.questions : fallbackQuestions(subject);
-      } catch {
-        return fallbackQuestions(subject);
-      }
-    },
-    onSuccess: (qs) => {
-      setQuestions(qs);
-      setI(0);
-      setPicked(null);
-      setScore(0);
-    },
-  });
-
-  useEffect(() => {
-    if (isDbId(subject.id) && sourceQ.isLoading) return;
-    m.mutate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subject.id, sourceQ.isLoading]);
-
   const q = questions[i];
   const done = questions.length > 0 && i >= questions.length;
 
   return (
     <Screen>
-      <PageHeader title={`${subject.icon} اختبار ${subject.name}`} subtitle="اختبار شامل للمادة" back />
-      {m.isPending && (
-        <Card className="flex flex-col items-center gap-3 py-10 text-center">
-          <Loader2 className="size-7 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">نوابغ يجهّز اختبار المادة…</p>
-        </Card>
-      )}
-      {!m.isPending && questions.length === 0 && (
-        <SaqroEmpty title="لا توجد أسئلة" desc="لا يوجد محتوى كافٍ لهذه المادة بعد." />
-      )}
-      {!m.isPending && done && (
+      <PageHeader title={`${subject.icon} اختبار ${subject.name}`} subtitle={title} back />
+      {selector}
+      {done && (
         <Card className="flex flex-col items-center gap-3 py-8 text-center">
           <p className="text-4xl font-bold text-primary">
             {score} / {questions.length}
@@ -163,14 +134,14 @@ function SubjectExam({ subject }: { subject: Subject }) {
           <p className="text-sm text-muted-foreground">انتهى الاختبار</p>
           <button
             type="button"
-            onClick={() => m.mutate()}
+            onClick={() => { setI(0); setPicked(null); setScore(0); }}
             className="press gradient-hero mt-2 flex items-center gap-2 rounded-2xl px-6 py-3 font-bold text-primary-foreground"
           >
             <RotateCcw className="size-4" /> اختبار جديد
           </button>
         </Card>
       )}
-      {!m.isPending && q && !done && (
+      {q && !done && (
         <div className="flex flex-col gap-4">
           <div className="h-2 overflow-hidden rounded-full bg-primary-soft">
             <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(i / questions.length) * 100}%` }} />
