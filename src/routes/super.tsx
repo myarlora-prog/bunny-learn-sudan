@@ -1,39 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, MessageCircle, Sparkles } from "lucide-react";
 import { useGrades, useStages } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
-import { Saqro } from "@/components/saqro";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { COUNTRIES, COUNTRY_KEY, countrySupportUrl } from "@/lib/support";
 import { useSetting } from "@/lib/account-db";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/super")({
   head: () => ({
     meta: [
-      { title: "كيفية فتح جميع الدروس | نوابغ" },
-      { name: "description", content: "اشترك في نوابغ سوبر: طاقة غير محدودة، شرح أعمق، بطاقات وأسئلة أكثر، ومنافسة أبطال نوابغ." },
-      { property: "og:title", content: "كيفية فتح جميع الدروس | نوابغ" },
-      { property: "og:description", content: "طاقة غير محدودة وشرح أعمق مع نوابغ سوبر." },
+      { title: "Super | نوابغ" },
+      { name: "description", content: "سوبر يفتح دروس صفك وشرحها وملخصاتها وبطاقاتها واختباراتها." },
+      { property: "og:title", content: "Super | نوابغ" },
+      { property: "og:description", content: "تعرّف على الفرق بين المجاني وسوبر وتواصل مع دعم نوابغ." },
     ],
   }),
   component: SuperPage,
 });
 
 const FEATURES = [
-  "طاقة غير محدودة — بدون انتظار",
-  "شرح أعمق وملخصات أشمل لكل درس",
-  "بطاقات مراجعة وأسئلة اختبار أكثر",
-  "نوابغ AI بلا حدود وتدريب متقدم",
-  "تخصيص كامل لشخصيتك",
-  "منافسة أبطال نوابغ 🏆 كاملة",
+  "فتح جميع الدروس في مرحلتك وصفك المحفوظين",
+  "الوصول إلى شرح الدروس وملخصاتها",
+  "مراجعة البطاقات وحل اختبارات الدروس",
 ];
 
 function fmt(date: string) {
   return new Date(date).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
 }
 
-const COUNTRIES = ["السودان", "السعودية", "مصر", "الإمارات", "قطر", "عُمان", "الكويت", "البحرين", "ليبيا", "أخرى"];
+
 
 /** One circle per real calendar day for every month the subscription spans. */
 function SubscriptionCalendar({ start, end }: { start: string; end: string }) {
@@ -76,15 +75,16 @@ function SubscriptionCalendar({ start, end }: { start: string; end: string }) {
 
 function SuperPage() {
   const { subscription, isSuper, state } = useApp();
-  const { data: link } = useSetting("whatsapp_link");
+  const { data: support } = useSetting("whatsapp_by_country");
   const { data: stages } = useStages();
   const { data: grades } = useGrades(state.stageId);
   const [country, setCountry] = useState("");
+  useEffect(() => setCountry(localStorage.getItem(COUNTRY_KEY) ?? ""), []);
   const stage = stages?.find((x) => x.id === state.stageId)?.name ?? "غير محددة";
   const grade = grades?.find((x) => x.id === state.gradeId)?.name ?? "غير محدد";
   const message = `السلام عليكم،
 
-أرغب في فتح جميع الدروس في تطبيق نوابغ.
+لدي استفسار حول إتاحة جميع دروس صفي ومميزات Super في تطبيق نوابغ.
 
 اسم الطالب: ${state.name || "—"}
 البريد الإلكتروني: ${state.email || "—"}
@@ -92,18 +92,22 @@ function SuperPage() {
 الصف: ${grade}
 الدولة الحالية: ${country}
 
-أرجو تزويدي بتفاصيل وطريقة تفعيل الاشتراك.
+أرجو مساعدتي والإجابة عن استفساري.
 
 شكرًا لكم.`;
-  const base = link || "https://wa.me/966557110297";
-  const whatsapp = `${base}${base.includes("?") ? "&" : "?"}text=${encodeURIComponent(message)}`;
+  const whatsapp = countrySupportUrl(support, country, message);
+  const contact = () => {
+    if (!country) { toast.error("اختر دولتك الحالية أولًا"); return; }
+    if (!whatsapp) { toast.error("لا يوجد رقم دعم مُعدّ لهذه الدولة حاليًا"); return; }
+    window.open(whatsapp, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <Screen>
-      <PageHeader title="كيفية فتح جميع الدروس" subtitle="اختر دولتك ثم تواصل معنا عبر واتساب" back />
+      <PageHeader title="Super" subtitle="جميع دروس صفك في متناولك" back />
 
       <Card className="gradient-hero flex items-center gap-4 border-transparent">
-        <Saqro size={78} float priority />
+        <Sparkles className="size-12 shrink-0 text-primary-foreground" />
         <div className="flex-1 text-primary-foreground">
           <h2 className="text-lg text-primary-foreground">
             {isSuper ? "أنت مشترك في السوبر 🎉" : "الخطة المجانية"}
@@ -111,7 +115,7 @@ function SuperPage() {
           <p className="mt-1 text-xs text-primary-foreground/85">
             {isSuper && subscription
               ? `ينتهي في ${fmt(subscription.expires_at)}`
-              : "طاقة محدودة، شرح وملخصات مختصرة"}
+              : "المجاني: الدروس التي يفتحها المالك فقط. سوبر: جميع دروس صفك."}
           </p>
         </div>
       </Card>
@@ -129,58 +133,15 @@ function SuperPage() {
 
       {isSuper && subscription && <SubscriptionCalendar start={subscription.starts_at ?? new Date().toISOString()} end={subscription.expires_at} />}
 
-      {!isSuper && (
-        <>
-          <select
-            className="mt-5 w-full rounded-2xl border border-border bg-card px-3 py-3 text-sm"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            aria-label="الدولة الحالية"
-          >
-            <option value="">اختر دولتك الحالية</option>
-            {COUNTRIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <a
-            aria-disabled={!country}
-            onClick={(e) => { if (!country) { e.preventDefault(); } }}
-            href={whatsapp}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="press gradient-hero mt-5 flex h-14 items-center justify-center gap-2 rounded-3xl text-base font-bold text-primary-foreground shadow-[var(--shadow-float)]"
-          >
-            <MessageCircle className="size-5" /> {country ? "تواصل عبر واتساب" : "اختر دولتك أولًا"}
-          </a>
-          <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-            سيتم تحويلك إلى واتساب لإتمام الاشتراك، ويقوم فريق نوابغ بتفعيل حسابك مباشرة بعد التأكيد.
-          </p>
-        </>
-      )}
-
-      {isSuper && subscription && (
-        <Card className="mt-5 flex items-center gap-3">
-          <Sparkles className="size-5 text-warning" />
-          <div className="flex-1">
-            <h3 className="text-sm font-bold">اشتراكك فعّال</h3>
-            <p className="text-[11px] text-muted-foreground">
-              الخطة: {subscription.plan === "referral" ? "مكافأة دعوة الأصدقاء" : "سوبر"} · ينتهي في{" "}
-              {fmt(subscription.expires_at)}
-            </p>
-          </div>
-        </Card>
-      )}
-
-      {isSuper && (
-        <a
-          href={whatsapp}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="press mt-3 flex h-13 items-center justify-center gap-2 rounded-3xl border border-border bg-card py-3.5 text-sm font-bold shadow-[var(--shadow-soft)]"
-        >
-          <MessageCircle className="size-4 text-primary" /> تمديد أو إلغاء الاشتراك
-        </a>
-      )}
+      <select className="mt-5 w-full rounded-2xl border border-border bg-card px-3 py-3 text-sm" value={country}
+        onChange={(e) => { setCountry(e.target.value); localStorage.setItem(COUNTRY_KEY, e.target.value); }} aria-label="الدولة الحالية">
+        <option value="">اختر دولتك الحالية</option>
+        {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+      </select>
+      <Button onClick={contact} className="gradient-hero mt-5 h-auto min-h-14 w-full whitespace-normal rounded-3xl py-3 text-sm font-bold">
+        <MessageCircle />لفتح جميع الدروس، تواصل معنا عبر الواتساب.
+      </Button>
+      <p className="mt-3 text-center text-xs text-muted-foreground">التواصل للدعم والاستفسارات فقط.</p>
     </Screen>
   );
 }
