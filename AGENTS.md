@@ -10,3 +10,5 @@
 <!-- LOVABLE:END -->
 
 - Keep the primary mobile navigation limited to four routes: curriculum, quizzes, streak, and profile, because these are the product's fixed top-level destinations.
+- Edit existing lesson explanations through the owner-only revision RPC; render owner-authored rich text through the shared sanitizer to preserve history and prevent unsafe markup.
+- Subject exam authoring uses the existing subject_exams records and RLS; student exams read published rows instead of generating replacements at runtime.
