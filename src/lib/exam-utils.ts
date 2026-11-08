@@ -1,4 +1,4 @@
-import type { ExamQuestion } from "@/lib/exam.functions";
+import { validQuestion, type ExamQuestion } from "@/lib/exam-types";
 
 export function splitExamSource(text: string, size = 16000): string[] {
   const chunks: string[] = [];
@@ -14,7 +14,5 @@ export function splitExamSource(text: string, size = 16000): string[] {
 }
 
 export function validExamQuestions(value: unknown): value is ExamQuestion[] {
-  return Array.isArray(value) && value.length > 0 && value.every((q) =>
-    q && typeof q.q === "string" && q.q.trim() && Array.isArray(q.options) && q.options.length === 4 &&
-    q.options.every((o: unknown) => typeof o === "string" && o.trim()) && Number.isInteger(q.correct) && q.correct >= 0 && q.correct <= 3);
+  return Array.isArray(value) && value.length > 0 && value.every(validQuestion);
 }
