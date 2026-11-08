@@ -86,7 +86,7 @@ function LessonPage() {
     <Screen nav={false}>
       <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back action={<EnergyBadge />} />
 
-      <div className="lesson-tabs mb-4 flex gap-2 overflow-x-auto pb-1">
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {tabs.map(({ id, label, Icon }) => (
           <button
             key={id}

@@ -15,7 +15,6 @@ import {
   Lock,
 } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
-import { Button } from "@/components/ui/button";
 import { useRequireAdmin } from "@/lib/guards";
 import { AdminLessonAccess } from "@/components/admin-lesson-access";
 import { AdminExplanationEditor } from "@/components/admin-explanation-editor";
@@ -123,9 +122,6 @@ function AdminPage() {
 
       {active ? (
         <div className="flex flex-col gap-4">
-          <nav className="owner-navigation flex gap-2 overflow-x-auto" aria-label="أقسام لوحة المالك">
-            {SECTIONS.map((s)=><Button key={s.id} variant={section===s.id?"default":"outline"} className="shrink-0" onClick={()=>setSection(s.id)}>{s.label}</Button>)}
-          </nav>
           <button
             className="press inline-flex w-fit items-center gap-1 rounded-2xl border border-border bg-card px-3 py-2 text-xs font-bold"
             onClick={() => setSection(null)}

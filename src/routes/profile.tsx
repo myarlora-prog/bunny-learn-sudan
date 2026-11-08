@@ -49,7 +49,7 @@ function ProfilePage() {
     <Screen>
       <PageHeader title="حسابي" action={<EnergyBadge />} />
 
-      <Card className="gradient-hero profile-sticky sticky flex !transform-none items-center gap-4 border-transparent">
+      <Card className="gradient-hero sticky top-0 z-30 flex !transform-none items-center gap-4 border-transparent">
         <span className="flex size-[72px] items-center justify-center rounded-3xl bg-primary-foreground/15 text-4xl">
           {state.avatar}
         </span>
@@ -62,7 +62,6 @@ function ProfilePage() {
           <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary-foreground/20 px-2.5 py-1 text-[11px] font-bold text-primary-foreground">
             {isSuper ? "سوبر ⭐" : "مجاني"} · {level.name}
           </span>
-          <p className="mt-1 text-xs">{state.points} نقطة</p>
         </div>
       </Card>
 

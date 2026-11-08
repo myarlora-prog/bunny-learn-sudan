@@ -83,62 +83,6 @@ export type Database = {
         }
         Relationships: []
       }
-      curriculum_ai_jobs: {
-        Row: {
-          created_at: string
-          cursor: number
-          id: string
-          items: Json
-          kind: string
-          lease_until: string | null
-          owner_id: string
-          pause_reason: string | null
-          results: Json
-          settings: Json
-          status: string
-          subject_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          cursor?: number
-          id?: string
-          items?: Json
-          kind: string
-          lease_until?: string | null
-          owner_id: string
-          pause_reason?: string | null
-          results?: Json
-          settings?: Json
-          status?: string
-          subject_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          cursor?: number
-          id?: string
-          items?: Json
-          kind?: string
-          lease_until?: string | null
-          owner_id?: string
-          pause_reason?: string | null
-          results?: Json
-          settings?: Json
-          status?: string
-          subject_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "curriculum_ai_jobs_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       curriculum_drafts: {
         Row: {
           content: Json
@@ -1101,7 +1045,6 @@ export type Database = {
         Returns: undefined
       }
       can_access_lesson: { Args: { _lesson_id: string }; Returns: boolean }
-      claim_curriculum_ai_job: { Args: { _id: string }; Returns: boolean }
       complete_lesson: { Args: { _lesson_id: string }; Returns: Json }
       energy_state: { Args: never; Returns: Json }
       gen_referral_code: { Args: never; Returns: string }
