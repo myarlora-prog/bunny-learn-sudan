@@ -92,7 +92,7 @@ export const stepCurriculumJob=createServerFn({method:"POST"}).middleware([requi
       result.html=value.html;
     } else {
       if(!Array.isArray(value.questions)) throw new Error("استجابة أسئلة غير صالحة");
-      const generated=uniqueQuestions(value.questions.filter(validQuestion).map((q)=>({...q,lessonId:item.lessonId??undefined}))).filter((q)=>!avoid.some((a)=>a.trim()===q.q.trim()));
+      const generated=uniqueQuestions(value.questions.filter(validQuestion).map((q)=>({...q,...(item.lessonId ? {lessonId:item.lessonId} : {})}))).filter((q)=>!avoid.some((a)=>a.trim()===q.q.trim()));
       result.questions=count===null?generated:generated.slice(0,count);
       if(!result.questions.length) result.issues.push("لم يتوفر سؤال جديد موثوق لهذا الجزء؛ يحتاج مراجعة التغطية");
     }
