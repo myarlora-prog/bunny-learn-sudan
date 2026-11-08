@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { BottomNav, themeForPath } from "@/components/bottom-nav";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function Screen({
   children,
@@ -38,18 +39,18 @@ export function PageHeader({
 }) {
   const router = useRouter();
   return (
-    <header className="mb-5 flex items-start gap-3">
+    <header className="app-page-header mb-5 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
       {back && (
-        <button
+        <Button variant="outline" size="icon"
           type="button"
           onClick={() => router.history.back()}
           className="press mt-1 flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]"
           aria-label="رجوع"
         >
           <ChevronRight className="size-5 text-foreground" />
-        </button>
+        </Button>
       )}
-      <div className="min-w-0 flex-1">
+      <div className="col-start-2 min-w-0 flex-1">
         <h1 className="truncate text-2xl">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
       </div>

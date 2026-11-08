@@ -7,13 +7,14 @@ type Choice = { id: string; name?: string; title?: string };
 const TABLES = ["stages", "grades", "subjects", "units", "lessons"] as const;
 const LABELS = ["المرحلة", "الصف", "المادة", "الوحدة", "الدرس"];
 
-export function AdminContentPicker({ lesson = false, children }: {
+export function AdminContentPicker({ lesson = false, depth, children }: {
   lesson?: boolean;
+  depth?: number;
   children: (selection: Choice[]) => ReactNode;
 }) {
   const [selection, setSelection] = useState<Choice[]>([]);
   const [step, setStep] = useState(0);
-  const count = lesson ? 5 : 3;
+  const count = depth ?? (lesson ? 5 : 3);
   const table = TABLES[step];
   return <div className="flex flex-col gap-4">
     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
