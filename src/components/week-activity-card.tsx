@@ -23,7 +23,7 @@ export function WeekActivityCard() {
               return (
                 <div key={d.key} className="flex flex-1 flex-col items-center gap-1.5">
                   <span className={cn("text-xs", isToday ? "font-bold text-warning" : "text-muted-foreground")}>
-                    {d.label.replace("ال", "").charAt(0)}
+                    {({ "الأحد": "ح", "الاثنين": "ن", "الثلاثاء": "ث", "الأربعاء": "ر", "الخميس": "خ", "الجمعة": "ج", "السبت": "س" } as Record<string, string>)[d.label] ?? d.label.charAt(0)}
                   </span>
                   <span
                     className={cn(
