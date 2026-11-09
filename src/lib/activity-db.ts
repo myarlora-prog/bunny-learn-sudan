@@ -34,9 +34,10 @@ export function useWeekActivity(uid: string | null, completedCount: number) {
         supabase
           .from("lesson_progress")
           .select("lesson_id,completed_at,lessons(title)")
+          .eq("user_id", uid!)
           .gte("completed_at", start.toISOString())
           .order("completed_at"),
-        supabase.from("quiz_attempts").select("created_at").gte("created_at", start.toISOString()),
+        supabase.from("quiz_attempts").select("created_at").eq("user_id", uid!).gte("created_at", start.toISOString()),
       ]);
       const days = Array.from({ length: 7 }, (_, i) => {
         const d = new Date(start);

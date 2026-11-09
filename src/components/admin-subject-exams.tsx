@@ -9,6 +9,7 @@ import { useApp } from "@/lib/app-state";
 import { generateExamChunk, type ExamQuestion } from "@/lib/exam.functions";
 import { splitExamSource, validExamQuestions } from "@/lib/exam-utils";
 import { extractText } from "@/lib/pdf-text";
+import { loadSubjectLessons, lessonSource, autoQuestionCount } from "@/lib/subject-content";
 import { AdminContentPicker } from "@/components/admin-content-picker";
 import { Button } from "@/components/ui/button";
 
@@ -28,6 +29,8 @@ function ExamBuilder({ subjectId, subject }: { subjectId: string; subject: strin
   const [progress, setProgress] = useState("");
   const [issues, setIssues] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [mode, setMode] = useState<"saved" | "text">("saved");
+  const [manualCount, setManualCount] = useState("");
   const exams = useQuery({ queryKey: ["admin-exams", subjectId], queryFn: async () => {
     const { data, error } = await supabase.from("subject_exams").select("*").eq("subject_id", subjectId).order("created_at", { ascending: false });
     if (error) throw error; return data ?? [];
@@ -40,25 +43,40 @@ function ExamBuilder({ subjectId, subject }: { subjectId: string; subject: strin
   }, [storageKey]);
   useEffect(() => { if (loaded) localStorage.setItem(storageKey, JSON.stringify({ id, source, title, questions })); }, [loaded, storageKey, id, source, title, questions]);
   const create = async (replaceIndex?: number) => {
-    if (source.trim().length < 20) { toast.error("أضف نصًا واضحًا وكافيًا لإنشاء الأسئلة"); return; }
+    if (mode === "text" && source.trim().length < 20) { toast.error("أضف نصًا واضحًا وكافيًا لإنشاء الأسئلة"); return; }
     if (replaceIndex === undefined && questions.length && !window.confirm("إعادة إنشاء الأسئلة الحالية؟ النسخة المحفوظة لن تتغير.")) return;
     setBusy(true); setIssues([]);
     try {
-      const chunks = splitExamSource(source);
+      let chunks: string[];
+      if (mode === "saved") {
+        setProgress("جلب محتوى المادة المنشور من قاعدة البيانات…");
+        const lessons = (await loadSubjectLessons(subjectId, true)).map(lessonSource).filter((t) => t.length > 60);
+        if (!lessons.length) throw new Error("لا يوجد محتوى منشور محفوظ لهذه المادة بعد");
+        chunks = [];
+        for (const t of lessons) {
+          const last = chunks.length - 1;
+          if (last >= 0 && chunks[last]!.length + t.length < 14000) chunks[last] += `\n\n${t}`;
+          else chunks.push(...splitExamSource(t, 14000));
+        }
+        setSource(chunks.join("\n\n"));
+      } else chunks = splitExamSource(source);
+      const total = chunks.reduce((n, c) => n + c.length, 0);
+      const wanted = Number(manualCount) > 0 ? Number(manualCount) : 0;
+      const countFor = (c: string) => wanted ? Math.max(1, Math.round((wanted * c.length) / total)) : autoQuestionCount(c.length);
       const generated: ExamQuestion[] = [];
       const warnings: string[] = [];
       for (let part = 0; part < chunks.length; part++) {
-        setProgress(`معالجة الجزء ${part + 1} من ${chunks.length}`);
-        const result = await generate({ data: { subject, chunk: chunks[part] ?? "", count: replaceIndex === undefined ? 5 : 1, part: part + 1, parts: chunks.length, avoid: [...questions, ...generated].map((q) => q.q) } });
+        setProgress(`معالجة الجزء ${part + 1} من ${chunks.length} · ${generated.length} سؤالًا حتى الآن`);
+        const result = await generate({ data: { subject, chunk: chunks[part] ?? "", count: replaceIndex === undefined ? countFor(chunks[part] ?? "") : 1, part: part + 1, parts: chunks.length, avoid: [...questions, ...generated].map((q) => q.q) } });
         warnings.push(...result.issues);
-        if (!result.ok) throw new Error(result.issues.join(" · "));
+        if (!result.ok) { if (generated.length) { warnings.push(`توقف عند الجزء ${part + 1}`); break; } throw new Error(result.issues.join(" · ")); }
         for (const q of result.questions) if (!generated.some((x) => x.q.trim() === q.q.trim())) generated.push(q);
       }
       setIssues(warnings);
       if (replaceIndex !== undefined) {
         const first = generated[0]; if (!first) throw new Error("لم يُنشأ سؤال مناسب");
         setQuestions((old) => old.map((q, i) => i === replaceIndex ? first : q));
-      } else setQuestions(generated);
+      } else setQuestions(wanted ? generated.slice(0, wanted) : generated);
       toast.success("الأسئلة جاهزة للمراجعة؛ لم يتم النشر");
     } catch (error) { toast.error(error instanceof Error ? error.message : "تعذر إنشاء الأسئلة؛ النص محفوظ على جهازك"); }
     finally { setBusy(false); setProgress(""); }
@@ -87,11 +105,18 @@ function ExamBuilder({ subjectId, subject }: { subjectId: string; subject: strin
     }}><option value="">اختر اختبارًا محفوظًا</option>{exams.data?.map((e) => <option key={e.id} value={e.id}>{e.title} · {e.status === "published" ? "منشور" : "مسودة"}</option>)}</select>
     <Button variant="outline" disabled={busy} onClick={() => { if (window.confirm("بدء اختبار جديد؟")) { setId(null); setQuestions([]); setSource(""); setTitle(`اختبار ${subject}`); } }}><Plus />جديد</Button></div>
     <input aria-label="عنوان الاختبار" value={title} onChange={(e) => setTitle(e.target.value)} className="rounded-lg border border-border bg-card p-3" />
+    <div className="flex gap-2">
+      <Button variant={mode === "saved" ? "default" : "outline"} onClick={() => setMode("saved")}>محتوى المادة المحفوظ</Button>
+      <Button variant={mode === "text" ? "default" : "outline"} onClick={() => setMode("text")}>نص أو ملف</Button>
+    </div>
+    {mode === "saved" ? <p className="text-sm text-muted-foreground">سيُستخدم شرح وملخصات وبطاقات جميع الدروس المنشورة لهذه المادة فقط، دون الحاجة لإدخال نص.</p> : <>
     <textarea aria-label="مصدر أسئلة الاختبار" value={source} onChange={(e) => setSource(e.target.value)} className="min-h-72 rounded-lg border border-border bg-card p-3 text-sm leading-loose" placeholder="نص المادة" />
     <label className="flex items-center gap-2 text-sm"><Upload className="size-4" />PDF / TXT<input type="file" accept=".pdf,.txt" disabled={busy} className="min-w-0 flex-1 text-xs" onChange={async (e) => {
       const file = e.target.files?.[0]; if (!file) return; setBusy(true);
       try { const text = await extractText(file); if (!text.trim()) throw new Error(); setSource((s) => s ? `${s}\n\n${text}` : text); } catch { toast.error("تعذر قراءة النص من الملف؛ استخدم ملفًا نصيًا أو PDF يحتوي على نص"); } finally { setBusy(false); }
     }} /></label>
+    </>}
+    <input aria-label="عدد الأسئلة" inputMode="numeric" value={manualCount} onChange={(e) => setManualCount(e.target.value.replace(/\D/g, ""))} placeholder="عدد الأسئلة (اتركه فارغًا لأكبر عدد مناسب تلقائيًا)" className="rounded-lg border border-border bg-card p-3 text-sm" />
     <Button disabled={busy} onClick={() => void create()}>{busy ? <Loader2 className="animate-spin" /> : <RefreshCw />}إنشاء الاختبار بالذكاء الاصطناعي</Button>
     {progress && <p role="status" className="text-primary">{progress}</p>}
     {issues.map((issue, i) => <p key={i} className="text-sm text-destructive">{issue}</p>)}
