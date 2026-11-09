@@ -7,7 +7,7 @@ export function sanitizeHtml(html: string): string {
   if (typeof window === "undefined") return "";
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: ["p", "br", "b", "strong", "i", "em", "u", "h2", "h3", "h4", "ul", "ol", "li", "span", "div", "blockquote", "hr", "mark"],
-    ALLOWED_ATTR: ["style"],
+    ALLOWED_ATTR: ["style", "class"],
   });
 }
 

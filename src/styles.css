@@ -284,4 +284,11 @@
 .lesson-rich ul { list-style: disc; padding-inline-start: 1.5rem; }
 .lesson-rich ol { list-style: decimal; padding-inline-start: 1.5rem; }
 .lesson-rich blockquote { border-inline-start: 3px solid var(--primary); padding-inline-start: 1rem; }
-.lesson-rich { overflow-wrap: anywhere; line-height: 1.9; }
+.lesson-rich { overflow-wrap: anywhere; line-height: 1.9; font-size: 1rem; }
+.lesson-rich h2 { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-block: 1.4rem .7rem; }
+.lesson-rich h3 { font-weight: 700; margin-block: 1.1rem .5rem; }
+.lesson-rich li { margin-block: .3rem; }
+.lesson-rich .lesson-def, .lesson-rich .lesson-law, .lesson-rich .lesson-example { border-radius: .9rem; padding: .75rem 1rem; margin-block: .9rem; }
+.lesson-rich .lesson-def { background: color-mix(in oklab, var(--primary) 9%, transparent); border-inline-start: 4px solid var(--primary); }
+.lesson-rich .lesson-law { background: color-mix(in oklab, var(--warning) 14%, transparent); border: 1px solid color-mix(in oklab, var(--warning) 45%, transparent); font-weight: 700; text-align: center; }
+.lesson-rich .lesson-example { background: var(--muted); border-inline-start: 4px solid var(--muted-foreground); }
