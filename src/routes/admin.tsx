@@ -20,6 +20,7 @@ import { useRequireAdmin } from "@/lib/guards";
 import { AdminLessonAccess } from "@/components/admin-lesson-access";
 import { AdminExplanationEditor } from "@/components/admin-explanation-editor";
 import { AdminAiFormat } from "@/components/admin-ai-format";
+import { AdminAiKeys } from "@/components/admin-ai-keys";
 import { AdminSubjectExams } from "@/components/admin-subject-exams";
 import {
   AdminAnnouncements,
@@ -61,6 +62,7 @@ type SectionId =
   | "explanations"
   | "exams"
   | "format"
+  | "aikeys"
   | "curriculum"
   | "upload"
   | "drafts"
@@ -75,6 +77,7 @@ type SectionId =
 const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookOpen }[] = [
   { id: "explanations", label: "تعديل شرح الدروس", desc: "تحرير شرح الدروس الموجودة وحفظ النسخ السابقة", Icon: BookOpen },
   { id: "format", label: "تنسيق الشروحات بالذكاء الاصطناعي", desc: "درس أو وحدة أو مادة كاملة مع المراجعة قبل الاعتماد", Icon: Sparkles },
+  { id: "aikeys", label: "إدارة مفاتيح AI", desc: "إضافة واختبار وترتيب مفاتيح الذكاء الاصطناعي", Icon: Settings2 },
   { id: "exams", label: "إضافة اختبار للمادة", desc: "إنشاء ومراجعة وحفظ ونشر الاختبارات", Icon: FileCheck2 },
   { id: "curriculum", label: "إدارة المنهج", desc: "المراحل، الصفوف، المواد، الوحدات، الدروس", Icon: BookOpen },
   { id: "upload", label: "رفع كتاب ومعالجته", desc: "PDF أو TXT ← تحليل بالذكاء الاصطناعي", Icon: Upload },
@@ -91,6 +94,7 @@ const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookO
 function SectionBody({ id }: { id: SectionId }) {
   if (id === "explanations") return <AdminExplanationEditor />;
   if (id === "format") return <AdminAiFormat />;
+  if (id === "aikeys") return <AdminAiKeys />;
   if (id === "exams") return <AdminSubjectExams />;
   if (id === "curriculum") return <AdminCurriculum />;
   if (id === "upload") return <AdminUpload />;
