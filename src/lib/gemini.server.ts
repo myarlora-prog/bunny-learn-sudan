@@ -21,7 +21,7 @@ export type AiResult =
 export type Provider = "gemini" | "openai" | "openrouter" | "lovable";
 export const PROVIDERS: Provider[] = ["gemini", "openai", "openrouter", "lovable"];
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.5-flash";
 
 async function errText(res: Response) {
   try { const t = await res.text(); return t.replace(/AIza[\w-]+|sk-[\w-]+/g, "***").slice(0, 300); } catch { return ""; }
@@ -63,7 +63,7 @@ export function callProvider(provider: string, apiKey: string, model: string, op
   if (provider === "gemini") return callGemini(apiKey, model || GEMINI_MODEL, opts);
   if (provider === "openai") return callOpenAiCompatible("https://api.openai.com/v1/chat/completions", apiKey, model, opts);
   if (provider === "openrouter") return callOpenAiCompatible("https://openrouter.ai/api/v1/chat/completions", apiKey, model, opts);
-  return callOpenAiCompatible("https://ai.gateway.lovable.dev/v1/chat/completions", apiKey, model || "google/gemini-2.5-flash", opts);
+  return callOpenAiCompatible("https://ai.gateway.lovable.dev/v1/chat/completions", apiKey, model || "google/gemini-3.8-flash", opts);
 }
 
 /** Errors worth moving to the next key: auth/quota/rate-limit/transient/empty. */
@@ -103,7 +103,7 @@ export async function aiComplete(opts: Options): Promise<AiResult> {
   }
   const lovable = process.env["LOVABLE_API_KEY"];
   if (lovable) {
-    const r = await callProvider("lovable", lovable, "google/gemini-2.5-flash", opts).catch(() => last);
+    const r = await callProvider("lovable", lovable, "google/gemini-3.8-flash", opts).catch(() => last);
     if (r.ok) return r;
     last = r;
   }
