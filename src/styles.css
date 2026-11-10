@@ -292,3 +292,7 @@
 .lesson-rich .lesson-def { background: color-mix(in oklab, var(--primary) 9%, transparent); border-inline-start: 4px solid var(--primary); }
 .lesson-rich .lesson-law { background: color-mix(in oklab, var(--warning) 14%, transparent); border: 1px solid color-mix(in oklab, var(--warning) 45%, transparent); font-weight: 700; text-align: center; }
 .lesson-rich .lesson-example { background: var(--muted); border-inline-start: 4px solid var(--muted-foreground); }
+.lesson-rich table { width: 100%; border-collapse: collapse; margin-block: .6rem; font-size: .9em; }
+.lesson-rich th, .lesson-rich td { border: 1px solid var(--border); padding: .4rem .5rem; text-align: right; }
+.lesson-rich th { background: var(--primary-soft); }
+.lesson-rich h4 { font-size: 1rem; margin-block: .6rem .3rem; }

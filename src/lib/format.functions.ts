@@ -32,3 +32,34 @@ export const formatLessonExplanation = createServerFn({ method: "POST" })
     const html = result.content.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim();
     return { ok: html.length > 0, html };
   });
+
+/** Owner-only: restyle one lesson summary as compact HTML without changing or extending its content. */
+export const formatLessonSummary = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { title: string; text: string }) => {
+    if (!input || typeof input.text !== "string" || input.text.trim().length < 5) throw new Error("لا يوجد ملخص لتنسيقه");
+    return { title: String(input.title ?? "").slice(0, 200), text: input.text.slice(0, 30000) };
+  })
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("is_admin");
+    if (!isAdmin) throw new Error("Forbidden");
+    const result = await aiComplete({
+      messages: [
+        {
+          role: "system",
+          content: [
+            "أنت منسق ملخصات دراسية عربية. مهمتك تنسيق الملخص المرفق بصريًا فقط.",
+            "قواعد صارمة: لا تضف ولا تحذف ولا تغيّر أي معلومة علمية، ولا تطوّل الملخص؛ حافظ على اختصاره وكلماته الأصلية قدر الإمكان.",
+            "أعد HTML فقط دون ``` ودون وسوم html/body، واستخدم هذه الوسوم فقط:",
+            "<h3> و<h4> للعناوين، <p> للفقرات القصيرة، <ul>/<ol>/<li> للنقاط، <strong> و<mark> لإبراز المهم، <table>/<thead>/<tbody>/<tr>/<th>/<td> للمقارنات عند الحاجة فقط،",
+            '<div class="lesson-def"> للتعريفات والمعلومات المهمة، <div class="lesson-law"> للقوانين والقواعد.',
+            "لا تستخدم style ولا تغيّر الخط، ولا تضع إيموجي إلا واحدًا بجانب عنوان رئيسي عند الحاجة.",
+          ].join("\n"),
+        },
+        { role: "user", content: `عنوان الدرس: ${data.title}\n\nالملخص الأصلي:\n${data.text}` },
+      ],
+    });
+    if (!result.ok) return { ok: false as const, html: "" };
+    const html = result.content.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim();
+    return { ok: html.length > 0, html };
+  });
