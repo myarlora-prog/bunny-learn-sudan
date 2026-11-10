@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_keys: {
+        Row: {
+          api_key: string
+          created_at: string
+          enabled: boolean
+          id: string
+          label: string
+          last_error: string | null
+          last_status: string | null
+          last_used_at: string | null
+          model: string
+          priority: number
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          last_error?: string | null
+          last_status?: string | null
+          last_used_at?: string | null
+          model: string
+          priority?: number
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          last_error?: string | null
+          last_status?: string | null
+          last_used_at?: string | null
+          model?: string
+          priority?: number
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_messages: {
         Row: {
           content: string
@@ -751,6 +796,7 @@ export type Database = {
           status: string
           subject_id: string
           title: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -763,6 +809,7 @@ export type Database = {
           status?: string
           subject_id: string
           title?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -775,6 +822,7 @@ export type Database = {
           status?: string
           subject_id?: string
           title?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -783,6 +831,13 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subject_exams_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -1093,6 +1148,10 @@ export type Database = {
       }
       admin_save_lesson_explanation: {
         Args: { _explanation: string; _lesson_id: string }
+        Returns: Json
+      }
+      admin_save_lesson_summary: {
+        Args: { _lesson_id: string; _summary: string }
         Returns: Json
       }
       apply_referral_code: { Args: { _code: string }; Returns: Json }
