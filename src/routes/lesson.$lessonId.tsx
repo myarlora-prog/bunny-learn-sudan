@@ -127,7 +127,7 @@ function LessonPage() {
                 <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-xs font-bold text-primary">
                   {i + 1}
                 </span>
-                <span className="leading-relaxed">{s}</span>
+                {looksLikeHtml(s) ? <div className="lesson-rich min-w-0 flex-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: explanationHtml(s) }} /> : <span className="leading-relaxed">{s}</span>}
               </Card>
             ))}
           </div>
