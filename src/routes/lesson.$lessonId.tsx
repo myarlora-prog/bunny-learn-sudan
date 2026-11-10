@@ -9,7 +9,7 @@ import { useApp } from "@/lib/app-state";
 import { isDbId, useLessonData } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import { explanationHtml } from "@/lib/sanitize-html";
+import { explanationHtml, looksLikeHtml } from "@/lib/sanitize-html";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
   validateSearch: z.object({ tab: z.enum(["explain", "summary", "cards", "quiz"]).optional() }),
