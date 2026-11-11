@@ -118,7 +118,7 @@ function UnitQuizzes({ subject }: { subject: Subject }) {
   );
 }
 
-function SubjectExam({ subject, examId }: { subject: Subject; examId?: string }) {
+function SubjectExam({ subject, examId }: { subject: Subject; examId?: string | undefined }) {
   const [selected, setSelected] = useState<string | null>(null);
   const exams = useQuery({ queryKey: ["published-exams", subject.id, examId ?? "subject"], staleTime: 0, refetchOnMount: "always", refetchInterval: 15000,
     queryFn: async () => {
