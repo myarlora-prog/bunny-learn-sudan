@@ -11,7 +11,7 @@ export function groupBlocks(blocks: string[], size = 3500): string[] {
 }
 
 const plain = (s: string) => s.replace(/<\/(p|h\d|li|div|tr|td|th)>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ");
-export const wordCount = (s: string) => plain(s).split(/\s+/).filter(Boolean).length;
+export const wordCount = (s: string) => plain(s).split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 /** Number of list items / lines in a source, used to verify no summary point was dropped. */
 export function itemCount(s: string): number {
   const li = (s.match(/<li\b/gi) ?? []).length;
