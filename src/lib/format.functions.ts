@@ -2,64 +2,50 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiComplete } from "@/lib/gemini.server";
 
-/** Owner-only: reformat one lesson explanation as textbook-style HTML without changing its content. */
+type In = { title: string; text: string; part?: number; parts?: number };
+const validate = (input: In) => {
+  if (!input || typeof input.text !== "string" || input.text.trim().length < 2) throw new Error("لا يوجد محتوى لتنسيقه");
+  return { title: String(input.title ?? "").slice(0, 200), text: input.text.slice(0, 12000), part: Number(input.part) || 1, parts: Number(input.parts) || 1 };
+};
+const EXPLAIN = [
+  "أنت منسق كتب مدرسية عربية. مهمتك تنسيق النص المرفق فقط، وليس تأليفه أو تلخيصه.",
+  "قواعد صارمة: نسّق النص كله من أول جملة إلى آخر جملة. لا تحذف أي جملة أو معلومة أو مثال أو قانون أو تعداد، ولا تختصر، ولا تغيّر المعنى، ولا تضف معلومات. احتفظ بنفس الكلمات وبنفس الترتيب.",
+  "أعد HTML فقط دون ``` ودون وسوم html/body، واستخدم: <h2> <h3> <p> <ul> <ol> <li> <strong> <table> <thead> <tbody> <tr> <th> <td>،",
+  '<div class="lesson-def"> للتعريفات، <div class="lesson-law"> للقوانين، <div class="lesson-example"> للأمثلة. الإيموجي باعتدال شديد بجانب العناوين فقط.',
+].join("\n");
+const SUMMARY = [
+  "أنت منسق ملخصات دراسية عربية. مهمتك تنسيق الملخص المرفق بصريًا فقط.",
+  "قواعد صارمة: نسّق جميع النقاط والفقرات من البداية إلى النهاية بنفس الترتيب. لا تضف ولا تحذف ولا تدمج أي نقطة ولا تغيّر أي معلومة؛ حافظ على الكلمات الأصلية.",
+  "أعد HTML فقط دون ``` ودون وسوم html/body، واستخدم: <h3> <h4> <p> <ul> <ol> <li> <strong> <mark> <table> <thead> <tbody> <tr> <th> <td>،",
+  '<div class="lesson-def"> للتعريفات، <div class="lesson-law"> للقوانين. لا تستخدم style، ولا إيموجي إلا واحدًا بجانب عنوان رئيسي.',
+].join("\n");
+
+async function run(system: string, label: string, d: ReturnType<typeof validate>) {
+  const result = await aiComplete({
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: `عنوان الدرس: ${d.title}\nهذا الجزء ${d.part} من ${d.parts}${d.parts > 1 ? " (نسّق هذا الجزء وحده كاملًا، دون مقدمة أو خاتمة)" : ""}\n\n${label}:\n${d.text}` },
+    ],
+  });
+  if (!result.ok) return { ok: false as const, html: "", error: result.error ?? `خطأ ${result.status}` };
+  const html = result.content.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim();
+  return html ? { ok: true as const, html, error: "" } : { ok: false as const, html: "", error: "رد فارغ" };
+}
+
+/** Owner-only: format one part of a lesson explanation. Client splits long text into ordered parts. */
 export const formatLessonExplanation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { title: string; text: string }) => {
-    if (!input || typeof input.text !== "string" || input.text.trim().length < 5) throw new Error("لا يوجد شرح لتنسيقه");
-    return { title: String(input.title ?? "").slice(0, 200), text: input.text.slice(0, 60000) };
-  })
+  .middleware([requireSupabaseAuth]).inputValidator(validate)
   .handler(async ({ data, context }) => {
     const { data: isAdmin } = await context.supabase.rpc("is_admin");
     if (!isAdmin) throw new Error("Forbidden");
-    const result = await aiComplete({
-      messages: [
-        {
-          role: "system",
-          content: [
-            "أنت منسق كتب مدرسية عربية. مهمتك تنسيق الشرح المرفق فقط، وليس تأليفه أو تلخيصه.",
-            "قواعد صارمة: لا تحذف أي جملة أو معلومة أو مثال أو قانون أو تعداد، ولا تختصر، ولا تغيّر المعنى، ولا تضف معلومات جديدة. احتفظ بنفس الكلمات قدر الإمكان.",
-            "أعد HTML فقط دون ``` ودون وسوم html/body، واستخدم هذه الوسوم فقط:",
-            "<h2> للعنوان الرئيسي، <h3> للعناوين الفرعية، <p> للفقرات، <ul>/<ol>/<li> للتعدادات، <strong> للكلمات المهمة،",
-            '<div class="lesson-def"> للتعريفات والمعلومات المهمة، <div class="lesson-law"> للقوانين والقواعد، <div class="lesson-example"> للأمثلة.',
-            "الإيموجي باعتدال شديد: إيموجي واحد مناسب بجانب العنوان الرئيسي أو عنوان كبير عند الحاجة فقط، ولا تضع إيموجي في الفقرات أو أمام النقاط.",
-          ].join("\n"),
-        },
-        { role: "user", content: `عنوان الدرس: ${data.title}\n\nالشرح الأصلي:\n${data.text}` },
-      ],
-    });
-    if (!result.ok) return { ok: false as const, html: "" };
-    const html = result.content.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim();
-    return { ok: html.length > 0, html };
+    return run(EXPLAIN, "النص الأصلي", data);
   });
 
-/** Owner-only: restyle one lesson summary as compact HTML without changing or extending its content. */
+/** Owner-only: format one part of a lesson summary. */
 export const formatLessonSummary = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { title: string; text: string }) => {
-    if (!input || typeof input.text !== "string" || input.text.trim().length < 5) throw new Error("لا يوجد ملخص لتنسيقه");
-    return { title: String(input.title ?? "").slice(0, 200), text: input.text.slice(0, 30000) };
-  })
+  .middleware([requireSupabaseAuth]).inputValidator(validate)
   .handler(async ({ data, context }) => {
     const { data: isAdmin } = await context.supabase.rpc("is_admin");
     if (!isAdmin) throw new Error("Forbidden");
-    const result = await aiComplete({
-      messages: [
-        {
-          role: "system",
-          content: [
-            "أنت منسق ملخصات دراسية عربية. مهمتك تنسيق الملخص المرفق بصريًا فقط.",
-            "قواعد صارمة: لا تضف ولا تحذف ولا تغيّر أي معلومة علمية، ولا تطوّل الملخص؛ حافظ على اختصاره وكلماته الأصلية قدر الإمكان.",
-            "أعد HTML فقط دون ``` ودون وسوم html/body، واستخدم هذه الوسوم فقط:",
-            "<h3> و<h4> للعناوين، <p> للفقرات القصيرة، <ul>/<ol>/<li> للنقاط، <strong> و<mark> لإبراز المهم، <table>/<thead>/<tbody>/<tr>/<th>/<td> للمقارنات عند الحاجة فقط،",
-            '<div class="lesson-def"> للتعريفات والمعلومات المهمة، <div class="lesson-law"> للقوانين والقواعد.',
-            "لا تستخدم style ولا تغيّر الخط، ولا تضع إيموجي إلا واحدًا بجانب عنوان رئيسي عند الحاجة.",
-          ].join("\n"),
-        },
-        { role: "user", content: `عنوان الدرس: ${data.title}\n\nالملخص الأصلي:\n${data.text}` },
-      ],
-    });
-    if (!result.ok) return { ok: false as const, html: "" };
-    const html = result.content.replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "").trim();
-    return { ok: html.length > 0, html };
+    return run(SUMMARY, "الملخص الأصلي", data);
   });
