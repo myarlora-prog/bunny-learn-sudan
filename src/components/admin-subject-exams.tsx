@@ -95,6 +95,36 @@ function ExamBuilder({ subjectId, subject }: { subjectId: string; subject: strin
     } catch { toast.error("تعذر الحفظ؛ المحتوى محفوظ على جهازك، حاول مجددًا"); }
     finally { setBusy(false); }
   };
+  const createUnitExams = async () => {
+    setBusy(true); setIssues([]);
+    const warnings: string[] = []; let made = 0;
+    try {
+      const lessons = await loadSubjectLessons(subjectId, true);
+      const unitList = [...new Map(lessons.map((l) => [l.unitId, l.unitTitle])).entries()];
+      if (!unitList.length) throw new Error("لا توجد وحدات منشورة بمحتوى محفوظ");
+      const existing = new Set((exams.data ?? []).map((e) => e.unit_id).filter(Boolean));
+      for (let u = 0; u < unitList.length; u++) {
+        const [unitId, unitTitle] = unitList[u]!;
+        if (existing.has(unitId)) { warnings.push(`${unitTitle}: يوجد اختبار لهذه الوحدة مسبقًا، لم يُنشأ مكرر`); continue; }
+        const chunks = splitExamSource(lessons.filter((l) => l.unitId === unitId).map(lessonSource).join("\n\n"), 14000).filter((c) => c.trim().length > 60);
+        if (!chunks.length) { warnings.push(`${unitTitle}: لا يوجد محتوى كافٍ`); continue; }
+        const qs: ExamQuestion[] = [];
+        for (let part = 0; part < chunks.length; part++) {
+          setProgress(`وحدة ${u + 1} من ${unitList.length}: ${unitTitle} · الجزء ${part + 1} من ${chunks.length}`);
+          let r = await generate({ data: { subject, chunk: chunks[part]!, count: autoQuestionCount(chunks[part]!.length), part: part + 1, parts: chunks.length, avoid: qs.map((q) => q.q) } });
+          if (!r.ok) r = await generate({ data: { subject, chunk: chunks[part]!, count: autoQuestionCount(chunks[part]!.length), part: part + 1, parts: chunks.length, avoid: qs.map((q) => q.q) } });
+          if (!r.ok) { warnings.push(`${unitTitle}: تعطل الجزء ${part + 1} (${r.issues.join(" · ")})`); break; }
+          for (const q of r.questions) if (!qs.some((x) => x.q.trim() === q.q.trim())) qs.push(q);
+        }
+        if (!validExamQuestions(qs)) { warnings.push(`${unitTitle}: لم تُنشأ أسئلة صالحة`); continue; }
+        const { error } = await supabase.from("subject_exams").insert({ subject_id: subjectId, unit_id: unitId, title: `اختبار ${unitTitle}`, source_text: chunks.join("\n\n"), questions: qs as unknown as Json, status: "draft", created_by: session?.user.id ?? null });
+        if (error) warnings.push(`${unitTitle}: تعذر الحفظ (${error.code === "23505" ? "يوجد اختبار مسبق" : error.message})`); else made++;
+      }
+      await cache.invalidateQueries({ queryKey: ["admin-exams", subjectId] });
+      toast.success(`أُنشئت ${made} مسودة اختبار وحدة؛ افتحها من القائمة لمراجعتها ونشرها`);
+    } catch (e) { toast.error(e instanceof Error ? e.message : "تعذر إنشاء اختبارات الوحدات"); }
+    finally { setIssues(warnings); setBusy(false); setProgress(""); }
+  };
   const update = (i: number, patch: Partial<ExamQuestion>) => setQuestions((old) => old.map((q, j) => j === i ? { ...q, ...patch } : q));
   return <div className="flex flex-col gap-4">
     <h3>{subject}</h3>
@@ -102,7 +132,7 @@ function ExamBuilder({ subjectId, subject }: { subjectId: string; subject: strin
       const exam = exams.data?.find((x) => x.id === e.target.value); if (!exam) return;
       if (!window.confirm("فتح الاختبار المحفوظ بدل التعديل الحالي؟")) return;
       setId(exam.id); setTitle(exam.title); setSource(exam.source_text); setQuestions(exam.questions as unknown as ExamQuestion[]);
-    }}><option value="">اختر اختبارًا محفوظًا</option>{exams.data?.map((e) => <option key={e.id} value={e.id}>{e.title} · {e.status === "published" ? "منشور" : "مسودة"}</option>)}</select>
+    }}><option value="">اختر اختبارًا محفوظًا</option>{exams.data?.map((e) => <option key={e.id} value={e.id}>{e.unit_id ? "وحدة · " : ""}{e.title} · {e.status === "published" ? "منشور" : "مسودة"}</option>)}</select>
     <Button variant="outline" disabled={busy} onClick={() => { if (window.confirm("بدء اختبار جديد؟")) { setId(null); setQuestions([]); setSource(""); setTitle(`اختبار ${subject}`); } }}><Plus />جديد</Button></div>
     <input aria-label="عنوان الاختبار" value={title} onChange={(e) => setTitle(e.target.value)} className="rounded-lg border border-border bg-card p-3" />
     <div className="flex gap-2">
@@ -118,6 +148,7 @@ function ExamBuilder({ subjectId, subject }: { subjectId: string; subject: strin
     </>}
     <input aria-label="عدد الأسئلة" inputMode="numeric" value={manualCount} onChange={(e) => setManualCount(e.target.value.replace(/\D/g, ""))} placeholder="عدد الأسئلة (اتركه فارغًا لأكبر عدد مناسب تلقائيًا)" className="rounded-lg border border-border bg-card p-3 text-sm" />
     <Button disabled={busy} onClick={() => void create()}>{busy ? <Loader2 className="animate-spin" /> : <RefreshCw />}إنشاء الاختبار بالذكاء الاصطناعي</Button>
+    <Button variant="outline" disabled={busy} onClick={() => void createUnitExams()}><Plus />إنشاء اختبارات الوحدات لهذه المادة</Button>
     {progress && <p role="status" className="text-primary">{progress}</p>}
     {issues.map((issue, i) => <p key={i} className="text-sm text-destructive">{issue}</p>)}
     {questions.map((q, i) => <section key={i} className="flex flex-col gap-2 border-b border-border py-4">

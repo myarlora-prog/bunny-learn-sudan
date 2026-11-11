@@ -40,9 +40,12 @@ async function callGemini(apiKey: string, model: string, opts: Options): Promise
       ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
       generationConfig: { temperature: 0.4, maxOutputTokens: 32768, ...(opts.json ? { responseMimeType: "application/json" } : {}) },
     }),
+    signal: AbortSignal.timeout(110000),
   });
   if (!res.ok) return { ok: false, status: res.status, content: "", error: await errText(res) };
-  const json = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+  const json = (await res.json()) as { candidates?: { finishReason?: string; content?: { parts?: { text?: string }[] } }[] };
+  const reason = json.candidates?.[0]?.finishReason;
+  if (reason && reason !== "STOP") return { ok: false, status: 200, content: "", error: `رد غير مكتمل (${reason})` };
   const content = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() ?? "";
   return content ? { ok: true, content } : { ok: false, status: 200, content: "", error: "رد فارغ" };
 }
@@ -52,9 +55,11 @@ async function callOpenAiCompatible(url: string, apiKey: string, model: string, 
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({ model, ...(opts.json ? { response_format: { type: "json_object" } } : {}), messages: opts.messages }),
+    signal: AbortSignal.timeout(110000),
   });
   if (!res.ok) return { ok: false, status: res.status, content: "", error: await errText(res) };
-  const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const json = (await res.json()) as { choices?: { finish_reason?: string; message?: { content?: string } }[] };
+  if (json.choices?.[0]?.finish_reason === "length") return { ok: false, status: 200, content: "", error: "رد مقطوع بسبب حد الطول" };
   const content = json.choices?.[0]?.message?.content?.trim() ?? "";
   return content ? { ok: true, content } : { ok: false, status: 200, content: "", error: "رد فارغ" };
 }
@@ -90,7 +95,7 @@ export async function aiComplete(opts: Options): Promise<AiResult> {
       last_error: r.ok ? null : (r.error ?? null),
     }).eq("id", k.id);
     if (r.ok) return r;
-    last = r;
+    last = { ...r, error: `${k.provider}: ${r.error ?? r.status}` };
     if (!shouldFallback(r.status)) return r;
   }
 

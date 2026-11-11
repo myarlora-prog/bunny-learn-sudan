@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/quizzes/$subjectId")({
-  validateSearch: z.object({ mode: z.enum(["exam", "units"]).optional() }),
+  validateSearch: z.object({ mode: z.enum(["exam", "units"]).optional(), exam: z.string().uuid().optional() }),
   head: () => ({
     meta: [
       { title: "اختبار المادة | نوابغ" },
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/quizzes/$subjectId")({
 
 function SubjectQuizPage() {
   const { subjectId } = Route.useParams();
-  const { mode = "units" } = Route.useSearch();
+  const { mode = "units", exam } = Route.useSearch();
   const live = useSubjectTree(subjectId);
   const subject = isDbId(subjectId) ? live.data : getSubject(subjectId);
   if (isDbId(subjectId) && live.isLoading) {
@@ -50,12 +50,19 @@ function SubjectQuizPage() {
       </Screen>
     );
   }
-  return mode === "exam" ? <SubjectExam subject={subject} /> : <UnitQuizzes subject={subject} />;
+  return mode === "exam" ? <SubjectExam subject={subject} examId={exam} /> : <UnitQuizzes subject={subject} />;
 }
 
 function UnitQuizzes({ subject }: { subject: Subject }) {
   const { state } = useApp();
   const countsQ = useSubjectQuizCounts(subject.id);
+  const unitExams = useQuery({ queryKey: ["published-unit-exams", subject.id], staleTime: 0, refetchOnMount: "always",
+    queryFn: async () => {
+      const { data, error } = await supabase.from("subject_exams").select("id,unit_id,title,questions").eq("subject_id", subject.id).eq("status", "published").not("unit_id", "is", null);
+      if (error) throw error;
+      return (data ?? []).filter((e) => validExamQuestions(e.questions));
+    },
+  });
   const countOf = (lessonId: string) =>
     isDbId(lessonId) ? (countsQ.data?.[lessonId] ?? 0) : 0;
   return (
@@ -66,6 +73,20 @@ function UnitQuizzes({ subject }: { subject: Subject }) {
           <section key={unit.id}>
             <h2 className="mb-2 text-base">{unit.title}</h2>
             <div className="flex flex-col gap-2.5">
+              {unitExams.data?.filter((e) => e.unit_id === unit.id).map((e) => (
+                <Link key={e.id} to="/quizzes/$subjectId" params={{ subjectId: subject.id }} search={{ mode: "exam", exam: e.id }}>
+                  <Card className="flex items-center gap-3">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-soft">
+                      <ClipboardCheck className="size-5 text-primary" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-sm font-bold">{e.title}</h3>
+                      <p className="text-[11px] text-muted-foreground">{(e.questions as unknown[]).length} أسئلة</p>
+                    </div>
+                    <ChevronLeft className="size-5 text-muted-foreground" />
+                  </Card>
+                </Link>
+              ))}
               {unit.lessons
                 .filter((l) => (isDbId(l.id) ? countOf(l.id) > 0 : l.quiz.length > 0))
                 .map((lesson) => (
@@ -97,11 +118,13 @@ function UnitQuizzes({ subject }: { subject: Subject }) {
   );
 }
 
-function SubjectExam({ subject }: { subject: Subject }) {
+function SubjectExam({ subject, examId }: { subject: Subject; examId?: string }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const exams = useQuery({ queryKey: ["published-exams", subject.id], staleTime: 0, refetchOnMount: "always", refetchInterval: 15000,
+  const exams = useQuery({ queryKey: ["published-exams", subject.id, examId ?? "subject"], staleTime: 0, refetchOnMount: "always", refetchInterval: 15000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("subject_exams").select("id,title,questions").eq("subject_id", subject.id).eq("status", "published").order("published_at", { ascending: false });
+      let q = supabase.from("subject_exams").select("id,title,questions").eq("subject_id", subject.id).eq("status", "published");
+      q = examId ? q.eq("id", examId) : q.is("unit_id", null);
+      const { data, error } = await q.order("published_at", { ascending: false });
       if (error) throw error;
       return (data ?? []).filter((exam) => validExamQuestions(exam.questions));
     },

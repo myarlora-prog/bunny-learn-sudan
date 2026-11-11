@@ -34,7 +34,7 @@ function ExplanationEditor({ lessonId, title }: { lessonId: string; title: strin
     return data?.explanation ?? "";
   }});
   const revisions = useQuery({ queryKey: ["explanation-revisions", lessonId], queryFn: async () => {
-    const { data, error } = await supabase.from("lesson_content_revisions").select("id,explanation,created_at").eq("lesson_id", lessonId).order("created_at", { ascending: false }).limit(20);
+    const { data, error } = await supabase.from("lesson_content_revisions").select("id,explanation,created_at").eq("lesson_id", lessonId).eq("field", "explanation").order("created_at", { ascending: false }).limit(20);
     if (error) throw error;
     return data ?? [];
   }});

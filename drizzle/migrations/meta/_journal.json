@@ -57,6 +57,13 @@
       "when": 1794306708932,
       "tag": "0007_ai_keys_summary_unit_exams",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794400059492,
+      "tag": "0008_summary_revisions",
+      "breakpoints": true
     }
   ]
 }
