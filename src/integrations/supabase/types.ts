@@ -456,6 +456,7 @@ export type Database = {
           created_at: string
           edited_by: string | null
           explanation: string
+          field: string
           id: string
           lesson_id: string
         }
@@ -463,6 +464,7 @@ export type Database = {
           created_at?: string
           edited_by?: string | null
           explanation: string
+          field?: string
           id?: string
           lesson_id: string
         }
@@ -470,6 +472,7 @@ export type Database = {
           created_at?: string
           edited_by?: string | null
           explanation?: string
+          field?: string
           id?: string
           lesson_id?: string
         }
