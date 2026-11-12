@@ -17,43 +17,52 @@ export type Database = {
       ai_keys: {
         Row: {
           api_key: string
+          cooldown_until: string | null
           created_at: string
           enabled: boolean
           id: string
           label: string
           last_error: string | null
+          last_kind: string | null
           last_status: string | null
           last_used_at: string | null
           model: string
           priority: number
+          project_label: string
           provider: string
           updated_at: string
         }
         Insert: {
           api_key: string
+          cooldown_until?: string | null
           created_at?: string
           enabled?: boolean
           id?: string
           label?: string
           last_error?: string | null
+          last_kind?: string | null
           last_status?: string | null
           last_used_at?: string | null
           model: string
           priority?: number
+          project_label?: string
           provider: string
           updated_at?: string
         }
         Update: {
           api_key?: string
+          cooldown_until?: string | null
           created_at?: string
           enabled?: boolean
           id?: string
           label?: string
           last_error?: string | null
+          last_kind?: string | null
           last_status?: string | null
           last_used_at?: string | null
           model?: string
           priority?: number
+          project_label?: string
           provider?: string
           updated_at?: string
         }
