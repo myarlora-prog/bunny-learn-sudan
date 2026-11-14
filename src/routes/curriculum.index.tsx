@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Loader2 } from "lucide-react";
-import { Card, PageHeader, Screen } from "@/components/app-shell";
+import { Card, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-state";
@@ -69,15 +69,7 @@ function CurriculumPage() {
 
   return (
     <Screen>
-      <PageHeader
-        title="المكتبة"
-        subtitle={grade ? `${stage?.name} · ${grade.name}` : "اختر مادة لتبدأ المذاكرة"}
-        action={
-          isSuper ? (
-            <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">💎 سوبر</span>
-          ) : undefined
-        }
-      />
+      {isSuper && <div className="mb-3 flex justify-end"><span className="flex size-10 items-center justify-center rounded-full bg-primary-soft text-xl" role="img" aria-label="جميع الدروس متاحة">💎</span></div>}
 
       <WeekActivityCard />
 

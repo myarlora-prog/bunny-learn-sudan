@@ -25,6 +25,7 @@ export function NotificationCenter() {
   });
 
   useEffect(() => {
+    if (!state.notifications) return;
     const fresh = (notices.data ?? []).filter((n) => !shown.current.has(n.id));
     if (!fresh.length) return;
     for (const notice of fresh.reverse()) {
@@ -32,7 +33,7 @@ export function NotificationCenter() {
       toast(notice.title, { description: notice.content });
     }
     void supabase.rpc("mark_notifications_read").then(() => queryClient.invalidateQueries({ queryKey: ["account-notifications", uid] }));
-  }, [notices.data, queryClient, uid]);
+  }, [notices.data, queryClient, uid, state.notifications]);
 
   return null;
 }

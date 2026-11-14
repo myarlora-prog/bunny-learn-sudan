@@ -10,7 +10,8 @@ import {
   Flame,
   ShieldCheck,
 } from "lucide-react";
-import { Card, PageHeader, Screen } from "@/components/app-shell";
+import { Card, Screen } from "@/components/app-shell";
+import { StudentFeedback } from "@/components/feedback";
 import { EnergyBadge } from "@/components/energy";
 import { useApp } from "@/lib/app-state";
 import { useGrades, useStages } from "@/lib/curriculum-db";
@@ -39,7 +40,7 @@ function ProfilePage() {
 
   const links = [
     { to: "/stage", label: "البيانات الأكاديمية", desc: grade ? `${stage?.name ?? ""} · ${grade.name}` : "اختر مرحلتك وصفك", Icon: GraduationCap },
-    { to: "/referrals", label: "دعوة الأصدقاء 🎁", desc: "١٠ دعوات = ١٤ يومًا سوبر", Icon: Gift },
+    { to: "/referrals", label: "دعوة الأصدقاء 🎁", desc: "١٠ دعوات = ١٤ يومًا لفتح جميع الدروس", Icon: Gift },
     { to: "/super", label: "كيفية فتح جميع الدروس", desc: isSuper ? "اشتراكك مفعّل" : "تواصل معنا عبر واتساب", Icon: Sparkles },
     { to: "/planner", label: "الخطة اليومية", desc: "نظّم مذاكرتك ساعة بساعة", Icon: CalendarDays },
     { to: "/settings", label: "الإعدادات", desc: "المظهر، التنبيهات، اللغة", Icon: Settings },
@@ -47,7 +48,7 @@ function ProfilePage() {
 
   return (
     <Screen>
-      <PageHeader title="حسابي" action={<EnergyBadge />} />
+      <div className="mb-4 flex justify-end"><EnergyBadge /></div>
 
       <Card className="gradient-hero sticky top-0 z-30 flex !transform-none items-center gap-4 border-transparent">
         <span className="flex size-[72px] items-center justify-center rounded-3xl bg-primary-foreground/15 text-4xl">
@@ -60,7 +61,7 @@ function ProfilePage() {
             {grade ? `${stage?.name} · ${grade.name}` : "اختر مرحلتك الدراسية"}
           </p>
           <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary-foreground/20 px-2.5 py-1 text-[11px] font-bold text-primary-foreground">
-            {isSuper ? "سوبر ⭐" : "مجاني"} · {level.name}
+            {isSuper && <span role="img" aria-label="جميع الدروس متاحة">💎</span>}{level.name}
           </span>
         </div>
       </Card>
@@ -68,7 +69,7 @@ function ProfilePage() {
       {isSuper && subscription && (
         <Card className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
           <Sparkles className="size-4 text-primary" />
-          اشتراك السوبر فعّال حتى{" "}
+          جميع الدروس متاحة حتى{" "}
           <span className="font-bold text-foreground">
             {new Date(subscription.expires_at).toLocaleDateString("ar-EG", {
               year: "numeric",
@@ -115,6 +116,7 @@ function ProfilePage() {
             </Card>
           </Link>
         ))}
+        <StudentFeedback />
         {isAdmin && (
           <Link to="/admin">
             <Card className="flex items-center gap-3 border-primary/40">
