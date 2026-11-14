@@ -183,7 +183,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setEnergy((energyRes.data as unknown as EnergyState) ?? null);
     setState((s) => {
       const savedTheme = settings.data?.theme_mode;
-      const themeMode = isThemeMode(savedTheme ?? null) ? savedTheme : s.themeMode;
+      const themeMode: ThemeMode = savedTheme && isThemeMode(savedTheme) ? savedTheme : s.themeMode;
       return {
         ...s,
         name: profile.data?.display_name || "",
