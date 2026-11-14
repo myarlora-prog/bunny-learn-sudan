@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppStateProvider } from "../lib/app-state";
 import { Toaster } from "@/components/ui/sonner";
+import { NotificationCenter } from "@/components/notification-center";
 
 function NotFoundComponent() {
   return (
@@ -112,7 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -132,6 +133,7 @@ function RootComponent() {
       <AppStateProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <NotificationCenter />
         <Toaster position="top-center" richColors />
       </AppStateProvider>
     </QueryClientProvider>
