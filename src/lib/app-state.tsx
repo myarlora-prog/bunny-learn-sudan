@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { flushPending, queueLesson, readPending, setupPersistence, syncGradeContent } from "@/lib/offline";
 
+export type ThemeMode = "dark" | "light" | "system";
+
 export type EnergyState = {
   daily_max: number;
   daily_left: number;
@@ -29,6 +31,9 @@ type AppState = {
   stageId: string | null;
   gradeId: string | null;
   dark: boolean;
+  themeMode: ThemeMode;
+  sound: boolean;
+  notifications: boolean;
   completedLessons: string[];
   streak: number;
   longestStreak: number;
@@ -44,7 +49,10 @@ const DEFAULT: AppState = {
   email: "",
   stageId: null,
   gradeId: null,
-  dark: false,
+  dark: true,
+  themeMode: "dark",
+  sound: true,
+  notifications: true,
   completedLessons: [],
   streak: 0,
   longestStreak: 0,
@@ -82,6 +90,16 @@ type Ctx = {
 
 const AppContext = createContext<Ctx | null>(null);
 const DARK_KEY = "saqro-dark";
+const THEME_KEY = "nawabig-theme";
+
+function isThemeMode(value: string | null): value is ThemeMode {
+  return value === "dark" || value === "light" || value === "system";
+}
+
+function resolveDark(mode: ThemeMode) {
+  if (mode !== "system") return mode === "dark";
+  return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(DEFAULT);
@@ -91,26 +109,46 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [energy, setEnergy] = useState<EnergyState | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
-  // dark mode is a device preference, kept locally so it applies before login
+  // Theme and sound are device preferences too, so they work before sign-in.
   useEffect(() => {
-    const raw = localStorage.getItem(DARK_KEY);
-    if (raw) setState((s) => ({ ...s, dark: raw === "1" }));
+    const saved = localStorage.getItem(THEME_KEY);
+    if (isThemeMode(saved)) {
+      setState((s) => ({ ...s, themeMode: saved, dark: resolveDark(saved) }));
+    } else {
+      const legacy = localStorage.getItem(DARK_KEY);
+      if (legacy) {
+        const mode: ThemeMode = legacy === "1" ? "dark" : "light";
+        setState((s) => ({ ...s, themeMode: mode, dark: mode === "dark" }));
+      }
+    }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(DARK_KEY, state.dark ? "1" : "0");
-    document.documentElement.classList.toggle("dark", state.dark);
-  }, [state.dark]);
+    localStorage.setItem(THEME_KEY, state.themeMode);
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const dark = resolveDark(state.themeMode);
+      document.documentElement.classList.toggle("dark", dark);
+      setState((s) => (s.dark === dark ? s : { ...s, dark }));
+    };
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, [state.themeMode]);
 
   const loadUser = useCallback(async (uid: string | null) => {
     if (!uid) {
-      setState((s) => ({ ...DEFAULT, dark: s.dark }));
+      setState((s) => ({ ...DEFAULT, dark: s.dark, themeMode: s.themeMode, sound: s.sound, notifications: s.notifications }));
       setIsAdmin(false);
       setSubscription(null);
       setEnergy(null);
       setHydrated(true);
       return;
     }
+
+    // A pending referral becomes qualified only when its new user actually enters the app.
+    await supabase.rpc("qualify_referral");
+
     const [profile, stats, progress, settings, admin, energyRes, sub] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_stats").select("*").eq("user_id", uid).maybeSingle(),
@@ -127,12 +165,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         .order("expires_at", { ascending: false }),
     ]);
 
-    // Super belongs to the student's current grade only (email + stage + grade).
+    // Full access belongs to the student's current grade only.
     const currentGrade = (profile.data as { grade_id?: string | null } | null)?.grade_id ?? null;
     const subs = (sub.data as Subscription[] | null) ?? [];
     setSubscription(subs.find((s) => currentGrade && s.grade_id === currentGrade) ?? null);
 
-    // keep the student's own time zone so streak days follow their local calendar
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (tz && profile.data && (profile.data as { time_zone?: string }).time_zone !== tz) {
@@ -144,24 +181,31 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     setIsAdmin(admin.data === true);
     setEnergy((energyRes.data as unknown as EnergyState) ?? null);
-    setState((s) => ({
-      ...s,
-      name: profile.data?.display_name || "",
-      email: profile.data?.email || "",
-      stageId: profile.data?.stage_id ?? null,
-      gradeId: profile.data?.grade_id ?? null,
-      avatar: profile.data?.avatar_emoji || "🦅",
-      referralCode: profile.data?.referral_code ?? null,
-      dark: settings.data?.dark_mode ?? s.dark,
-      streak: stats.data?.streak ?? 0,
-      longestStreak: stats.data?.longest_streak ?? 0,
-      points: stats.data?.points ?? 0,
-      studyDays: stats.data?.study_days ?? 0,
-      totalMinutes: stats.data?.total_minutes ?? 0,
-      completedLessons: Array.from(
-        new Set([...(progress.data ?? []).map((p) => p.lesson_id), ...readPending().map((p) => p.lessonId)]),
-      ),
-    }));
+    setState((s) => {
+      const savedTheme = settings.data?.theme_mode;
+      const themeMode = isThemeMode(savedTheme ?? null) ? savedTheme : s.themeMode;
+      return {
+        ...s,
+        name: profile.data?.display_name || "",
+        email: profile.data?.email || "",
+        stageId: profile.data?.stage_id ?? null,
+        gradeId: profile.data?.grade_id ?? null,
+        avatar: profile.data?.avatar_emoji || "🦅",
+        referralCode: profile.data?.referral_code ?? null,
+        themeMode,
+        dark: resolveDark(themeMode),
+        sound: settings.data?.sound ?? s.sound,
+        notifications: settings.data?.notifications ?? s.notifications,
+        streak: stats.data?.streak ?? 0,
+        longestStreak: stats.data?.longest_streak ?? 0,
+        points: stats.data?.points ?? 0,
+        studyDays: stats.data?.study_days ?? 0,
+        totalMinutes: stats.data?.total_minutes ?? 0,
+        completedLessons: Array.from(
+          new Set([...(progress.data ?? []).map((p) => p.lesson_id), ...readPending().map((p) => p.lessonId)]),
+        ),
+      };
+    });
     setHydrated(true);
   }, []);
 
@@ -191,27 +235,43 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const update = useCallback(
     (patch: Partial<AppState>) => {
-      setState((s) => ({ ...s, ...patch }));
+      setState((s) => ({
+        ...s,
+        ...patch,
+        themeMode: patch.themeMode ?? (patch.dark !== undefined ? (patch.dark ? "dark" : "light") : s.themeMode),
+      }));
       void (async () => {
-      const uid = session?.user.id ?? (await supabase.auth.getSession()).data.session?.user.id;
-      if (!uid) return;
-      const profilePatch: {
-        display_name?: string;
-        stage_id?: string | null;
-        grade_id?: string | null;
-        avatar_emoji?: string;
-      } = {};
-      if (patch.name !== undefined) profilePatch.display_name = patch.name;
-      if (patch.stageId !== undefined) profilePatch.stage_id = patch.stageId;
-      if (patch.gradeId !== undefined) profilePatch.grade_id = patch.gradeId;
-      if (patch.avatar !== undefined) profilePatch.avatar_emoji = patch.avatar;
-      if (Object.keys(profilePatch).length) {
-        const { error } = await supabase.from("profiles").update(profilePatch).eq("id", uid);
-        if (error) console.error("profile save failed", error);
-      }
-      if (patch.dark !== undefined) {
-        void supabase.from("user_settings").upsert({ user_id: uid, dark_mode: patch.dark });
-      }
+        const uid = session?.user.id ?? (await supabase.auth.getSession()).data.session?.user.id;
+        if (!uid) return;
+        const profilePatch: {
+          display_name?: string;
+          stage_id?: string | null;
+          grade_id?: string | null;
+          avatar_emoji?: string;
+        } = {};
+        if (patch.name !== undefined) profilePatch.display_name = patch.name;
+        if (patch.stageId !== undefined) profilePatch.stage_id = patch.stageId;
+        if (patch.gradeId !== undefined) profilePatch.grade_id = patch.gradeId;
+        if (patch.avatar !== undefined) profilePatch.avatar_emoji = patch.avatar;
+        if (Object.keys(profilePatch).length) {
+          const { error } = await supabase.from("profiles").update(profilePatch).eq("id", uid);
+          if (error) console.error("profile save failed", error);
+        }
+        const settingsPatch: {
+          dark_mode?: boolean;
+          theme_mode?: ThemeMode;
+          sound?: boolean;
+          notifications?: boolean;
+        } = {};
+        if (patch.dark !== undefined) settingsPatch.dark_mode = patch.dark;
+        if (patch.themeMode !== undefined) settingsPatch.theme_mode = patch.themeMode;
+        if (patch.dark !== undefined && patch.themeMode === undefined) settingsPatch.theme_mode = patch.dark ? "dark" : "light";
+        if (patch.sound !== undefined) settingsPatch.sound = patch.sound;
+        if (patch.notifications !== undefined) settingsPatch.notifications = patch.notifications;
+        if (Object.keys(settingsPatch).length) {
+          const { error } = await supabase.from("user_settings").upsert({ user_id: uid, ...settingsPatch });
+          if (error) console.error("settings save failed", error);
+        }
       })();
     },
     [session],
@@ -241,20 +301,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return next;
   }, [session]);
 
-  const spendEnergy = useCallback(
-    async (_amount = 1) => ({ ok: true, state: energy }),
-    [energy],
-  );
+  const spendEnergy = useCallback(async (_amount = 1) => ({ ok: true, state: energy }), [energy]);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
-    setState((s) => ({ ...DEFAULT, dark: s.dark }));
+    setState((s) => ({ ...DEFAULT, dark: s.dark, themeMode: s.themeMode, sound: s.sound, notifications: s.notifications }));
     setEnergy(null);
     setIsAdmin(false);
     setSubscription(null);
   }, []);
 
-  // automatic offline: persist curriculum cache, pre-download the grade, and send queued completions
   const queryClient = useQueryClient();
   useEffect(() => setupPersistence(queryClient), [queryClient]);
   const uid = session?.user.id ?? null;
@@ -271,13 +327,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("online", sync);
   }, [uid, gradeId, queryClient, loadUser]);
 
-  // when Super status changes, drop cached lesson content so locked content never lingers
   const superKey = subscription ? `${subscription.grade_id}:${subscription.expires_at}` : "free";
   useEffect(() => {
     void queryClient.invalidateQueries();
     queryClient.removeQueries({ queryKey: ["lesson"] });
   }, [superKey, queryClient]);
-  // re-check subscription expiry periodically (server decides via expires_at)
   useEffect(() => {
     if (!subscription) return;
     const ms = new Date(subscription.expires_at).getTime() - Date.now();
@@ -286,7 +340,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, [subscription, refresh]);
 
-  const reset = useCallback(() => setState((s) => ({ ...DEFAULT, dark: s.dark })), []);
+  const reset = useCallback(
+    () => setState((s) => ({ ...DEFAULT, dark: s.dark, themeMode: s.themeMode, sound: s.sound, notifications: s.notifications })),
+    [],
+  );
 
   const value = useMemo<Ctx>(
     () => ({
