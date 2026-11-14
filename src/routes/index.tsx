@@ -73,7 +73,7 @@ function Onboarding() {
       {last ? (
         <Link
           to="/auth"
-          className="press gradient-hero flex h-14 items-center justify-center rounded-3xl text-base font-bold text-primary-foreground shadow-[var(--shadow-float)]"
+          className="press gradient-hero flex h-16 items-center justify-center rounded-3xl text-lg font-bold text-primary-foreground shadow-[var(--shadow-float)] outline-none focus-visible:ring-4 focus-visible:ring-primary/30"
         >
           هيا نبدأ
         </Link>
@@ -81,7 +81,7 @@ function Onboarding() {
         <button
           type="button"
           onClick={() => setI(i + 1)}
-          className="press gradient-hero h-14 rounded-3xl text-base font-bold text-primary-foreground shadow-[var(--shadow-float)]"
+          className="press gradient-hero h-16 rounded-3xl text-lg font-bold text-primary-foreground shadow-[var(--shadow-float)] outline-none focus-visible:ring-4 focus-visible:ring-primary/30"
         >
           التالي
         </button>

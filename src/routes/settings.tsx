@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { Moon, Bell, Languages, Volume2, ShieldCheck, Info, Sun, Monitor } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { useApp } from "@/lib/app-state";
@@ -41,8 +40,6 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 
 function SettingsPage() {
   const { state, update } = useApp();
-  const [notif, setNotif] = useState(true);
-  const [sound, setSound] = useState(true);
 
   return (
     <Screen>

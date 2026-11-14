@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Lock,
   Sparkles,
+  MessageSquare,
 } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { useRequireAdmin } from "@/lib/guards";
@@ -22,6 +23,7 @@ import { AdminExplanationEditor } from "@/components/admin-explanation-editor";
 import { AdminAiFormat } from "@/components/admin-ai-format";
 import { AdminAiKeys } from "@/components/admin-ai-keys";
 import { AdminSubjectExams } from "@/components/admin-subject-exams";
+import { AdminFeedback } from "@/components/feedback";
 import {
   AdminAnnouncements,
   AdminCurriculum,
@@ -72,6 +74,7 @@ type SectionId =
   | "subs"
   | "announcements"
   | "referrals"
+  | "feedback"
   | "settings";
 
 const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookOpen }[] = [
@@ -88,6 +91,7 @@ const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookO
   { id: "subs", label: "الاشتراكات", desc: "تفعيل وتمديد السوبر", Icon: CreditCard },
   { id: "announcements", label: "الإشعارات", desc: "إرسال إعلان لكل الطلاب", Icon: Megaphone },
   { id: "referrals", label: "الإحالات", desc: "متابعة دعوات الأصدقاء", Icon: Gift },
+  { id: "feedback", label: "ملاحظات الطلاب", desc: "قراءة الملاحظات مرتبة من الأحدث", Icon: MessageSquare },
   { id: "settings", label: "الإعدادات", desc: "الطاقة، رابط واتساب، الإحالات", Icon: Settings2 },
 ];
 
@@ -105,6 +109,7 @@ function SectionBody({ id }: { id: SectionId }) {
   if (id === "subs") return <AdminSubscriptions />;
   if (id === "announcements") return <AdminAnnouncements />;
   if (id === "referrals") return <AdminReferrals />;
+  if (id === "feedback") return <AdminFeedback />;
   return <AdminSettings keys={SETTING_KEYS} />;
 }
 

@@ -63,8 +63,6 @@ function CurriculumPage() {
   const subjectIds = (subjectsQ.data ?? []).map((s) => s.id);
   const countsQ = useSubjectCounts(subjectIds);
 
-  const stage = (stagesQ.data ?? []).find((s) => s.id === state.stageId);
-  const grade = (gradesQ.data ?? []).find((g) => g.id === state.gradeId);
   const loading = subjectsQ.isLoading || (!!state.gradeId && countsQ.isLoading);
 
   return (
