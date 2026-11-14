@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ClipboardList, Loader2, Sparkles } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import { Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { useApp } from "@/lib/app-state";
@@ -30,18 +30,10 @@ function QuizzesPage() {
   const n = subjects.length;
 
   if (subjectsQ.isLoading) {
-    return (
-      <Screen>
-        <Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" />
-      </Screen>
-    );
+    return <Screen><Loader2 className="mx-auto my-10 size-6 animate-spin text-primary" /></Screen>;
   }
   if (n === 0) {
-    return (
-      <Screen>
-        <SaqroEmpty title="لا توجد مواد منشورة بعد" desc="ستظهر اختبارات صفك هنا فور نشرها." />
-      </Screen>
-    );
+    return <Screen><SaqroEmpty title="لا توجد مواد منشورة بعد" desc="ستظهر اختبارات صفك هنا فور نشرها." /></Screen>;
   }
 
   const safeIndex = Math.min(index, n - 1);
@@ -51,7 +43,6 @@ function QuizzesPage() {
 
   return (
     <Screen>
-
       <div
         className="relative mx-auto mt-4 h-[340px] select-none overflow-hidden [perspective:1000px]"
         onTouchStart={(e) => (startX.current = e.touches[0]?.clientX ?? null)}
@@ -77,20 +68,24 @@ function QuizzesPage() {
               aria-label={s.name}
               className="absolute left-1/2 top-0 h-[280px] w-[190px] transition-all duration-500 ease-out"
               style={{
-                transform: `translateX(calc(-50% + ${-off * 150}px)) rotateY(${off * 28}deg) scale(${off === 0 ? 1 : 0.78})`,
-                opacity: visible ? (off === 0 ? 1 : 0.55) : 0,
+                transform: `translateX(calc(-50% + ${-off * 150}px)) rotateY(${off * 20}deg) scale(${off === 0 ? 1 : 0.82})`,
+                opacity: visible ? (off === 0 ? 1 : 0.66) : 0,
                 zIndex: 10 - Math.abs(off),
                 pointerEvents: visible ? "auto" : "none",
               }}
             >
               <div
-                className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[18px] p-5 shadow-[0_30px_50px_-24px_color-mix(in_oklab,var(--primary)_55%,transparent)]"
-                style={{ background: `linear-gradient(150deg, color-mix(in oklab, ${s.color} 85%, var(--primary-soft)), ${s.color} 55%)` }}
+                className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[18px] p-5 text-on-colored"
+                style={{
+                  background: `linear-gradient(150deg, color-mix(in oklab, ${s.color} 88%, var(--card)), color-mix(in oklab, ${s.color} 76%, var(--background)))`,
+                  boxShadow: `0 30px 50px -24px color-mix(in oklab, ${s.color} 65%, transparent)`,
+                  maskImage: "linear-gradient(to left, transparent, black 6%, black 94%, transparent)",
+                }}
               >
-                <span className="absolute inset-y-0 right-5 w-px bg-card/40" />
-                <Sparkles className="relative size-7 text-primary-foreground/90" />
+                <span className="absolute inset-y-0 right-5 w-px" style={{ background: `linear-gradient(transparent, color-mix(in oklab, ${s.color} 35%, var(--on-colored)), transparent)` }} />
+                <Sparkles className="relative size-7 text-on-colored/90" />
                 <span className="relative self-start text-5xl drop-shadow">{s.icon}</span>
-                <span className="relative font-display text-2xl font-bold text-primary-foreground drop-shadow">{s.name}</span>
+                <span className="relative font-display text-2xl font-bold text-on-colored drop-shadow">{s.name}</span>
               </div>
             </button>
           );
@@ -99,35 +94,32 @@ function QuizzesPage() {
 
       <div className="mb-6 flex justify-center gap-1.5">
         {subjects.map((s, i) => (
-          <button
-            key={s.id}
-            type="button"
-            aria-label={s.name}
-            onClick={() => setIndex(i)}
-            className={cn("h-2 rounded-full transition-all", i === safeIndex ? "w-6 bg-primary" : "w-2 bg-primary/25")}
-          />
+          <button key={s.id} type="button" aria-label={s.name} onClick={() => setIndex(i)} className={cn("h-2 rounded-full transition-all", i === safeIndex ? "w-6" : "w-2 opacity-30")} style={{ background: s.color }} />
         ))}
       </div>
 
-      <p className="mb-4 text-center text-sm text-muted-foreground">{current.name}</p>
-
-      <div className="flex flex-col gap-3">
-        <Link
-          to="/quizzes/$subjectId"
-          params={{ subjectId: current.id }}
-          search={{ mode: "exam" }}
-          className="press flex items-center justify-center gap-2 rounded-[22px] border-b-4 border-primary/70 bg-primary py-4 text-base font-bold text-primary-foreground shadow-[var(--shadow-card)]"
-        >
-          <Sparkles className="size-5" /> اختبر في هذه المادة
-        </Link>
-        <Link
-          to="/quizzes/$subjectId"
-          params={{ subjectId: current.id }}
-          search={{ mode: "units" }}
-          className="press flex items-center justify-center gap-2 rounded-[22px] border-b-4 border-border bg-card py-4 text-base font-bold text-primary shadow-[var(--shadow-soft)]"
-        >
-          <ClipboardList className="size-5" /> اختبارات الوحدات
-        </Link>
+      <div style={{ "--subject-color": current.color } as CSSProperties}>
+        <p className="mb-4 text-center text-sm font-bold" style={{ color: current.color }}>{current.name}</p>
+        <div className="flex flex-col gap-3">
+          <Link
+            to="/quizzes/$subjectId"
+            params={{ subjectId: current.id }}
+            search={{ mode: "exam" }}
+            className="press flex items-center justify-center gap-2 rounded-[22px] border-b-4 py-4 text-base font-bold text-on-colored"
+            style={{ background: current.color, borderColor: `color-mix(in oklab, ${current.color} 70%, var(--foreground))`, boxShadow: `0 14px 34px -18px color-mix(in oklab, ${current.color} 70%, transparent)` }}
+          >
+            <Sparkles className="size-5" /> اختبر في هذه المادة
+          </Link>
+          <Link
+            to="/quizzes/$subjectId"
+            params={{ subjectId: current.id }}
+            search={{ mode: "units" }}
+            className="press flex items-center justify-center gap-2 rounded-[22px] border-b-4 bg-card py-4 text-base font-bold shadow-[var(--shadow-soft)]"
+            style={{ color: current.color, borderColor: `color-mix(in oklab, ${current.color} 32%, var(--border))` }}
+          >
+            <ClipboardList className="size-5" /> اختبارات الوحدات
+          </Link>
+        </div>
       </div>
     </Screen>
   );

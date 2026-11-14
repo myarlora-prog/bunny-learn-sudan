@@ -39,8 +39,10 @@ export function WeekActivityCard() {
         </div>
         <svg viewBox="0 0 64 64" className="size-20 shrink-0" aria-hidden>
           <path d="M8 40c0-4 5-5 8-2l6 5V30c0-3 5-3 5 0v8h10v-8c0-3 5-3 5 0v10l5-4c3-2 8 0 7 4-2 8-10 18-23 18S8 48 8 40Z" className="fill-primary/40" />
-          <path d="M32 4c3 8 12 12 12 22a12 12 0 0 1-24 0c0-6 3-9 6-12 0 5 2 7 4 7-1-7 0-12 2-17Z" fill="var(--flame-1, orange)" />
-          <path d="M32 18c2 5 6 7 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 1 2 2 3 3 3 0-3 0-6 0-9Z" fill="var(--flame-3, gold)" />
+          <g className="week-flame">
+            <path d="M32 4c3 8 12 12 12 22a12 12 0 0 1-24 0c0-6 3-9 6-12 0 5 2 7 4 7-1-7 0-12 2-17Z" fill="var(--flame-1, orange)" />
+            <path d="M32 18c2 5 6 7 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 1 2 2 3 3 3 0-3 0-6 0-9Z" fill="var(--flame-3, gold)" />
+          </g>
         </svg>
       </div>
     </Card>

@@ -81,7 +81,7 @@ function SubjectPage() {
                     >
                       <Lightbulb className={cn("size-7", done && "fill-warning/30")} />
                       {locked && (
-                        <span className="absolute -top-1 -left-1 text-sm" aria-label="يتطلب سوبر">💎</span>
+                        <span className="absolute -top-1 -left-1 text-sm" aria-label="الدرس غير متاح حاليًا">💎</span>
                       )}
                     </span>
                     <span className="mt-2 max-w-[220px] text-center text-xs font-bold">{l.title}</span>
@@ -95,7 +95,7 @@ function SubjectPage() {
                         type="button"
                         className="press flex flex-col items-center"
                         onClick={() => {
-                          toast("هذا الدرس متاح لمشتركي السوبر فقط 💎");
+                          toast("تعرّف على طريقة فتح جميع الدروس 💎");
                           void navigate({ to: "/super" });
                         }}
                       >

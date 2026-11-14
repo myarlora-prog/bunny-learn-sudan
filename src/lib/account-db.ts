@@ -21,6 +21,8 @@ export function useReferralSummary(enabled = true) {
   return useQuery({
     queryKey: ["referral-summary"],
     enabled,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
     queryFn: async (): Promise<ReferralSummary> => {
       const { data, error } = await supabase.rpc("referral_summary");
       if (error) throw error;

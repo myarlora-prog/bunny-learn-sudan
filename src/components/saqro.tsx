@@ -18,8 +18,11 @@ export function Saqro({ size = 120, className, priority = false }: Props) {
       width={size}
       height={size}
       loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      draggable={false}
+      fetchPriority={priority ? "high" : "auto"}
       style={{ width: size, height: size }}
-      className={cn("select-none rounded-full object-contain", className)}
+      className={cn("select-none object-contain [image-rendering:auto]", className)}
     />
   );
 }

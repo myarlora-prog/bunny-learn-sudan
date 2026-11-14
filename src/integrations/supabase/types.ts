@@ -119,6 +119,54 @@ export type Database = {
         }
         Relationships: []
       }
+      app_notifications: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          kind: string
+          read_at: string | null
+          referral_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          referral_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          referral_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_notifications_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: true
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           key: string
@@ -310,6 +358,44 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          status: string
+          student_email: string
+          student_name: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_email: string
+          student_name: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_email?: string
+          student_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1085,6 +1171,7 @@ export type Database = {
           dark_mode: boolean
           notifications: boolean
           sound: boolean
+          theme_mode: string
           updated_at: string
           user_id: string
         }
@@ -1093,6 +1180,7 @@ export type Database = {
           dark_mode?: boolean
           notifications?: boolean
           sound?: boolean
+          theme_mode?: string
           updated_at?: string
           user_id: string
         }
@@ -1101,6 +1189,7 @@ export type Database = {
           dark_mode?: boolean
           notifications?: boolean
           sound?: boolean
+          theme_mode?: string
           updated_at?: string
           user_id?: string
         }
@@ -1141,6 +1230,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_study_days: {
+        Row: {
+          first_opened_at: string
+          last_opened_at: string
+          lessons_opened: number
+          study_date: string
+          user_id: string
+        }
+        Insert: {
+          first_opened_at?: string
+          last_opened_at?: string
+          lessons_opened?: number
+          study_date: string
+          user_id: string
+        }
+        Update: {
+          first_opened_at?: string
+          last_opened_at?: string
+          lessons_opened?: number
+          study_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_study_days_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1200,6 +1321,9 @@ export type Database = {
         Args: { _content: string; _role: string }
         Returns: undefined
       }
+      mark_notifications_read: { Args: never; Returns: undefined }
+      qualify_referral: { Args: never; Returns: Json }
+      record_lesson_open: { Args: { _lesson_id: string }; Returns: Json }
       record_quiz_attempt: {
         Args: { _lesson_id: string; _score: number; _total: number }
         Returns: Json
@@ -1211,6 +1335,7 @@ export type Database = {
       }
       setting_int: { Args: { _default: number; _key: string }; Returns: number }
       spend_energy: { Args: { _amount?: number }; Returns: Json }
+      submit_feedback: { Args: { _content: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"

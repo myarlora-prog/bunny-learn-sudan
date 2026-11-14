@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Mail, Lock, UserRound, Loader2 } from "lucide-react";
+import { Mail, Lock, UserRound, Loader2, Gift } from "lucide-react";
 import { Saqro } from "@/components/saqro";
 import { useApp } from "@/lib/app-state";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +51,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,7 +72,7 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth`,
-            data: { display_name: name || "طالب نوابغ" },
+            data: { display_name: name || "طالب نوابغ", referral_code: referralCode.trim().toUpperCase() },
           },
         });
         if (err) throw err;
@@ -137,6 +138,9 @@ function AuthPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
+        {mode === "signup" && (
+          <Field icon={Gift} placeholder="كود الدعوة (اختياري)" value={referralCode} onChange={(e) => setReferralCode(e.target.value.toUpperCase())} autoComplete="off" />
+        )}
         <Field
           icon={Lock}
           type="password"
@@ -155,7 +159,7 @@ function AuthPage() {
         <button
           type="submit"
           disabled={busy}
-          className="press gradient-hero mt-3 flex h-14 items-center justify-center gap-2 rounded-3xl text-base font-bold text-primary-foreground shadow-[var(--shadow-float)] disabled:opacity-70"
+          className="press gradient-hero mt-3 flex h-16 items-center justify-center gap-2 rounded-3xl text-lg font-bold text-primary-foreground shadow-[var(--shadow-float)] outline-none focus-visible:ring-4 focus-visible:ring-primary/30 disabled:opacity-70"
         >
           {busy && <Loader2 className="size-5 animate-spin" />}
           {mode === "login" ? "دخول" : "إنشاء الحساب"}

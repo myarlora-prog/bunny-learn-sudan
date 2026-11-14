@@ -71,6 +71,13 @@
       "when": 1794492503659,
       "tag": "0009_ai_keys_project_cooldown",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794666513913,
+      "tag": "0010_study_days_feedback_referral_notifications",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,8 @@ import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { useReferralSummary } from "@/lib/account-db";
 import { supabase } from "@/integrations/supabase/client";
 import { useRequireAuth } from "@/lib/guards";
+import { useApp } from "@/lib/app-state";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/referrals")({
   head: () => ({
@@ -20,6 +22,8 @@ export const Route = createFileRoute("/referrals")({
 
 function ReferralsPage() {
   const { session } = useRequireAuth();
+  const { refresh } = useApp();
+  const queryClient = useQueryClient();
   const { data, isLoading } = useReferralSummary(!!session);
   const [copied, setCopied] = useState(false);
   const [friendCode, setFriendCode] = useState("");
@@ -34,9 +38,11 @@ function ReferralsPage() {
     const out = res as unknown as { ok: boolean; reason?: string } | null;
     if (error || !out) setApplyMsg("تعذّر تطبيق الكود، حاول لاحقًا.");
     else if (out.ok) {
-      setApplyMsg("تم ربط دعوتك بنجاح 🎉");
+      setApplyMsg("تم ربط دعوتك واحتسابها بنجاح 🎉");
       setFriendCode("");
-    } else setApplyMsg(out.reason === "already_used" ? "لقد استخدمت كود دعوة من قبل." : "الكود غير صحيح.");
+      await queryClient.invalidateQueries({ queryKey: ["referral-summary"] });
+      await refresh();
+    } else setApplyMsg(out.reason === "already_used" ? "لقد استخدمت كود دعوة من قبل." : out.reason === "own_code" ? "لا يمكنك استخدام كودك الخاص." : out.reason === "not_new" ? "أكواد الدعوة متاحة عند إنشاء حساب جديد فقط." : "الكود غير صحيح.");
   };
 
   const code = data?.code ?? "";
@@ -59,7 +65,7 @@ function ReferralsPage() {
 
   return (
     <Screen>
-      <PageHeader title="دعوة الأصدقاء 🎁" subtitle="١٠ دعوات ناجحة = ١٤ يومًا سوبر مجانًا" back />
+      <PageHeader title="دعوة الأصدقاء 🎁" subtitle="١٠ دعوات ناجحة = ١٤ يومًا لفتح جميع الدروس" back />
 
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -101,8 +107,8 @@ function ReferralsPage() {
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
               {data?.reward_granted
-                ? "🎉 حصلت على مكافأة السوبر بالفعل"
-                : `باقي ${remaining} ${remaining === 1 ? "دعوة" : "دعوات"} للحصول على ١٤ يومًا سوبر`}
+                ? "🎉 حصلت على مكافأة فتح جميع الدروس بالفعل"
+                : `باقي ${remaining} ${remaining === 1 ? "دعوة" : "دعوات"} للحصول على ١٤ يومًا لفتح جميع الدروس`}
             </p>
           </Card>
 

@@ -1,6 +1,10 @@
 # Nawabig continuation
-- [x] Owner lesson explanation editor and preserved back-navigation implemented; functional verification pending.
-- [x] Owner subject exam generation, review, drafts and publication; student integration implemented; end-to-end verification pending.
-- [x] Super information and country-specific support without invented numbers implemented; country numbers await owner configuration.
-- [x] Requested carousel adjustments, sticky activity/profile and lesson navigation implemented; reference-image matching unverified.
-- [ ] Authenticated functional verification and rule tests — blocked by unavailable credits; restored session did not open owner controls.- [ ] AI repair (Nov 12): diagnose Gemini 429 / Lovable 402; central keys with project-aware fallback and cooldowns; formatting resume without resending parts + title once; unit exams real errors and no wasteful retries; vitest build fix; real tests and report.
+- [x] Existing curriculum, exams, subscriptions, referrals, roles and student data preserved.
+- [ ] Logo/auth polish, subject-colored test carousel, remove Library/Account headings.
+- [ ] Default dark theme with saved dark/light/system choice and saved sound preference.
+- [ ] Lesson-open study days, streak rules, weekly activity and flame-only animation.
+- [ ] Simplified lesson-unlock page and active full-access diamond without plan labels.
+- [ ] Student feedback plus owner-only secured feedback dashboard.
+- [ ] Repair existing referral qualification, notifications, live counter and reward.
+- [ ] Lesson flashcard flip and quiz answer sounds using real local audio.
+- [ ] Functional tests, mobile browser verification, final report; AI repairs remain separate.
