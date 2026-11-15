@@ -36,14 +36,9 @@ function useActivityDays(enabled: boolean) {
     queryKey: ["streak-activity-days"],
     enabled,
     queryFn: async () => {
-      const [{ data: lessons }, { data: quizzes }] = await Promise.all([
-        supabase.from("lesson_progress").select("completed_at"),
-        supabase.from("quiz_attempts").select("created_at"),
-      ]);
-      return new Set([
-        ...(lessons ?? []).map((item) => dateKey(new Date(item.completed_at))),
-        ...(quizzes ?? []).map((item) => dateKey(new Date(item.created_at))),
-      ]);
+      const { data: studyDays, error } = await supabase.from("user_study_days").select("study_date");
+      if (error) throw error;
+      return new Set((studyDays ?? []).map((item) => item.study_date));
     },
   });
 }

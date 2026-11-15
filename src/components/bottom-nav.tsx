@@ -26,6 +26,7 @@ export function BottomNav() {
               key={to}
               to={to}
               aria-label={label}
+              data-tour={`${to.slice(1)}-nav`}
               className={cn(
                 theme,
                 "press flex h-14 items-center justify-center gap-2 rounded-full transition-all duration-300 ease-out",

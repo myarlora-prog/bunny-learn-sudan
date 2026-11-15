@@ -44,6 +44,7 @@ function QuizzesPage() {
   return (
     <Screen>
       <div
+        data-tour="quiz-carousel"
         className="relative mx-auto mt-4 h-[340px] select-none overflow-hidden [perspective:1000px]"
         onTouchStart={(e) => (startX.current = e.touches[0]?.clientX ?? null)}
         onTouchEnd={(e) => {

@@ -79,7 +79,7 @@ function CurriculumPage() {
           desc="سيضيف المشرف مواد صفك هنا فور نشرها. عُد لاحقًا."
         />
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3" data-tour="library-subjects">
           {(subjectsQ.data ?? []).map((s) => {
             const c = countsQ.data?.[s.id] ?? { units: 0, lessons: 0, ids: [] };
             const doneCount = c.ids.filter((id) => state.completedLessons.includes(id)).length;

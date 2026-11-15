@@ -1,9 +1,14 @@
-export type AppSound = "flip" | "correct" | "incorrect";
+export type AppSound = "flip" | "correct" | "incorrect" | "button" | "complete" | "exam" | "referral" | "reward";
 
 const SOURCES: Record<AppSound, string> = {
   flip: "/sounds/card-flip.wav",
   correct: "/sounds/correct.wav",
   incorrect: "/sounds/incorrect.wav",
+  button: "/sounds/button.wav",
+  complete: "/sounds/complete.wav",
+  exam: "/sounds/exam.wav",
+  referral: "/sounds/referral.wav",
+  reward: "/sounds/reward.wav",
 };
 
 const cache = new Map<AppSound, HTMLAudioElement>();

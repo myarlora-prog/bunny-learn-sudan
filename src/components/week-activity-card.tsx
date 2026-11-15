@@ -9,6 +9,7 @@ export function WeekActivityCard() {
   const { data } = useWeekActivity(session?.user.id ?? null, state.completedLessons.length);
   const today = localKey(new Date());
   return (
+    <div data-tour="weekly-activity">
     <Card className="sticky top-0 z-30 mb-4 !transform-none rounded-3xl p-5">
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">

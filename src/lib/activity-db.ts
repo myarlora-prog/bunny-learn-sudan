@@ -30,13 +30,13 @@ export function useWeekActivity(uid: string | null, completedCount: number) {
     enabled: !!uid,
     queryFn: async (): Promise<WeekActivity> => {
       const start = weekStart();
-      const [{ data: progress }, { data: quizzes }] = await Promise.all([
+      const [{ data: studyDays }, { data: quizzes }] = await Promise.all([
         supabase
-          .from("lesson_progress")
-          .select("lesson_id,completed_at,lessons(title)")
+          .from("user_study_days")
+          .select("study_date,lessons_opened")
           .eq("user_id", uid!)
-          .gte("completed_at", start.toISOString())
-          .order("completed_at"),
+          .gte("study_date", localKey(start))
+          .order("study_date"),
         supabase.from("quiz_attempts").select("created_at").eq("user_id", uid!).gte("created_at", start.toISOString()),
       ]);
       const days = Array.from({ length: 7 }, (_, i) => {

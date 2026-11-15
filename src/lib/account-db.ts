@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export type ReferralSummary = {
   code: string;
   goal: number;
+  reward_days: number;
   count: number;
   reward_granted: boolean;
   friends: { name: string; status: string; date: string }[];
