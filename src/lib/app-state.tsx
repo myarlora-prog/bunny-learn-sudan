@@ -42,6 +42,7 @@ type AppState = {
   totalMinutes: number;
   avatar: string;
   referralCode: string | null;
+  tutorialCompletedAt: string | null;
 };
 
 const DEFAULT: AppState = {
@@ -61,6 +62,7 @@ const DEFAULT: AppState = {
   totalMinutes: 0,
   avatar: "🦅",
   referralCode: null,
+  tutorialCompletedAt: null,
 };
 
 export type Subscription = {
@@ -192,6 +194,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         gradeId: profile.data?.grade_id ?? null,
         avatar: profile.data?.avatar_emoji || "🦅",
         referralCode: profile.data?.referral_code ?? null,
+        tutorialCompletedAt: settings.data?.tutorial_completed_at ?? null,
         themeMode,
         dark: resolveDark(themeMode),
         sound: settings.data?.sound ?? s.sound,
@@ -262,12 +265,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           theme_mode?: ThemeMode;
           sound?: boolean;
           notifications?: boolean;
+          tutorial_completed_at?: string | null;
         } = {};
         if (patch.dark !== undefined) settingsPatch.dark_mode = patch.dark;
         if (patch.themeMode !== undefined) settingsPatch.theme_mode = patch.themeMode;
         if (patch.dark !== undefined && patch.themeMode === undefined) settingsPatch.theme_mode = patch.dark ? "dark" : "light";
         if (patch.sound !== undefined) settingsPatch.sound = patch.sound;
         if (patch.notifications !== undefined) settingsPatch.notifications = patch.notifications;
+        if (patch.tutorialCompletedAt !== undefined) settingsPatch.tutorial_completed_at = patch.tutorialCompletedAt;
         if (Object.keys(settingsPatch).length) {
           const { error } = await supabase.from("user_settings").upsert({ user_id: uid, ...settingsPatch });
           if (error) console.error("settings save failed", error);

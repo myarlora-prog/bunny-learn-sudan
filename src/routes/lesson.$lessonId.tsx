@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BookOpen, Sparkles, Layers, ListChecks, CheckCircle2, RotateCcw, Lightbulb, Loader2 } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { EnergyBadge, ZeroEnergyModal } from "@/components/energy";
@@ -10,6 +10,9 @@ import { isDbId, useLessonData } from "@/lib/curriculum-db";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { explanationHtml, looksLikeHtml } from "@/lib/sanitize-html";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { playAppSound } from "@/lib/sound";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
   validateSearch: z.object({ tab: z.enum(["explain", "summary", "cards", "quiz"]).optional() }),
@@ -36,12 +39,44 @@ function LessonPage() {
   const search = Route.useSearch();
   const live = useLessonData(lessonId);
   const data = isDbId(lessonId) ? live.data : getLesson(lessonId);
-  const { state, toggleLesson, spendEnergy, isSuper, isAdmin } = useApp();
+  const { state, session, toggleLesson, spendEnergy, isSuper, isAdmin, refresh } = useApp();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>(search.tab ?? "explain");
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [turning, setTurning] = useState(false);
+  const flipTimer = useRef<number | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [blocked, setBlocked] = useState(false);
+  const freeAccess = data?.lesson.freeAccess;
+
+  useEffect(() => {
+    if (!session || !data || !isDbId(lessonId) || (freeAccess === false && !isSuper && !isAdmin)) return;
+    let active = true;
+    void supabase.rpc("record_lesson_open", { _lesson_id: lessonId }).then(({ error }) => {
+      if (error) {
+        console.error("lesson open could not be recorded", error);
+        return;
+      }
+      if (!active) return;
+      void queryClient.invalidateQueries({ queryKey: ["week-activity", session.user.id] });
+      void queryClient.invalidateQueries({ queryKey: ["streak-activity-days"] });
+      void refresh();
+    });
+    return () => { active = false; };
+  }, [lessonId, session, data, freeAccess, isSuper, isAdmin, queryClient, refresh]);
+
+  useEffect(() => () => {
+    if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
+  }, []);
+
+  const flipCard = () => {
+    if (turning) return;
+    setTurning(true);
+    setFlipped((value) => !value);
+    playAppSound("flip", state.sound);
+    flipTimer.current = window.setTimeout(() => setTurning(false), 620);
+  };
 
   if (isDbId(lessonId) && live.isLoading) {
     return (
@@ -71,9 +106,9 @@ function LessonPage() {
     return (
       <Screen nav={false}>
         <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back />
-        <SaqroEmpty title="هذا الدرس يتطلب السوبر 💎" desc="هذا الدرس متاح لمشتركي السوبر فقط. اشترك في السوبر لفتح جميع الدروس." />
+        <SaqroEmpty title="هذا الدرس غير متاح حاليًا 💎" desc="يمكنك فتح جميع دروس صفك والاستفادة من الشرح والملخصات والبطاقات." />
         <Link to="/super" className="press gradient-hero mt-4 block rounded-2xl py-3 text-center text-sm font-bold text-primary-foreground">
-          اشترك في السوبر
+          كيفية فتح جميع الدروس
         </Link>
       </Screen>
     );
@@ -138,18 +173,30 @@ function LessonPage() {
         <div key="cards" className="page-enter">
           <button
             type="button"
-            onClick={() => setFlipped((f) => !f)}
-            className="surface-card press flex min-h-56 w-full flex-col items-center justify-center gap-3 p-6 text-center"
+            onClick={flipCard}
+            disabled={turning}
+            aria-label={flipped ? `الإجابة: ${card.a}. اضغط للعودة إلى السؤال` : `السؤال: ${card.q}. اضغط لإظهار الإجابة`}
+            className="study-card-scene press block min-h-64 w-full text-center"
           >
-            <span className="text-[11px] font-bold text-primary">{flipped ? "الإجابة" : "السؤال"}</span>
-            <span className="text-lg font-bold leading-relaxed">{flipped ? card.a : card.q}</span>
-            <span className="text-[11px] text-muted-foreground">اضغط لقلب البطاقة</span>
+            <span className={cn("study-card-inner", flipped && "is-flipped")}>
+              <span className="study-card-face surface-card">
+                <span className="text-[11px] font-bold text-primary">السؤال</span>
+                <span className="text-lg font-bold leading-relaxed">{card.q}</span>
+                <span className="text-[11px] text-muted-foreground">اضغط لقلب البطاقة وإظهار الإجابة</span>
+              </span>
+              <span className="study-card-face study-card-back surface-card">
+                <span className="text-[11px] font-bold text-primary">الإجابة</span>
+                <span className="text-lg font-bold leading-relaxed">{card.a}</span>
+                <span className="text-[11px] text-muted-foreground">اضغط للعودة إلى السؤال</span>
+              </span>
+            </span>
           </button>
 
 
           <div className="mt-4 flex items-center justify-between gap-3">
             <button
               type="button"
+              disabled={turning}
               onClick={() => {
                 setFlipped(false);
                 setCardIndex((i) => (i === 0 ? lesson.flashcards.length - 1 : i - 1));
@@ -163,6 +210,7 @@ function LessonPage() {
             </span>
             <button
               type="button"
+              disabled={turning}
               onClick={() => {
                 setFlipped(false);
                 setCardIndex((i) => (i + 1) % lesson.flashcards.length);
@@ -209,6 +257,7 @@ function LessonPage() {
                             }
                           }
                           setAnswers((a) => ({ ...a, [qi]: oi }));
+                          playAppSound(correct ? "correct" : "incorrect", state.sound);
                         }}
                         className={cn(
                           "press rounded-2xl border border-border px-4 py-3 text-right text-sm transition-colors",
@@ -245,7 +294,11 @@ function LessonPage() {
 
       <button
         type="button"
-        onClick={() => toggleLesson(lesson.id)}
+        onClick={async () => {
+          const completing = !done;
+          await toggleLesson(lesson.id);
+          if (completing) playAppSound("complete", state.sound);
+        }}
         className={cn(
           "press mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-3xl text-base font-bold shadow-[var(--shadow-float)]",
           done ? "border border-success bg-success/10 text-success" : "gradient-hero text-primary-foreground",

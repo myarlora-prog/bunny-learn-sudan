@@ -65,7 +65,7 @@ function SuperPage() {
         <option value="">اختر دولتك الحالية</option>
         {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
       </select>
-      <Button onClick={contact} className="gradient-hero mt-5 h-auto min-h-14 w-full whitespace-normal rounded-3xl py-3 text-sm font-bold">
+      <Button data-tour="unlock-help" onClick={contact} className="gradient-hero mt-5 h-auto min-h-14 w-full whitespace-normal rounded-3xl py-3 text-sm font-bold">
         <MessageCircle />لفتح جميع الدروس، تواصل معنا عبر الواتساب.
       </Button>
       <p className="mt-3 text-center text-xs text-muted-foreground">التواصل للدعم والاستفسارات فقط.</p>

@@ -276,7 +276,14 @@
 @keyframes flame-flicker { 0%,100% { transform: scale(1,1) rotate(0); } 25% { transform: scale(0.97,1.04) rotate(-2deg); } 50% { transform: scale(1.03,0.97) rotate(1deg); } 75% { transform: scale(0.98,1.03) rotate(2deg); } }
 @keyframes flame-pulse { 0%,100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.12); opacity: 1; } }
 @keyframes flame-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .flame-body,.flame-inner,.flame-orbit,.flame-glow { animation: none; } }
+.week-flame { transform-origin: 50% 90%; animation: flame-flicker 1.35s ease-in-out infinite; filter: drop-shadow(0 3px 8px color-mix(in oklab, var(--flame-1) 55%, transparent)); }
+.tour-highlight { z-index: 81; box-shadow: 0 0 0 9999px color-mix(in oklab, var(--background) 80%, transparent), 0 0 24px color-mix(in oklab, var(--primary) 48%, transparent); transition: all .35s ease; }
+.study-card-scene { perspective: 1200px; }
+.study-card-inner { position: relative; display: block; min-height: 16rem; transform-style: preserve-3d; transition: transform .62s cubic-bezier(.2,.72,.2,1); }
+.study-card-inner.is-flipped { transform: rotateY(180deg); }
+.study-card-face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9rem; padding: 1.5rem; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.study-card-back { transform: rotateY(180deg); box-shadow: inset 0 0 34px color-mix(in oklab, var(--primary) 8%, transparent), var(--shadow-card); }
+@media (prefers-reduced-motion: reduce) { .flame-body,.flame-inner,.flame-orbit,.flame-glow,.week-flame { animation: none; } .study-card-inner { transition-duration: .01ms; } }
 
 .lesson-rich p { margin-block: .6rem; }
 .lesson-rich h2 { font-size: 1.25rem; margin-block: 1rem .5rem; }

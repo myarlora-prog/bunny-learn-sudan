@@ -36,14 +36,9 @@ function useActivityDays(enabled: boolean) {
     queryKey: ["streak-activity-days"],
     enabled,
     queryFn: async () => {
-      const [{ data: lessons }, { data: quizzes }] = await Promise.all([
-        supabase.from("lesson_progress").select("completed_at"),
-        supabase.from("quiz_attempts").select("created_at"),
-      ]);
-      return new Set([
-        ...(lessons ?? []).map((item) => dateKey(new Date(item.completed_at))),
-        ...(quizzes ?? []).map((item) => dateKey(new Date(item.created_at))),
-      ]);
+      const { data: studyDays, error } = await supabase.from("user_study_days").select("study_date");
+      if (error) throw error;
+      return new Set((studyDays ?? []).map((item) => item.study_date));
     },
   });
 }
@@ -59,7 +54,7 @@ function StreakPage() {
 
   return (
     <Screen className="pt-3">
-      <FlameHero />
+      <div data-tour="streak-current"><FlameHero /></div>
 
       <Card className="relative z-10 -mt-6 p-5 text-center">
         <h1 className="text-2xl">{state.streak} {state.streak === 1 ? "يوم على التوالي!" : "أيام على التوالي!"}</h1>

@@ -9,6 +9,7 @@ import {
   Sparkles,
   Flame,
   ShieldCheck,
+  HelpCircle,
 } from "lucide-react";
 import { Card, Screen } from "@/components/app-shell";
 import { StudentFeedback } from "@/components/feedback";
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const { state, signOut, isSuper, subscription, isAdmin } = useApp();
+  const { state, signOut, isSuper, subscription, isAdmin, update } = useApp();
   const navigate = useNavigate();
   const { data: stages } = useStages();
   const { data: grades } = useGrades(state.stageId);
@@ -40,10 +41,10 @@ function ProfilePage() {
 
   const links = [
     { to: "/stage", label: "البيانات الأكاديمية", desc: grade ? `${stage?.name ?? ""} · ${grade.name}` : "اختر مرحلتك وصفك", Icon: GraduationCap },
-    { to: "/referrals", label: "دعوة الأصدقاء 🎁", desc: "١٠ دعوات = ١٤ يومًا لفتح جميع الدروس", Icon: Gift },
+    { to: "/referrals", label: "دعوة الأصدقاء 🎁", desc: "تابع الدعوات المؤهلة ومكافأتك", Icon: Gift },
     { to: "/super", label: "كيفية فتح جميع الدروس", desc: isSuper ? "اشتراكك مفعّل" : "تواصل معنا عبر واتساب", Icon: Sparkles },
     { to: "/planner", label: "الخطة اليومية", desc: "نظّم مذاكرتك ساعة بساعة", Icon: CalendarDays },
-    { to: "/settings", label: "الإعدادات", desc: "المظهر، التنبيهات، اللغة", Icon: Settings },
+    { to: "/settings", label: "الإعدادات", desc: "المظهر، الصوت، التنبيهات، اللغة", Icon: Settings },
   ] as const;
 
   return (
@@ -101,7 +102,7 @@ function ProfilePage() {
         </p>
       </Card>
 
-      <div className="mt-4 flex flex-col gap-2.5">
+      <div className="mt-4 flex flex-col gap-2.5" data-tour="profile-options">
         {links.map(({ to, label, desc, Icon }) => (
           <Link key={to} to={to}>
             <Card className="flex items-center gap-3">
@@ -116,6 +117,13 @@ function ProfilePage() {
             </Card>
           </Link>
         ))}
+        <button type="button" onClick={() => { update({ tutorialCompletedAt: null }); void navigate({ to: "/curriculum" }); }}>
+          <Card className="flex w-full items-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-soft"><HelpCircle className="size-5 text-primary" /></span>
+            <span className="flex-1 text-right"><span className="block text-sm font-bold">إعادة جولة التعريف بالتطبيق</span><span className="block text-[11px] text-muted-foreground">تعرّف على المكتبة والاختبارات والتقدم خطوة بخطوة</span></span>
+            <ChevronLeft className="size-5 text-muted-foreground" />
+          </Card>
+        </button>
         <StudentFeedback />
         {isAdmin && (
           <Link to="/admin">

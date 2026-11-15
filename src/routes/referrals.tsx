@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRequireAuth } from "@/lib/guards";
 import { useApp } from "@/lib/app-state";
 import { useQueryClient } from "@tanstack/react-query";
+import { playAppSound } from "@/lib/sound";
 
 export const Route = createFileRoute("/referrals")({
   head: () => ({
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/referrals")({
 
 function ReferralsPage() {
   const { session } = useRequireAuth();
-  const { refresh } = useApp();
+  const { refresh, state } = useApp();
   const queryClient = useQueryClient();
   const { data, isLoading } = useReferralSummary(!!session);
   const [copied, setCopied] = useState(false);
@@ -40,6 +41,7 @@ function ReferralsPage() {
     else if (out.ok) {
       setApplyMsg("تم ربط دعوتك واحتسابها بنجاح 🎉");
       setFriendCode("");
+      playAppSound("referral", state.sound);
       await queryClient.invalidateQueries({ queryKey: ["referral-summary"] });
       await refresh();
     } else setApplyMsg(out.reason === "already_used" ? "لقد استخدمت كود دعوة من قبل." : out.reason === "own_code" ? "لا يمكنك استخدام كودك الخاص." : out.reason === "not_new" ? "أكواد الدعوة متاحة عند إنشاء حساب جديد فقط." : "الكود غير صحيح.");
@@ -49,6 +51,7 @@ function ReferralsPage() {
   const goal = data?.goal ?? 10;
   const count = data?.count ?? 0;
   const remaining = Math.max(goal - count, 0);
+  const rewardDays = data?.reward_days ?? 30;
   const percent = Math.min(100, Math.round((count / goal) * 100));
 
   const copy = async () => {
@@ -65,7 +68,7 @@ function ReferralsPage() {
 
   return (
     <Screen>
-      <PageHeader title="دعوة الأصدقاء 🎁" subtitle="١٠ دعوات ناجحة = ١٤ يومًا لفتح جميع الدروس" back />
+      <PageHeader title="دعوة الأصدقاء 🎁" subtitle={`${goal} دعوات ناجحة = ${rewardDays} يومًا لفتح جميع الدروس`} back />
 
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -108,7 +111,7 @@ function ReferralsPage() {
             <p className="mt-2 text-[11px] text-muted-foreground">
               {data?.reward_granted
                 ? "🎉 حصلت على مكافأة فتح جميع الدروس بالفعل"
-                : `باقي ${remaining} ${remaining === 1 ? "دعوة" : "دعوات"} للحصول على ١٤ يومًا لفتح جميع الدروس`}
+                : `باقي ${remaining} ${remaining === 1 ? "دعوة" : "دعوات"} للحصول على ${rewardDays} يومًا لفتح جميع الدروس`}
             </p>
           </Card>
 

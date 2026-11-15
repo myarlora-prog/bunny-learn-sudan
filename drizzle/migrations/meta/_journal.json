@@ -78,6 +78,13 @@
       "when": 1794666513913,
       "tag": "0010_study_days_feedback_referral_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794753410021,
+      "tag": "0011_finish_study_onboarding_preferences",
+      "breakpoints": true
     }
   ]
 }

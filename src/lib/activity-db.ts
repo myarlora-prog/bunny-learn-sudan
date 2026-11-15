@@ -23,20 +23,20 @@ export function weekStart(now = new Date()) {
   return d;
 }
 
-/** Real lesson completions and quiz attempts of the current week, refreshed whenever progress changes. */
+/** Real lesson-opening study days and quiz attempts for the current local week. */
 export function useWeekActivity(uid: string | null, completedCount: number) {
   return useQuery({
     queryKey: ["week-activity", uid, completedCount],
     enabled: !!uid,
     queryFn: async (): Promise<WeekActivity> => {
       const start = weekStart();
-      const [{ data: progress }, { data: quizzes }] = await Promise.all([
+      const [{ data: studyDays }, { data: quizzes }] = await Promise.all([
         supabase
-          .from("lesson_progress")
-          .select("lesson_id,completed_at,lessons(title)")
+          .from("user_study_days")
+          .select("study_date,lessons_opened")
           .eq("user_id", uid!)
-          .gte("completed_at", start.toISOString())
-          .order("completed_at"),
+          .gte("study_date", localKey(start))
+          .order("study_date"),
         supabase.from("quiz_attempts").select("created_at").eq("user_id", uid!).gte("created_at", start.toISOString()),
       ]);
       const days = Array.from({ length: 7 }, (_, i) => {
@@ -45,9 +45,9 @@ export function useWeekActivity(uid: string | null, completedCount: number) {
         return { key: localKey(d), label: DAY_LABELS[d.getDay()]!, lessons: 0, quizzes: 0 };
       });
       const byKey = new Map(days.map((d) => [d.key, d]));
-      for (const p of progress ?? []) {
-        const day = byKey.get(localKey(new Date(p.completed_at)));
-        if (day) day.lessons++;
+      for (const p of studyDays ?? []) {
+        const day = byKey.get(p.study_date);
+        if (day) day.lessons += p.lessons_opened;
       }
       for (const q of quizzes ?? []) {
         const day = byKey.get(localKey(new Date(q.created_at)));
@@ -55,12 +55,12 @@ export function useWeekActivity(uid: string | null, completedCount: number) {
       }
       return {
         days,
-        lessons: (progress ?? []).map((p) => ({
-          id: p.lesson_id,
-          title: (p.lessons as { title: string } | null)?.title ?? "",
-          at: p.completed_at,
+        lessons: (studyDays ?? []).map((p) => ({
+          id: p.study_date,
+          title: `${p.lessons_opened} فتح للدروس`,
+          at: p.study_date,
         })),
-        totalLessons: progress?.length ?? 0,
+        totalLessons: (studyDays ?? []).reduce((sum, day) => sum + day.lessons_opened, 0),
         totalQuizzes: quizzes?.length ?? 0,
       };
     },
