@@ -62,13 +62,15 @@ export function Card({
   children,
   className,
   onClick,
+  tour,
 }: {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
+  tour?: string;
 }) {
   return (
-    <div onClick={onClick} className={cn("surface-card press rise p-4", className)}>
+    <div onClick={onClick} data-tour={tour} className={cn("surface-card press rise p-4", className)}>
       {children}
     </div>
   );
