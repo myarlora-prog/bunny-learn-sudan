@@ -6,9 +6,10 @@ import { Card } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-state";
+import { playAppSound } from "@/lib/sound";
 
 export function StudentFeedback() {
-  const { session } = useApp();
+  const { session, state } = useApp();
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
@@ -31,6 +32,7 @@ export function StudentFeedback() {
     }
     setContent("");
     setSent(true);
+    playAppSound("complete", state.sound);
     toast.success("وصلتنا ملاحظتك، شكرًا لك");
   }
 

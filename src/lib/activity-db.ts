@@ -23,7 +23,7 @@ export function weekStart(now = new Date()) {
   return d;
 }
 
-/** Real lesson completions and quiz attempts of the current week, refreshed whenever progress changes. */
+/** Real lesson-opening study days and quiz attempts for the current local week. */
 export function useWeekActivity(uid: string | null, completedCount: number) {
   return useQuery({
     queryKey: ["week-activity", uid, completedCount],
@@ -55,12 +55,12 @@ export function useWeekActivity(uid: string | null, completedCount: number) {
       }
       return {
         days,
-        lessons: (progress ?? []).map((p) => ({
-          id: p.lesson_id,
-          title: (p.lessons as { title: string } | null)?.title ?? "",
-          at: p.completed_at,
+        lessons: (studyDays ?? []).map((p) => ({
+          id: p.study_date,
+          title: `${p.lessons_opened} فتح للدروس`,
+          at: p.study_date,
         })),
-        totalLessons: progress?.length ?? 0,
+        totalLessons: (studyDays ?? []).reduce((sum, day) => sum + day.lessons_opened, 0),
         totalQuizzes: quizzes?.length ?? 0,
       };
     },
