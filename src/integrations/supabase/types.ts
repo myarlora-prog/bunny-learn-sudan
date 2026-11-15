@@ -1172,6 +1172,7 @@ export type Database = {
           notifications: boolean
           sound: boolean
           theme_mode: string
+          tutorial_completed_at: string | null
           updated_at: string
           user_id: string
         }
@@ -1181,6 +1182,7 @@ export type Database = {
           notifications?: boolean
           sound?: boolean
           theme_mode?: string
+          tutorial_completed_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1190,6 +1192,7 @@ export type Database = {
           notifications?: boolean
           sound?: boolean
           theme_mode?: string
+          tutorial_completed_at?: string | null
           updated_at?: string
           user_id?: string
         }
