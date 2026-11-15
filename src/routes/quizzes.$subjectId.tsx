@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, ChevronLeft, ClipboardCheck, Loader2, RotateCcw, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
@@ -13,6 +13,7 @@ import { validExamQuestions } from "@/lib/exam-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { playAppSound } from "@/lib/sound";
 
 export const Route = createFileRoute("/quizzes/$subjectId")({
   validateSearch: z.object({ mode: z.enum(["exam", "units"]).optional(), exam: z.string().uuid().optional() }),
@@ -139,11 +140,16 @@ function SubjectExam({ subject, examId }: { subject: Subject; examId?: string | 
 }
 
 function ExamRunner({ subject, title, questions, selector }: { subject: Subject; title: string; questions: ExamQuestion[]; selector: React.ReactNode }) {
+  const { state } = useApp();
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const q = questions[i];
   const done = questions.length > 0 && i >= questions.length;
+
+  useEffect(() => {
+    if (done) playAppSound("exam", state.sound);
+  }, [done, state.sound]);
 
   return (
     <Screen>
@@ -185,6 +191,7 @@ function ExamRunner({ subject, title, questions, selector }: { subject: Subject;
                 disabled={picked !== null}
                 onClick={() => {
                   setPicked(k);
+                  playAppSound(k === q.correct ? "correct" : "incorrect", state.sound);
                   if (k === q.correct) setScore((s) => s + 1);
                 }}
                 className={cn(

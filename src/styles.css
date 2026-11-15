@@ -277,6 +277,7 @@
 @keyframes flame-pulse { 0%,100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.12); opacity: 1; } }
 @keyframes flame-spin { to { transform: rotate(360deg); } }
 .week-flame { transform-origin: 50% 90%; animation: flame-flicker 1.35s ease-in-out infinite; filter: drop-shadow(0 3px 8px color-mix(in oklab, var(--flame-1) 55%, transparent)); }
+.tour-highlight { z-index: 81; box-shadow: 0 0 0 9999px color-mix(in oklab, var(--background) 80%, transparent), 0 0 24px color-mix(in oklab, var(--primary) 48%, transparent); transition: all .35s ease; }
 .study-card-scene { perspective: 1200px; }
 .study-card-inner { position: relative; display: block; min-height: 16rem; transform-style: preserve-3d; transition: transform .62s cubic-bezier(.2,.72,.2,1); }
 .study-card-inner.is-flipped { transform: rotateY(180deg); }
