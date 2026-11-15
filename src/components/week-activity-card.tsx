@@ -47,5 +47,6 @@ export function WeekActivityCard() {
         </svg>
       </div>
     </Card>
+    </div>
   );
 }

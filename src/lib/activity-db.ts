@@ -45,9 +45,9 @@ export function useWeekActivity(uid: string | null, completedCount: number) {
         return { key: localKey(d), label: DAY_LABELS[d.getDay()]!, lessons: 0, quizzes: 0 };
       });
       const byKey = new Map(days.map((d) => [d.key, d]));
-      for (const p of progress ?? []) {
-        const day = byKey.get(localKey(new Date(p.completed_at)));
-        if (day) day.lessons++;
+      for (const p of studyDays ?? []) {
+        const day = byKey.get(p.study_date);
+        if (day) day.lessons += p.lessons_opened;
       }
       for (const q of quizzes ?? []) {
         const day = byKey.get(localKey(new Date(q.created_at)));
