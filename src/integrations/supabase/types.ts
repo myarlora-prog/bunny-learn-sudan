@@ -1273,6 +1273,7 @@ export type Database = {
     Functions: {
       activate_referral: { Args: { _uid: string }; Returns: undefined }
       admin_cancel_super: { Args: { _user_id: string }; Returns: Json }
+      admin_delete_subject_exam: { Args: { _id: string }; Returns: Json }
       admin_grant_super: {
         Args: {
           _days: number
@@ -1288,6 +1289,11 @@ export type Database = {
       }
       admin_save_lesson_summary: {
         Args: { _lesson_id: string; _summary: string }
+        Returns: Json
+      }
+      admin_save_social_links: { Args: { _links: Json }; Returns: Json }
+      admin_update_subject_exam: {
+        Args: { _id: string; _questions: Json; _status: string; _title: string }
         Returns: Json
       }
       apply_referral_code: { Args: { _code: string }; Returns: Json }

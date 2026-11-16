@@ -85,6 +85,13 @@
       "when": 1794753410021,
       "tag": "0011_finish_study_onboarding_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794841848631,
+      "tag": "0012_social_links_and_exam_management",
+      "breakpoints": true
     }
   ]
 }
