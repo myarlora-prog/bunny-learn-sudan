@@ -12,7 +12,7 @@ function TikTokIcon({ className }: { className?: string | undefined }) {
   return <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className={className}><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.49c-1.39.17-2.73-.11-4.03-.61a9.07 9.07 0 0 1-3.3-1.86c-.07 2.99.01 5.98-.03 8.97a6.63 6.63 0 0 1-1.89 3.74c-1.32 1.27-3.11 1.9-4.9 1.8a6.7 6.7 0 0 1-4.62-2.36A6.58 6.58 0 0 1 1.99 15.4c.16-2.07 1.28-4.03 3.09-5.09 1.23-.72 2.64-1.04 4.06-1.03v4.65c-.5-.16-1.04-.27-1.6-.24-1.14.06-2.29.71-2.92 1.68a4.28 4.28 0 0 0 .29 4.91c.63.74 1.55 1.2 2.51 1.3 1.01.1 2.1-.25 2.84-.98.68-.67 1.04-1.6 1.06-2.51C11.4 12.07 11.43 6.04 11.4.02h1.13Z" /></svg>;
 }
 
-function PlatformIcon({ platform, className }: { platform: SocialPlatform; className?: string }) {
+function PlatformIcon({ platform, className }: { platform: SocialPlatform; className?: string | undefined }) {
   if (platform === "instagram") return <Instagram className={className} aria-hidden />;
   if (platform === "facebook") return <Facebook className={className} aria-hidden />;
   return <TikTokIcon className={className} />;
