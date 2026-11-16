@@ -15,6 +15,8 @@ import {
   Lock,
   Sparkles,
   MessageSquare,
+  Share2,
+  ListChecks,
 } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { useRequireAdmin } from "@/lib/guards";
@@ -24,6 +26,8 @@ import { AdminAiFormat } from "@/components/admin-ai-format";
 import { AdminAiKeys } from "@/components/admin-ai-keys";
 import { AdminSubjectExams } from "@/components/admin-subject-exams";
 import { AdminFeedback } from "@/components/feedback";
+import { AdminSocialSettings } from "@/components/social-links";
+import { AdminExamManager } from "@/components/admin-exam-manager";
 import {
   AdminAnnouncements,
   AdminCurriculum,
@@ -63,6 +67,7 @@ const SETTING_KEYS = [
 type SectionId =
   | "explanations"
   | "exams"
+  | "examManager"
   | "format"
   | "aikeys"
   | "curriculum"
@@ -75,6 +80,7 @@ type SectionId =
   | "announcements"
   | "referrals"
   | "feedback"
+  | "social"
   | "settings";
 
 const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookOpen }[] = [
@@ -82,6 +88,7 @@ const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookO
   { id: "format", label: "تنسيق الشروحات بالذكاء الاصطناعي", desc: "درس أو وحدة أو مادة كاملة مع المراجعة قبل الاعتماد", Icon: Sparkles },
   { id: "aikeys", label: "إدارة مفاتيح AI", desc: "إضافة واختبار وترتيب مفاتيح الذكاء الاصطناعي", Icon: Settings2 },
   { id: "exams", label: "إضافة اختبار للمادة", desc: "إنشاء ومراجعة وحفظ ونشر الاختبارات", Icon: FileCheck2 },
+  { id: "examManager", label: "إدارة الاختبارات", desc: "عرض وتعديل وحذف اختبارات المواد والوحدات", Icon: ListChecks },
   { id: "curriculum", label: "إدارة المنهج", desc: "المراحل، الصفوف، المواد، الوحدات، الدروس", Icon: BookOpen },
   { id: "upload", label: "رفع كتاب ومعالجته", desc: "PDF أو TXT ← تحليل بالذكاء الاصطناعي", Icon: Upload },
   { id: "drafts", label: "مراجعة المسودات", desc: "تعديل المحتوى المستخرج ثم النشر", Icon: FileCheck2 },
@@ -92,6 +99,7 @@ const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookO
   { id: "announcements", label: "الإشعارات", desc: "إرسال إعلان لكل الطلاب", Icon: Megaphone },
   { id: "referrals", label: "الإحالات", desc: "متابعة دعوات الأصدقاء", Icon: Gift },
   { id: "feedback", label: "ملاحظات الطلاب", desc: "قراءة الملاحظات مرتبة من الأحدث", Icon: MessageSquare },
+  { id: "social", label: "إعدادات تابعنا", desc: "روابط Instagram وTikTok وFacebook", Icon: Share2 },
   { id: "settings", label: "الإعدادات", desc: "الطاقة، رابط واتساب، الإحالات", Icon: Settings2 },
 ];
 
@@ -100,6 +108,7 @@ function SectionBody({ id }: { id: SectionId }) {
   if (id === "format") return <AdminAiFormat />;
   if (id === "aikeys") return <AdminAiKeys />;
   if (id === "exams") return <AdminSubjectExams />;
+  if (id === "examManager") return <AdminExamManager />;
   if (id === "curriculum") return <AdminCurriculum />;
   if (id === "upload") return <AdminUpload />;
   if (id === "drafts") return <AdminDrafts />;
@@ -110,6 +119,7 @@ function SectionBody({ id }: { id: SectionId }) {
   if (id === "announcements") return <AdminAnnouncements />;
   if (id === "referrals") return <AdminReferrals />;
   if (id === "feedback") return <AdminFeedback />;
+  if (id === "social") return <AdminSocialSettings />;
   return <AdminSettings keys={SETTING_KEYS} />;
 }
 

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, Sparkles, Layers, ListChecks, CheckCircle2, RotateCcw, Lightbulb, Loader2 } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { EnergyBadge, ZeroEnergyModal } from "@/components/energy";
@@ -13,6 +13,7 @@ import { explanationHtml, looksLikeHtml } from "@/lib/sanitize-html";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { playAppSound } from "@/lib/sound";
+import { LessonFlashcards } from "@/components/lesson-flashcards";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
   validateSearch: z.object({ tab: z.enum(["explain", "summary", "cards", "quiz"]).optional() }),
@@ -42,10 +43,6 @@ function LessonPage() {
   const { state, session, toggleLesson, spendEnergy, isSuper, isAdmin, refresh } = useApp();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>(search.tab ?? "explain");
-  const [cardIndex, setCardIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [turning, setTurning] = useState(false);
-  const flipTimer = useRef<number | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [blocked, setBlocked] = useState(false);
   const freeAccess = data?.lesson.freeAccess;
@@ -65,18 +62,6 @@ function LessonPage() {
     });
     return () => { active = false; };
   }, [lessonId, session, data, freeAccess, isSuper, isAdmin, queryClient, refresh]);
-
-  useEffect(() => () => {
-    if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
-  }, []);
-
-  const flipCard = () => {
-    if (turning) return;
-    setTurning(true);
-    setFlipped((value) => !value);
-    playAppSound("flip", state.sound);
-    flipTimer.current = window.setTimeout(() => setTurning(false), 620);
-  };
 
   if (isDbId(lessonId) && live.isLoading) {
     return (
@@ -98,7 +83,6 @@ function LessonPage() {
 
   const { lesson, subject, unit } = data;
   const done = state.completedLessons.includes(lesson.id);
-  const card = lesson.flashcards[cardIndex];
   const score = lesson.quiz.reduce((n, q, i) => n + (answers[i] === q.correct ? 1 : 0), 0);
   const answered = Object.keys(answers).length;
 
@@ -169,57 +153,9 @@ function LessonPage() {
         </div>
       )}
 
-      {tab === "cards" && card && (
+      {tab === "cards" && lesson.flashcards.length > 0 && (
         <div key="cards" className="page-enter">
-          <button
-            type="button"
-            onClick={flipCard}
-            disabled={turning}
-            aria-label={flipped ? `الإجابة: ${card.a}. اضغط للعودة إلى السؤال` : `السؤال: ${card.q}. اضغط لإظهار الإجابة`}
-            className="study-card-scene press block min-h-64 w-full text-center"
-          >
-            <span className={cn("study-card-inner", flipped && "is-flipped")}>
-              <span className="study-card-face surface-card">
-                <span className="text-[11px] font-bold text-primary">السؤال</span>
-                <span className="text-lg font-bold leading-relaxed">{card.q}</span>
-                <span className="text-[11px] text-muted-foreground">اضغط لقلب البطاقة وإظهار الإجابة</span>
-              </span>
-              <span className="study-card-face study-card-back surface-card">
-                <span className="text-[11px] font-bold text-primary">الإجابة</span>
-                <span className="text-lg font-bold leading-relaxed">{card.a}</span>
-                <span className="text-[11px] text-muted-foreground">اضغط للعودة إلى السؤال</span>
-              </span>
-            </span>
-          </button>
-
-
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <button
-              type="button"
-              disabled={turning}
-              onClick={() => {
-                setFlipped(false);
-                setCardIndex((i) => (i === 0 ? lesson.flashcards.length - 1 : i - 1));
-              }}
-              className="press rounded-2xl border border-border bg-card px-4 py-2.5 text-sm font-bold"
-            >
-              السابق
-            </button>
-            <span className="text-sm text-muted-foreground">
-              {cardIndex + 1} / {lesson.flashcards.length}
-            </span>
-            <button
-              type="button"
-              disabled={turning}
-              onClick={() => {
-                setFlipped(false);
-                setCardIndex((i) => (i + 1) % lesson.flashcards.length);
-              }}
-              className="press gradient-hero rounded-2xl px-4 py-2.5 text-sm font-bold text-primary-foreground"
-            >
-              التالي
-            </button>
-          </div>
+          <LessonFlashcards cards={lesson.flashcards} sound={state.sound} />
         </div>
       )}
 

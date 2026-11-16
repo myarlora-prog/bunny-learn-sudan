@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Card, Screen } from "@/components/app-shell";
 import { StudentFeedback } from "@/components/feedback";
+import { StudentSocialLinks } from "@/components/social-links";
 import { EnergyBadge } from "@/components/energy";
 import { useApp } from "@/lib/app-state";
 import { useGrades, useStages } from "@/lib/curriculum-db";
@@ -125,6 +126,7 @@ function ProfilePage() {
           </Card>
         </button>
         <StudentFeedback />
+        <StudentSocialLinks />
         {isAdmin && (
           <Link to="/admin">
             <Card className="flex items-center gap-3 border-primary/40">
