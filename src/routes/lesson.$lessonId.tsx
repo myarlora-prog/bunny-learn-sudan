@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, Sparkles, Layers, ListChecks, CheckCircle2, RotateCcw, Lightbulb, Loader2 } from "lucide-react";
 import { Card, PageHeader, Screen } from "@/components/app-shell";
 import { EnergyBadge, ZeroEnergyModal } from "@/components/energy";
@@ -13,6 +13,7 @@ import { explanationHtml, looksLikeHtml } from "@/lib/sanitize-html";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { playAppSound } from "@/lib/sound";
+import { LessonFlashcards } from "@/components/lesson-flashcards";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
   validateSearch: z.object({ tab: z.enum(["explain", "summary", "cards", "quiz"]).optional() }),
@@ -42,10 +43,6 @@ function LessonPage() {
   const { state, session, toggleLesson, spendEnergy, isSuper, isAdmin, refresh } = useApp();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>(search.tab ?? "explain");
-  const [cardIndex, setCardIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [turning, setTurning] = useState(false);
-  const flipTimer = useRef<number | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [blocked, setBlocked] = useState(false);
   const freeAccess = data?.lesson.freeAccess;
@@ -65,18 +62,6 @@ function LessonPage() {
     });
     return () => { active = false; };
   }, [lessonId, session, data, freeAccess, isSuper, isAdmin, queryClient, refresh]);
-
-  useEffect(() => () => {
-    if (flipTimer.current !== null) window.clearTimeout(flipTimer.current);
-  }, []);
-
-  const flipCard = () => {
-    if (turning) return;
-    setTurning(true);
-    setFlipped((value) => !value);
-    playAppSound("flip", state.sound);
-    flipTimer.current = window.setTimeout(() => setTurning(false), 620);
-  };
 
   if (isDbId(lessonId) && live.isLoading) {
     return (
@@ -98,7 +83,6 @@ function LessonPage() {
 
   const { lesson, subject, unit } = data;
   const done = state.completedLessons.includes(lesson.id);
-  const card = lesson.flashcards[cardIndex];
   const score = lesson.quiz.reduce((n, q, i) => n + (answers[i] === q.correct ? 1 : 0), 0);
   const answered = Object.keys(answers).length;
 

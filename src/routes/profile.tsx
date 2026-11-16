@@ -126,6 +126,7 @@ function ProfilePage() {
           </Card>
         </button>
         <StudentFeedback />
+        <StudentSocialLinks />
         {isAdmin && (
           <Link to="/admin">
             <Card className="flex items-center gap-3 border-primary/40">
