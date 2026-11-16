@@ -153,57 +153,9 @@ function LessonPage() {
         </div>
       )}
 
-      {tab === "cards" && card && (
+      {tab === "cards" && lesson.flashcards.length > 0 && (
         <div key="cards" className="page-enter">
-          <button
-            type="button"
-            onClick={flipCard}
-            disabled={turning}
-            aria-label={flipped ? `الإجابة: ${card.a}. اضغط للعودة إلى السؤال` : `السؤال: ${card.q}. اضغط لإظهار الإجابة`}
-            className="study-card-scene press block min-h-64 w-full text-center"
-          >
-            <span className={cn("study-card-inner", flipped && "is-flipped")}>
-              <span className="study-card-face surface-card">
-                <span className="text-[11px] font-bold text-primary">السؤال</span>
-                <span className="text-lg font-bold leading-relaxed">{card.q}</span>
-                <span className="text-[11px] text-muted-foreground">اضغط لقلب البطاقة وإظهار الإجابة</span>
-              </span>
-              <span className="study-card-face study-card-back surface-card">
-                <span className="text-[11px] font-bold text-primary">الإجابة</span>
-                <span className="text-lg font-bold leading-relaxed">{card.a}</span>
-                <span className="text-[11px] text-muted-foreground">اضغط للعودة إلى السؤال</span>
-              </span>
-            </span>
-          </button>
-
-
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <button
-              type="button"
-              disabled={turning}
-              onClick={() => {
-                setFlipped(false);
-                setCardIndex((i) => (i === 0 ? lesson.flashcards.length - 1 : i - 1));
-              }}
-              className="press rounded-2xl border border-border bg-card px-4 py-2.5 text-sm font-bold"
-            >
-              السابق
-            </button>
-            <span className="text-sm text-muted-foreground">
-              {cardIndex + 1} / {lesson.flashcards.length}
-            </span>
-            <button
-              type="button"
-              disabled={turning}
-              onClick={() => {
-                setFlipped(false);
-                setCardIndex((i) => (i + 1) % lesson.flashcards.length);
-              }}
-              className="press gradient-hero rounded-2xl px-4 py-2.5 text-sm font-bold text-primary-foreground"
-            >
-              التالي
-            </button>
-          </div>
+          <LessonFlashcards cards={lesson.flashcards} sound={state.sound} />
         </div>
       )}
 
