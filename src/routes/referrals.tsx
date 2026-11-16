@@ -13,7 +13,7 @@ export const Route = createFileRoute("/referrals")({
   head: () => ({
     meta: [
       { title: "دعوة الأصدقاء | نوابغ" },
-      { name: "description", content: "ادعُ أصدقاءك إلى نوابغ واحصل على 14 يومًا سوبر مجانًا عند 10 دعوات ناجحة." },
+      { name: "description", content: "ادعُ أصدقاءك إلى نوابغ وتابع دعواتك المؤهلة ومدة مكافأتك المحفوظة في إعدادات التطبيق." },
       { property: "og:title", content: "دعوة الأصدقاء | نوابغ" },
       { property: "og:description", content: "شارك كودك واربح اشتراك سوبر مجاني." },
     ],

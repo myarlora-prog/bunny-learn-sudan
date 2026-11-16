@@ -15,6 +15,8 @@ import {
   Lock,
   Sparkles,
   MessageSquare,
+  Share2,
+  ListChecks,
 } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { useRequireAdmin } from "@/lib/guards";
@@ -24,6 +26,8 @@ import { AdminAiFormat } from "@/components/admin-ai-format";
 import { AdminAiKeys } from "@/components/admin-ai-keys";
 import { AdminSubjectExams } from "@/components/admin-subject-exams";
 import { AdminFeedback } from "@/components/feedback";
+import { AdminSocialSettings } from "@/components/social-links";
+import { AdminExamManager } from "@/components/admin-exam-manager";
 import {
   AdminAnnouncements,
   AdminCurriculum,
