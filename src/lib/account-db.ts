@@ -51,7 +51,7 @@ export function useSetting(key: string) {
     queryFn: async (): Promise<string | null> => {
       const { data } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
       const v = data?.value;
-      return typeof v === "string" ? v : v == null ? null : String(v);
+      return typeof v === "string" ? v : v == null ? null : JSON.stringify(v);
     },
   });
 }
