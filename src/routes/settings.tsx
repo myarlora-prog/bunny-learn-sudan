@@ -51,7 +51,7 @@ function SettingsPage() {
             <Moon className="size-5 text-primary" />
             <div className="flex-1">
               <h3 className="text-sm font-bold">مظهر التطبيق</h3>
-              <p className="text-[11px] text-muted-foreground">داكن افتراضيًا، أو فاتح، أو حسب جهازك</p>
+              <p className="text-[11px] text-muted-foreground">فاتح افتراضيًا، أو داكن، أو حسب جهازك</p>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2" role="group" aria-label="اختيار المظهر">

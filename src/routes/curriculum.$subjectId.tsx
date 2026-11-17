@@ -2,19 +2,22 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Card, PageHeader, Screen } from "@/components/app-shell";
+import { PageHeader, Screen } from "@/components/app-shell";
 import { SaqroEmpty } from "@/components/saqro";
 import { getSubject } from "@/data/curriculum";
 import { useApp } from "@/lib/app-state";
 import { isDbId, useSubjectTree } from "@/lib/curriculum-db";
+import { subjectCompletion, unitCompletion } from "@/lib/lesson-progress";
 
 export const Route = createFileRoute("/curriculum/$subjectId")({
   head: () => ({
     meta: [
       { title: "وحدات المادة | نوابغ" },
-      { name: "description", content: "استعرض وحدات المادة ودروسها داخل تطبيق نوابغ التعليمي." },
+      { name: "description", content: "استعرض وحدات المادة ودروسها ونسبة إنجازك الفعلية داخل تطبيق نوابغ التعليمي." },
       { property: "og:title", content: "وحدات المادة | نوابغ" },
-      { property: "og:description", content: "وحدات ودروس منظّمة مع متابعة إنجازك في كل درس." },
+      { property: "og:description", content: "وحدات ودروس منظّمة مع متابعة إنجازك الحقيقي في كل مادة ووحدة." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: SubjectPage,
@@ -45,74 +48,80 @@ function SubjectPage() {
     );
   }
 
-
+  const progress = subjectCompletion(subject.units, state.completedLessons);
   const currentId = subject.units
     .flatMap((u) => u.lessons)
     .find((l) => !state.completedLessons.includes(l.id))?.id;
 
   return (
     <Screen>
-      <PageHeader title={`${subject.icon} ${subject.name}`} subtitle={`${subject.progress}% من المادة مكتمل`} back />
+      <PageHeader title={`${subject.icon} ${subject.name}`} subtitle={`${progress}% من المادة مكتمل`} back />
 
-      <div className="mb-5 h-2 overflow-hidden rounded-full bg-secondary">
-        <div className="h-full rounded-full" style={{ width: `${subject.progress}%`, background: subject.color }} />
+      <div className="mb-5 h-2 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-label="نسبة إنجاز المادة" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+        <div className="h-full rounded-full transition-[width] duration-500 ease-out" style={{ width: `${progress}%`, background: subject.color }} />
       </div>
 
       <div className="flex flex-col items-center gap-6 rounded-3xl bg-card/60 px-3 py-6">
-        {subject.units.map((unit) => (
-          <section key={unit.id} className="flex w-full flex-col items-center">
-            <h2 className="mb-4 rounded-full bg-primary-soft px-5 py-2 text-center text-sm text-primary">{unit.title}</h2>
-            <div className="flex flex-col items-center">
-              {unit.lessons.map((l, i) => {
-                const done = state.completedLessons.includes(l.id);
-                const current = l.id === currentId;
-                const locked = !isSuper && !isAdmin && l.freeAccess === false;
-                const body = (
-                  <>
-                    <span
-                      className={cn(
-                        "relative flex size-14 items-center justify-center rounded-full border-2 bg-card transition-shadow",
-                        done
-                          ? "border-warning text-warning shadow-[0_0_18px_4px_color-mix(in_oklab,var(--warning)_45%,transparent)]"
-                          : current
-                            ? "border-primary text-primary shadow-[0_0_18px_4px_color-mix(in_oklab,var(--primary)_40%,transparent)]"
-                            : "border-primary/40 text-primary",
-                      )}
-                    >
-                      <Lightbulb className={cn("size-7", done && "fill-warning/30")} />
-                      {locked && (
-                        <span className="absolute -top-1 -left-1 text-sm" aria-label="الدرس غير متاح حاليًا">💎</span>
-                      )}
-                    </span>
-                    <span className="mt-2 max-w-[220px] text-center text-xs font-bold">{l.title}</span>
-                  </>
-                );
-                return (
-                  <div key={l.id} className="flex flex-col items-center">
-                    {i > 0 && <span className="mb-2 h-6 w-px bg-primary/30" />}
-                    {locked ? (
-                      <button
-                        type="button"
-                        className="press flex flex-col items-center"
-                        onClick={() => {
-                          toast("تعرّف على طريقة فتح جميع الدروس 💎");
-                          void navigate({ to: "/super" });
-                        }}
+        {subject.units.map((unit) => {
+          const unitProgress = unitCompletion(unit, state.completedLessons);
+          return (
+            <section key={unit.id} className="flex w-full flex-col items-center">
+              <div className="mb-4 flex flex-wrap items-center justify-center gap-2 rounded-full bg-primary-soft px-5 py-2 text-center">
+                <h2 className="text-sm text-primary">{unit.title}</h2>
+                <span className="text-xs font-bold text-primary" aria-label={`نسبة إنجاز ${unit.title}`}>{unitProgress}% مكتمل</span>
+              </div>
+              <div className="flex flex-col items-center">
+                {unit.lessons.map((l, i) => {
+                  const done = state.completedLessons.includes(l.id);
+                  const current = l.id === currentId;
+                  const locked = !isSuper && !isAdmin && l.freeAccess === false;
+                  const body = (
+                    <>
+                      <span
+                        className={cn(
+                          "relative flex size-14 items-center justify-center rounded-full border-2 bg-card transition-shadow",
+                          done
+                            ? "border-warning text-warning shadow-[0_0_18px_4px_color-mix(in_oklab,var(--warning)_45%,transparent)]"
+                            : current
+                              ? "border-primary text-primary shadow-[0_0_18px_4px_color-mix(in_oklab,var(--primary)_40%,transparent)]"
+                              : "border-primary/40 text-primary",
+                        )}
                       >
-                        {body}
-                      </button>
-                    ) : (
-                      <Link to="/lesson/$lessonId" params={{ lessonId: l.id }} className="press flex flex-col items-center">
-                        {body}
-                      </Link>
-                    )}
-                    {i < unit.lessons.length - 1 && <span className="mt-2 h-6 w-px bg-primary/30" />}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        ))}
+                        <Lightbulb className={cn("size-7", done && "fill-warning/30")} />
+                        {locked && (
+                          <span className="absolute -top-1 -left-1 text-sm" aria-label="الدرس غير متاح حاليًا">💎</span>
+                        )}
+                      </span>
+                      <span className="mt-2 max-w-[220px] text-center text-xs font-bold">{l.title}</span>
+                    </>
+                  );
+                  return (
+                    <div key={l.id} className="flex flex-col items-center">
+                      {i > 0 && <span className="mb-2 h-6 w-px bg-primary/30" />}
+                      {locked ? (
+                        <button
+                          type="button"
+                          className="press flex flex-col items-center"
+                          onClick={() => {
+                            toast("تعرّف على طريقة فتح جميع الدروس 💎");
+                            void navigate({ to: "/super" });
+                          }}
+                        >
+                          {body}
+                        </button>
+                      ) : (
+                        <Link to="/lesson/$lessonId" params={{ lessonId: l.id }} className="press flex flex-col items-center">
+                          {body}
+                        </Link>
+                      )}
+                      {i < unit.lessons.length - 1 && <span className="mt-2 h-6 w-px bg-primary/30" />}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
         {subject.units.length === 0 && (
           <SaqroEmpty title="لا توجد وحدات بعد" desc="سيتم إضافة وحدات هذه المادة قريبًا." />
         )}

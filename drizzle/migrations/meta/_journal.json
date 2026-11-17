@@ -92,6 +92,13 @@
       "when": 1794841848631,
       "tag": "0012_social_links_and_exam_management",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794930460655,
+      "tag": "0013_light_default_and_referral_share_settings",
+      "breakpoints": true
     }
   ]
 }

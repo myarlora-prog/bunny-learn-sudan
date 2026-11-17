@@ -45,8 +45,8 @@ export function LessonFlashcards({ cards, sound }: { cards: Card[]; sound: boole
     }, 300));
   };
 
-  const next = (direction = -1) => moveTo(index + 1, direction);
-  const previous = () => moveTo(index - 1, 1);
+  const next = () => moveTo(index + 1, 1);
+  const previous = () => moveTo(index - 1, -1);
 
   const pointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
     if (busy || event.button !== 0) return;
@@ -68,7 +68,8 @@ export function LessonFlashcards({ cards, sound }: { cards: Card[]; sound: boole
     drag.current = null;
     if (Math.abs(distance) >= 60 && Math.abs(distance) > Math.abs(vertical)) {
       suppressClick.current = true;
-      next(distance > 0 ? 1 : -1);
+      if (distance > 0) next();
+      else previous();
     } else {
       setMotion("idle");
       setOffset(0);
@@ -113,7 +114,7 @@ export function LessonFlashcards({ cards, sound }: { cards: Card[]; sound: boole
             <span className="study-card-face surface-card">
               <span className="text-[11px] font-bold text-primary">السؤال</span>
               <span className="text-lg font-bold leading-relaxed">{card.q}</span>
-              <span className="text-[11px] text-muted-foreground">اضغط للقلب أو اسحب يمينًا ويسارًا للبطاقة التالية</span>
+              <span className="text-[11px] text-muted-foreground">اضغط للقلب · اسحب يمينًا للتالي ويسارًا للسابق</span>
             </span>
             <span className="study-card-face study-card-back surface-card">
               <span className="text-[11px] font-bold text-success">الجواب</span>

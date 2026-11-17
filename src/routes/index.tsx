@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
 
 const slides = [
   {
-    title: "أهلاً بك، أنا نوابغ 👋",
+    title: "مرحبًا بكم في نوابغ",
     desc: "رفيقك في المذاكرة. سنتعلّم المنهج السوداني خطوة بخطوة، بهدوء وبدون تشتيت.",
     variant: "wave" as const,
   },

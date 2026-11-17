@@ -1,4 +1,5 @@
-import logo from "@/assets/nawabig-logo.png.asset.json";
+import lightLogo from "@/assets/nawabig-logo-light.png.asset.json";
+import darkLogo from "@/assets/nawabig-logo-dark.png.asset.json";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -9,21 +10,35 @@ type Props = {
   priority?: boolean;
 };
 
-/** Official Nawabig logo (replaces former mascot illustrations). */
+/** Official Nawabig artwork paired with the active light or dark appearance. */
 export function Saqro({ size = 120, className, priority = false }: Props) {
+  const shared = {
+    width: size,
+    height: size,
+    loading: priority ? "eager" as const : "lazy" as const,
+    decoding: "async" as const,
+    draggable: false,
+    fetchPriority: priority ? "high" as const : "auto" as const,
+    style: { width: size, height: size },
+  };
   return (
-    <img
-      src={logo.url}
-      alt="شعار نوابغ"
-      width={size}
-      height={size}
-      loading={priority ? "eager" : "lazy"}
-      decoding="async"
-      draggable={false}
-      fetchPriority={priority ? "high" : "auto"}
-      style={{ width: size, height: size }}
-      className={cn("select-none object-contain [image-rendering:auto]", className)}
-    />
+    <>
+      <img
+        {...shared}
+        src={lightLogo.url}
+        alt="شعار نوابغ"
+        data-logo="light"
+        className={cn("select-none object-contain [image-rendering:auto] dark:hidden", className)}
+      />
+      <img
+        {...shared}
+        src={darkLogo.url}
+        alt=""
+        aria-hidden
+        data-logo="dark"
+        className={cn("hidden select-none object-contain [image-rendering:auto] dark:block", className)}
+      />
+    </>
   );
 }
 

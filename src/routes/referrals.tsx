@@ -6,7 +6,8 @@ import { useReferralSummary } from "@/lib/account-db";
 import { supabase } from "@/integrations/supabase/client";
 import { useRequireAuth } from "@/lib/guards";
 import { useApp } from "@/lib/app-state";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { buildReferralMessage, cleanReferralShare } from "@/lib/referral-share";
 import { playAppSound } from "@/lib/sound";
 
 export const Route = createFileRoute("/referrals")({
@@ -26,6 +27,16 @@ function ReferralsPage() {
   const { refresh, state } = useApp();
   const queryClient = useQueryClient();
   const { data, isLoading } = useReferralSummary(!!session);
+  const shareSettings = useQuery({
+    queryKey: ["referral-share-settings"],
+    staleTime: 0,
+    refetchOnMount: "always",
+    queryFn: async () => {
+      const { data: row, error } = await supabase.from("app_settings").select("value").eq("key", "referral_share").maybeSingle();
+      if (error) throw error;
+      return cleanReferralShare(row?.value);
+    },
+  });
   const [copied, setCopied] = useState(false);
   const [friendCode, setFriendCode] = useState("");
   const [applyMsg, setApplyMsg] = useState("");
@@ -61,9 +72,14 @@ function ReferralsPage() {
   };
 
   const share = async () => {
-    const text = `انضم معي إلى تطبيق نوابغ 🦅 للمنهج السوداني واستخدم كودي: ${code}`;
+    const settings = shareSettings.data ?? cleanReferralShare(null);
+    const text = buildReferralMessage(settings, code);
     if (navigator.share) await navigator.share({ text }).catch(() => undefined);
-    else await copy();
+    else {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    }
   };
 
   return (

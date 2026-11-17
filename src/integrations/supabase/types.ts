@@ -1291,6 +1291,10 @@ export type Database = {
         Args: { _lesson_id: string; _summary: string }
         Returns: Json
       }
+      admin_save_referral_share: {
+        Args: { _app_url: string; _message: string }
+        Returns: Json
+      }
       admin_save_social_links: { Args: { _links: Json }; Returns: Json }
       admin_update_subject_exam: {
         Args: { _id: string; _questions: Json; _status: string; _title: string }

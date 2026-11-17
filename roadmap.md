@@ -1,11 +1,11 @@
-# Nawabig continuation
-- [x] Preserve existing accounts, curriculum, exams, subscriptions, referrals, roles and progress.
-- [ ] Verify lesson-open study days, timezone-safe streak rules, weekly activity and saved tutorial state with an isolated student.
-- [ ] Verify referral qualification, notifications, live counter and configured 10-referral reward without real student records.
-- [ ] Verify feedback security, persisted themes and active/expired full-access diamonds.
-- [ ] Add swipe and Next-button shared transitions to lesson flashcards while preserving flips and sounds.
-- [ ] Add owner-managed Instagram, TikTok and Facebook links with validated server-side saving and conditional student display.
-- [ ] Add owner-only all-exam review/editing and single-exam deletion that preserves student attempts and curriculum.
-- [ ] Verify book-shaped subject test carousel and subject-colored gradients.
-- [ ] Run build, focused rule tests, isolated account/database checks and mobile browser flows; report untested items.
-- [ ] AI quota/router repairs remain separate from this student-experience pass.
+# Nawabig current updates
+- [ ] Correct flashcard swipe directions and verify real touch gestures, Next animation, flips, sounds and green answer label.
+- [ ] Default new installations to light mode; use the uploaded light/dark logos on onboarding and unlock help.
+- [ ] Change onboarding welcome to «مرحبًا بكم في نوابغ».
+- [ ] Add owner-managed referral message and app URL with database persistence and clickable sharing.
+- [ ] Simplify unlock help to the required title, text, country choice and conditional WhatsApp button.
+- [ ] Calculate subject and unit completion from existing lesson_progress, including offline sync and immediate updates; add focused rule tests.
+- [ ] Ensure new unit exams are drafts and owner management lists, edits, publishes, unpublishes and deletes them; verify students cannot open drafts directly.
+- [ ] Re-check previously completed study-day, referral, feedback, theme, diamond and tutorial flows where safely testable.
+- [ ] Preserve all accounts, curriculum, exams, attempts, subscriptions, referrals, roles and progress; no AI or paid service calls.
+- [ ] Run build, focused tests, isolated student/owner database checks and mobile browser flows; report verified and unverified items.

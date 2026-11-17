@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Pencil, Plus, Save, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Save, Trash2, Upload, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useApp } from "@/lib/app-state";
 import type { ExamQuestion } from "@/lib/exam.functions";
 import { validExamQuestions } from "@/lib/exam-utils";
 import type { Json } from "@/integrations/supabase/types";
+import { cn } from "@/lib/utils";
 
 type ExamRow = {
   id: string;
@@ -24,6 +25,8 @@ type ExamRow = {
   unitName: string | null;
 };
 
+type Filter = "draft" | "published" | "all";
+
 export function AdminExamManager() {
   const { isAdmin } = useApp();
   const queryClient = useQueryClient();
@@ -32,6 +35,7 @@ export function AdminExamManager() {
   const [status, setStatus] = useState("draft");
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [busy, setBusy] = useState(false);
+  const [filter, setFilter] = useState<Filter>("draft");
   const exams = useQuery({
     queryKey: ["admin", "exam-manager"],
     enabled: isAdmin,
@@ -68,19 +72,20 @@ export function AdminExamManager() {
     await queryClient.invalidateQueries({ queryKey: ["admin", "exam-manager"] });
     await queryClient.invalidateQueries({ queryKey: ["admin-exams"] });
     await queryClient.invalidateQueries({ queryKey: ["published-exams"] });
+    await queryClient.invalidateQueries({ queryKey: ["published-unit-exams"] });
   };
-  const save = async () => {
+  const save = async (nextStatus = status) => {
     if (!selected || !validExamQuestions(questions) || !title.trim()) {
       toast.error("أكمل العنوان ونصوص الأسئلة والخيارات والإجابات الصحيحة");
       return;
     }
     setBusy(true);
-    const { error } = await supabase.rpc("admin_update_subject_exam", { _id: selected.id, _title: title, _questions: questions as unknown as Json, _status: status });
+    const { error } = await supabase.rpc("admin_update_subject_exam", { _id: selected.id, _title: title, _questions: questions as unknown as Json, _status: nextStatus });
     setBusy(false);
     if (error) { toast.error("تعذّر حفظ الاختبار؛ لم تتغير النسخة المحفوظة"); return; }
     setSelected(null);
     await refresh();
-    toast.success("تم حفظ تعديلات الاختبار");
+    toast.success(nextStatus === "published" ? "تم نشر الاختبار وأصبح متاحًا للطلاب المسموح لهم" : nextStatus === "draft" && status === "published" ? "أُعيد الاختبار إلى المسودات وأُخفي عن الطلاب" : "تم حفظ تعديلات الاختبار");
   };
   const remove = async (exam: ExamRow) => {
     if (!window.confirm(`حذف «${exam.title}» فقط؟ لن تُحذف نتائج الطلاب أو الدروس أو المواد.`)) return;
@@ -95,11 +100,21 @@ export function AdminExamManager() {
 
   if (exams.isLoading) return <Loader2 className="mx-auto my-8 size-6 animate-spin text-primary" />;
   if (exams.isError) return <p className="text-sm text-destructive">تعذّر تحميل الاختبارات.</p>;
+  const all = exams.data ?? [];
+  const visible = all.filter((exam) => filter === "all" || exam.status === filter);
+  const filters: { id: Filter; label: string; count: number }[] = [
+    { id: "draft", label: "المسودات", count: all.filter((exam) => exam.status === "draft").length },
+    { id: "published", label: "المنشورة", count: all.filter((exam) => exam.status === "published").length },
+    { id: "all", label: "الكل", count: all.length },
+  ];
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs leading-relaxed text-muted-foreground">جميع اختبارات المواد والوحدات. الحذف يخص الاختبار المحدد فقط ولا يمس نتائج الطلاب أو المنهج.</p>
-      {!exams.data?.length && <Card className="text-center text-sm text-muted-foreground">لا توجد اختبارات محفوظة.</Card>}
-      {exams.data?.map((exam) => (
+      <p className="text-xs leading-relaxed text-muted-foreground">المسودات للمالك فقط. النشر يُظهر الاختبار للطلاب المسموح لهم، والحذف يخص الاختبار المحدد فقط ولا يمس نتائج الطلاب أو المنهج.</p>
+      <div className="grid grid-cols-3 gap-2" role="group" aria-label="تصفية الاختبارات">
+        {filters.map((item) => <button key={item.id} type="button" aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setSelected(null); }} className={cn("rounded-2xl border px-2 py-2.5 text-xs font-bold", filter === item.id ? "border-primary bg-primary-soft text-primary" : "border-border bg-card")}>{item.label} ({item.count})</button>)}
+      </div>
+      {!visible.length && <Card className="text-center text-sm text-muted-foreground">لا توجد اختبارات في هذه القائمة.</Card>}
+      {visible.map((exam) => (
         <Card key={exam.id} className="flex items-start gap-3">
           <button type="button" className="min-w-0 flex-1 text-right" onClick={() => openExam(exam)}>
             <h3 className="text-sm font-bold">{exam.title}</h3>
@@ -115,10 +130,9 @@ export function AdminExamManager() {
         <section className="mt-4 border-t border-border pt-5" aria-label={`مراجعة ${selected.title}`}>
           <h2 className="text-lg">مراجعة وتعديل الاختبار</h2>
           <p className="mt-1 text-xs text-muted-foreground">{selected.stageName} · {selected.gradeName} · {selected.subjectName}{selected.unitName ? ` · ${selected.unitName}` : ""}</p>
+          <p className="mt-2 text-xs font-bold text-primary">الحالة الحالية: {status === "published" ? "منشور" : "مسودة"}</p>
           <label htmlFor="managed-exam-title" className="mt-4 block text-xs font-bold">عنوان الاختبار</label>
           <input id="managed-exam-title" value={title} onChange={(event) => setTitle(event.target.value)} className="mt-2 w-full rounded-2xl border border-border bg-card p-3" />
-          <label htmlFor="managed-exam-status" className="mt-3 block text-xs font-bold">حالة الاختبار</label>
-          <select id="managed-exam-status" value={status} onChange={(event) => setStatus(event.target.value)} className="mt-2 w-full rounded-2xl border border-border bg-card p-3"><option value="draft">مسودة</option><option value="published">منشور</option></select>
           <div className="mt-3 flex flex-col gap-4">
             {questions.map((question, index) => (
               <Card key={index}>
@@ -134,7 +148,10 @@ export function AdminExamManager() {
             ))}
           </div>
           <Button type="button" variant="outline" onClick={() => setQuestions((old) => [...old, { q: "", options: ["", "", "", ""], correct: 0, hint: "" }])} className="mt-3 w-full"><Plus />إضافة سؤال</Button>
-          <div className="mt-3 flex gap-2"><Button type="button" disabled={busy} onClick={() => void save()} className="flex-1">{busy ? <Loader2 className="animate-spin" /> : <Save />}حفظ التعديلات</Button><Button type="button" variant="outline" onClick={() => setSelected(null)}>إلغاء</Button></div>
+          <div className="mt-3 flex flex-col gap-2">
+            {status === "draft" ? <Button type="button" disabled={busy} onClick={() => void save("published")}><Upload />نشر الاختبار</Button> : <Button type="button" variant="outline" disabled={busy} onClick={() => void save("draft")}><Undo2 />إعادة إلى مسودة</Button>}
+            <div className="flex gap-2"><Button type="button" variant="outline" disabled={busy} onClick={() => void save()} className="flex-1">{busy ? <Loader2 className="animate-spin" /> : <Save />}حفظ التعديلات</Button><Button type="button" variant="outline" onClick={() => setSelected(null)}>إلغاء</Button></div>
+          </div>
         </section>
       )}
     </div>
