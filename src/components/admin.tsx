@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Plus, Trash2, Upload, Check, X, Pencil, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
-import { processBook } from "@/lib/admin-ai.functions";
+import { processBook, type DraftUnit } from "@/lib/admin-ai.functions";
+import { countLessons, mergeUnits, splitBook } from "@/lib/book-parts";
 import {
   publishDraft,
   useAdminList,
@@ -421,67 +422,78 @@ export function AdminUpload() {
 
   const hasSource = !!file || pasted.trim().length > 0;
 
+  type Job = { draftId: string; fileId: string | null; parts: string[]; done: number; units: DraftUnit[]; flags: string[]; sourceName: string };
+  const [job, setJob] = useState<Job | null>(null);
+
+  const runParts = async (j: Job) => {
+    let cur = j;
+    for (let i = cur.done; i < cur.parts.length; i++) {
+      setStep(`تحليل الجزء ${i + 1} من ${cur.parts.length} بالذكاء الاصطناعي…`);
+      let r: Awaited<ReturnType<typeof run>>;
+      try {
+        r = await run({ data: { text: cur.parts[i], subjectName, gradeName, part: i + 1, parts: cur.parts.length, previousUnit: cur.units[cur.units.length - 1]?.title ?? "" } });
+      } catch (e) {
+        const msg = `${(e as Error)?.message || "خطأ غير متوقع"} — تم حفظ ${i} من ${cur.parts.length} أجزاء، يمكنك الاستكمال.`;
+        if (cur.fileId) await supabase.from("curriculum_files").update({ status: "failed", notes: msg.slice(0, 500) }).eq("id", cur.fileId);
+        throw new Error(msg);
+      }
+      cur = { ...cur, done: i + 1, units: mergeUnits(cur.units, r.units), flags: [...cur.flags, ...r.flags] };
+      const { error } = await supabase.from("curriculum_drafts").update({ content: { units: cur.units } as never, flags: cur.flags as never }).eq("id", cur.draftId);
+      if (error) throw new Error(`تعذّر حفظ الجزء ${i + 1}: ${error.message}`);
+      setJob(cur);
+    }
+    if (cur.fileId) await supabase.from("curriculum_files").update({ status: "processed", notes: `${countLessons(cur.units)} درسًا في ${cur.units.length} وحدة` }).eq("id", cur.fileId);
+    return cur;
+  };
+
   const process = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (resume?: Job) => {
       setErrorMsg("");
+      if (resume) return runParts(resume);
       if (!subjectId) throw new Error("اختر المادة أولًا");
       if (!hasSource) throw new Error("ارفع ملفًا أو الصق نص الكتاب");
 
       let text = pasted.trim();
       let sourceName = sourceTitle.trim() || "نص ملصوق";
+      let fileId: string | null = null;
       if (file) {
-        setStep("قراءة الملف…");
+        setStep("رفع الكتاب…");
+        const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+        const path = `${subjectId}/${Date.now()}.${ext}`;
+        const up = await supabase.storage.from("curriculum-books").upload(path, file);
+        if (up.error) throw new Error(`فشل رفع الملف: ${up.error.message}`);
+        const ins = await supabase.from("curriculum_files").insert({ grade_id: gradeId, subject_id: subjectId, file_name: file.name, file_path: path, status: "processing" }).select("id").single();
+        if (ins.error) throw new Error(`تعذّر تسجيل الملف: ${ins.error.message}`);
+        fileId = ins.data.id;
+        setStep("قراءة محتوى الملف…");
         const fileText = await extractText(file);
         text = text ? `${text}\n\n${fileText}` : fileText;
         sourceName = sourceTitle.trim() || file.name;
       }
-      if (text.trim().length < 50)
-        throw new Error("لم نتمكن من قراءة نص كافٍ (قد يكون الملف صورًا ممسوحة — الصق النص يدويًا)");
-
-      if (file) {
-        setStep("رفع الكتاب…");
-        // Storage keys must be ASCII-safe; Arabic names/spaces are rejected.
-        const ext = file.name.toLowerCase().endsWith(".txt") ? "txt" : "pdf";
-        const path = `${subjectId}/${Date.now()}.${ext}`;
-        const up = await supabase.storage.from("curriculum-books").upload(path, file);
-        if (!up.error) {
-          await supabase.from("curriculum_files").insert({
-            grade_id: gradeId,
-            subject_id: subjectId,
-            file_name: file.name,
-            file_path: path,
-            status: "processing",
-          });
-        } else {
-          console.warn("Book file upload failed, continuing with text:", up.error.message);
-        }
+      if (text.trim().length < 50) {
+        const msg = "لم نتمكن من قراءة نص كافٍ (قد يكون الملف صورًا ممسوحة — الصق النص يدويًا)";
+        if (fileId) await supabase.from("curriculum_files").update({ status: "failed", notes: msg }).eq("id", fileId);
+        throw new Error(msg);
       }
-
-      setStep("تحليل الكتاب بالذكاء الاصطناعي… (قد يستغرق دقيقة)");
-      const result = await run({ data: { text, subjectName, gradeName } });
-
-      setStep("حفظ المسودة…");
-      const { error } = await supabase.from("curriculum_drafts").insert({
-        stage_id: stageId,
-        grade_id: gradeId,
-        subject_id: subjectId,
-        source_name: sourceName,
-        source_text: text.slice(0, 200000),
-        content: { units: result.units } as never,
-        flags: result.flags as never,
-        status: "draft",
-      });
-      if (error) throw error;
-      return result;
+      const parts = splitBook(text);
+      const d = await supabase.from("curriculum_drafts").insert({
+        stage_id: stageId, grade_id: gradeId, subject_id: subjectId, source_name: sourceName,
+        source_text: text.slice(0, 200000), content: { units: [] } as never, flags: [] as never, status: "draft",
+      }).select("id").single();
+      if (d.error) throw d.error;
+      const j: Job = { draftId: d.data.id, fileId, parts, done: 0, units: [], flags: [], sourceName };
+      setJob(j);
+      return runParts(j);
     },
     onSuccess: (r) => {
       setStep("");
+      setJob(null);
       setFile(null);
       setPasted("");
       setSourceTitle("");
       if (fileRef.current) fileRef.current.value = "";
       void qc.invalidateQueries({ queryKey: ["admin"] });
-      toast.success(`تم استخراج ${r.units.length} وحدة — راجعها في المسودات`);
+      toast.success(`اكتملت المعالجة: ${r.units.length} وحدة و${countLessons(r.units)} درسًا — راجعها في المسودات`);
     },
     onError: (e) => {
       setStep("");
@@ -489,8 +501,15 @@ export function AdminUpload() {
       console.error("Book processing failed:", e);
       setErrorMsg(msg);
       toast.error(msg);
+      void qc.invalidateQueries({ queryKey: ["admin"] });
     },
   });
+
+  // Start automatically once a file is chosen and the subject is set.
+  useEffect(() => {
+    if (file && subjectId && !process.isPending) process.mutate(undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -515,11 +534,11 @@ export function AdminUpload() {
 
       <label className="surface-card flex cursor-pointer items-center gap-3 p-4">
         <Upload className="size-5 text-primary" />
-        <span className="flex-1 text-sm">{file ? file.name : "ارفع ملف PDF أو TXT"}</span>
+        <span className="flex-1 text-sm">{file ? file.name : subjectId ? "ارفع ملف PDF أو Word أو TXT — تبدأ المعالجة تلقائيًا" : "اختر المادة ثم ارفع ملف PDF أو Word أو TXT"}</span>
         <input
           ref={fileRef}
           type="file"
-          accept=".pdf,.txt,application/pdf,text/plain"
+          accept=".pdf,.txt,.docx,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           className="hidden"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
@@ -540,9 +559,20 @@ export function AdminUpload() {
       />
       {pasted && <p className="text-[10px] text-muted-foreground">{pasted.length.toLocaleString("ar")} حرف</p>}
 
-      <button className={btn} disabled={process.isPending || !hasSource || !subjectId} onClick={() => process.mutate()}>
+      <button className={btn} disabled={process.isPending || !hasSource || !subjectId} onClick={() => process.mutate(undefined)}>
         {process.isPending ? step || "جارٍ المعالجة…" : "معالجة الكتاب بالذكاء الاصطناعي"}
       </button>
+      {job && (
+        <div className="surface-card flex flex-col gap-2 p-3 text-xs">
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-primary transition-all" style={{ width: `${Math.round((job.done / job.parts.length) * 100)}%` }} />
+          </div>
+          <p>التقدم: {Math.round((job.done / job.parts.length) * 100)}% — {job.done}/{job.parts.length} أجزاء · {job.units.length} وحدة · {countLessons(job.units)} درسًا محفوظًا كمسودة</p>
+          {!process.isPending && job.done < job.parts.length && (
+            <button className={ghost} onClick={() => process.mutate(job)}>استكمال من الجزء {job.done + 1}</button>
+          )}
+        </div>
+      )}
       {errorMsg && (
         <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">{errorMsg}</p>
       )}

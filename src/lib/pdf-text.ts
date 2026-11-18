@@ -1,8 +1,15 @@
-/** Extracts plain text from an uploaded PDF or TXT file, in the browser. */
+/** Extracts plain text from an uploaded PDF, Word (.docx) or TXT file, in the browser. */
 export async function extractText(file: File): Promise<string> {
   if (file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt")) {
     return await file.text();
   }
+
+  if (/\.docx$/i.test(file.name) || file.type.includes("wordprocessingml")) {
+    const mammoth = await import("mammoth");
+    const r = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+    return r.value;
+  }
+  if (/\.doc$/i.test(file.name)) throw new Error("صيغة Word القديمة (.doc) غير مدعومة؛ احفظ الملف بصيغة .docx");
 
   const pdfjs = await import("pdfjs-dist");
   const workerSrc = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;

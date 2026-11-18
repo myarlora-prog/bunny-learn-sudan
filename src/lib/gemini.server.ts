@@ -106,11 +106,6 @@ export async function aiComplete(opts: Options): Promise<AiResult> {
     if (r.ok) return r;
     last = r;
   }
-  const lovable = process.env["LOVABLE_API_KEY"];
-  if (lovable) {
-    const r = await callProvider("lovable", lovable, "google/gemini-3.8-flash", opts).catch(() => last);
-    if (r.ok) return r;
-    last = r;
-  }
+  // No hidden paid fallback: Lovable AI is used only when the owner adds it as a key.
   return last;
 }

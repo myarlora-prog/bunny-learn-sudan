@@ -27,6 +27,11 @@ type Input = {
   text: string;
   subjectName: string;
   gradeName: string;
+  /** Part index (1-based) and total, when a long book is processed in parts. */
+  part?: number;
+  parts?: number;
+  /** Title of the last unit from the previous part, so continuing lessons stay in it. */
+  previousUnit?: string;
 };
 
 const SCHEMA = `{
@@ -62,6 +67,9 @@ export const processBook = createServerFn({ method: "POST" })
       text: input.text.slice(0, 120000),
       subjectName: String(input.subjectName ?? "").slice(0, 120),
       gradeName: String(input.gradeName ?? "").slice(0, 120),
+      part: Number(input.part) || 1,
+      parts: Number(input.parts) || 1,
+      previousUnit: String(input.previousUnit ?? "").slice(0, 200),
     };
   })
   .handler(async ({ data, context }) => {
@@ -80,6 +88,9 @@ export const processBook = createServerFn({ method: "POST" })
       "إذا كان جزء ناقصًا أو غير واضح أو غير مقروء، أضف ملاحظة في flags بدل تخمين المحتوى.",
       "لكل درس: شرح مبسّط بالعربية، نقاط مهمة، ملخص، مصطلحات، مادة مراجعة، بطاقات مراجعة، وأسئلة اختيار من متعدد بأربعة خيارات مع موضع الإجابة الصحيحة عشوائيًا وشرح للإجابة.",
       "لا تضع حدًا أقصى لعدد البطاقات أو الأسئلة: غطِّ كل مفهوم وتفصيل مهم في الدرس. عادةً من 15 إلى 30 بطاقة ومن 8 إلى 15 سؤالًا لكل درس حسب طوله وغناه، وكلما كان الدرس أطول زاد العدد.",
+      data.parts > 1
+        ? `هذا الجزء ${data.part} من ${data.parts} من الكتاب. استخرج فقط الدروس الموجودة في هذا الجزء. إذا بدأ الجزء بتكملة درس أو وحدة سابقة${data.previousUnit ? ` (آخر وحدة: «${data.previousUnit}»)` : ""} فاستخدم عنوان الوحدة نفسه حرفيًا.`
+        : "",
       `أعد JSON فقط بهذا الشكل: ${SCHEMA}`,
     ].join("\n");
 
@@ -95,11 +106,12 @@ export const processBook = createServerFn({ method: "POST" })
     });
 
     if (!result.ok) {
-      if (result.status === 429) throw new Error("الخدمة مزدحمة الآن، حاول بعد قليل");
-      if (result.status === 402) throw new Error("رصيد الذكاء الاصطناعي غير كافٍ");
-      if (result.status === 400 || result.status === 401 || result.status === 403)
-        throw new Error("مفتاح Gemini غير صالح، راجع إعدادات المفتاح");
-      throw new Error("تعذّرت معالجة الكتاب، حاول مرة أخرى");
+      const why = (result.error ?? "").slice(0, 220);
+      if (result.status === 429)
+        throw new Error(/per.?day|daily|PerDay/i.test(why) ? `نفدت الحصة اليومية لمفاتيح Gemini (${why})` : `تم تجاوز حد الطلبات مؤقتًا، أعد المحاولة بعد دقيقة (${why})`);
+      if (result.status === 402) throw new Error(`رصيد الخدمة غير كافٍ (${why})`);
+      if (result.status === 401 || result.status === 403) throw new Error(`مفتاح الذكاء الاصطناعي غير صالح (${why})`);
+      throw new Error(`تعذّرت معالجة الجزء ${data.part}: ${why || result.status}`);
     }
 
     const raw = result.content || "{}";
