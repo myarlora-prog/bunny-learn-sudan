@@ -99,6 +99,13 @@
       "when": 1794930460655,
       "tag": "0013_light_default_and_referral_share_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795010341942,
+      "tag": "0014_remove_temp_verification_data",
+      "breakpoints": true
     }
   ]
 }

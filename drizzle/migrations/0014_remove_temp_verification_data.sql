@@ -1,0 +1,2 @@
+DELETE FROM public.subject_exams WHERE id='f27dbe14-b62f-4f7f-b2c5-cb8dc5387901' AND title='اختبار مؤقت للتحقق الآمن';
+DELETE FROM public.units WHERE id='a90a9d3d-55f8-4f87-906c-c21f9069c501' AND title='وحدة تحقق مؤقتة' AND NOT EXISTS (SELECT 1 FROM public.lessons WHERE unit_id='a90a9d3d-55f8-4f87-906c-c21f9069c501');
