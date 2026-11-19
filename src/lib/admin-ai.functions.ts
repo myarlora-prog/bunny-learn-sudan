@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { aiComplete } from "@/lib/gemini.server";
+import { aiComplete, type AiResult } from "@/lib/gemini.server";
 
 export type DraftFlashcard = { front: string; back: string };
 export type DraftQuiz = {
@@ -19,52 +19,76 @@ export type DraftLesson = {
   review_material: string;
   flashcards: DraftFlashcard[];
   quiz: DraftQuiz[];
+  /** Source parts used only for resumable generation; never published as lesson content. */
+  source_text?: string;
 };
 export type DraftUnit = { title: string; description: string; lessons: DraftLesson[] };
-export type DraftContent = { units: DraftUnit[]; flags: string[] };
+export type BookProcessing = {
+  fileId: string | null;
+  totalParts: number;
+  completedParts: number;
+  state: "processing" | "failed" | "complete";
+  lastError?: string;
+};
+export type DraftContent = { units: DraftUnit[]; flags: string[]; processing?: BookProcessing };
 
-type Input = {
+type BookInput = {
   text: string;
   subjectName: string;
   gradeName: string;
-  /** Part index (1-based) and total, when a long book is processed in parts. */
   part?: number;
   parts?: number;
-  /** Title of the last unit from the previous part, so continuing lessons stay in it. */
   previousUnit?: string;
 };
 
-const SCHEMA = `{
-  "units": [
-    {
-      "title": "string",
-      "description": "string",
-      "lessons": [
-        {
-          "title": "string",
-          "duration_minutes": number,
-          "explanation": "string (شرح مفصل بالعربية من الكتاب)",
-          "key_points": ["string"],
-          "summary": "string",
-          "key_terms": [{"term": "string", "meaning": "string"}],
-          "review_material": "string",
-          "flashcards": [{"front": "string", "back": "string"}],
-          "quiz": [{"question": "string", "options": ["أ","ب","ج","د"], "correct_index": 0, "explanation": "string"}]
-        }
-      ]
-    }
-  ],
-  "flags": ["string (ملاحظة لكل جزء ناقص أو غير واضح في الكتاب)"]
-}`;
+type LessonInput = BookInput & {
+  unitTitle: string;
+  lessonTitle: string;
+  stage: "content" | "flashcards" | "quiz";
+};
 
+type OutlineUnit = { title: string; description: string; lessons: { title: string }[] };
+
+const OUTLINE_SCHEMA = `{"units":[{"title":"string","description":"string","lessons":[{"title":"string"}]}],"flags":["string"]}`;
+
+function parseJson<T>(raw: string): T {
+  const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  return JSON.parse(cleaned) as T;
+}
+
+function failAi(result: Extract<AiResult, { ok: false }>, stage: string): never {
+  const why = (result.error ?? "").slice(0, 300);
+  if (result.status === 429) {
+    if (/per.?day|daily|quota.*day|rpd/i.test(why)) throw new Error(`نفدت الحصة اليومية لمفاتيح Gemini؛ توقفت ${stage} دون إعادة محاولات يومية (${why})`);
+    throw new Error(`تجاوز Gemini حد الطلبات في الدقيقة أثناء ${stage}؛ استكمل بعد قليل (${why})`);
+  }
+  if (result.status === 401 || result.status === 403) throw new Error(`مفتاح Gemini غير صالح أو لا يملك صلاحية أثناء ${stage} (${why})`);
+  if (result.status === 402) throw new Error(`رفض مزود الخدمة الطلب لعدم كفاية الرصيد؛ لم تستخدم المعالجة أي خدمة مدفوعة (${why})`);
+  if (result.status === 404) throw new Error(`موديل Gemini غير متاح لهذا المفتاح (${why})`);
+  if (result.status === 200) throw new Error(`نتيجة ${stage} غير مكتملة: ${why}`);
+  throw new Error(`تعذرت ${stage}: ${why || `HTTP ${result.status}`}`);
+}
+
+async function bookAi(messages: { role: "system" | "user"; content: string }[], stage: string) {
+  const result = await aiComplete({ json: true, messages, allowedProviders: ["gemini"] });
+  if (!result.ok) failAi(result, stage);
+  return result.content;
+}
+
+async function assertOwner(context: { supabase: { from: (table: "user_roles") => unknown }; userId: string }) {
+  const { supabase, userId } = context;
+  const query = supabase.from("user_roles") as ReturnType<typeof import("@/integrations/supabase/client")["supabase"]["from"]>;
+  const { data: role } = await query.select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (!role) throw new Error("Forbidden");
+}
+
+/** Extract only the ordered structure. Lesson content is generated in separate resumable stages. */
 export const processBook = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: Input) => {
-    if (!input?.text || input.text.trim().length < 50) {
-      throw new Error("نص الكتاب قصير جدًا أو غير قابل للقراءة");
-    }
+  .inputValidator((input: BookInput) => {
+    if (!input?.text || input.text.trim().length < 50) throw new Error("نص الكتاب قصير جدًا أو غير قابل للقراءة");
     return {
-      text: input.text.slice(0, 120000),
+      text: input.text.slice(0, 60000),
       subjectName: String(input.subjectName ?? "").slice(0, 120),
       gradeName: String(input.gradeName ?? "").slice(0, 120),
       part: Number(input.part) || 1,
@@ -73,58 +97,106 @@ export const processBook = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: role } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!role) throw new Error("Forbidden");
-
+    await assertOwner(context);
     const system = [
-      "أنت محلل مناهج دراسية سوداني. مصدرك الوحيد هو نص الكتاب المدرسي المرفق.",
-      "استخرج الوحدات والدروس كما وردت في الكتاب بالترتيب نفسه ولا تخترع محتوى غير موجود.",
-      "إذا كان جزء ناقصًا أو غير واضح أو غير مقروء، أضف ملاحظة في flags بدل تخمين المحتوى.",
-      "لكل درس: شرح مبسّط بالعربية، نقاط مهمة، ملخص، مصطلحات، مادة مراجعة، بطاقات مراجعة، وأسئلة اختيار من متعدد بأربعة خيارات مع موضع الإجابة الصحيحة عشوائيًا وشرح للإجابة.",
-      "لا تضع حدًا أقصى لعدد البطاقات أو الأسئلة: غطِّ كل مفهوم وتفصيل مهم في الدرس. عادةً من 15 إلى 30 بطاقة ومن 8 إلى 15 سؤالًا لكل درس حسب طوله وغناه، وكلما كان الدرس أطول زاد العدد.",
+      "أنت محلل مناهج سودانية. المصدر الوحيد هو نص الكتاب المرفق ولا يجوز إضافة معلومة خارجية.",
+      "استخرج الوحدات والدروس فعلًا كما وردت وبالترتيب، مع عناوينها الأصلية، دون شرح أو بطاقات أو أسئلة في هذه المرحلة.",
+      "إذا كان النص ناقصًا أو غير واضح فسجّل ذلك في flags ولا تخمّن.",
       data.parts > 1
-        ? `هذا الجزء ${data.part} من ${data.parts} من الكتاب. استخرج فقط الدروس الموجودة في هذا الجزء. إذا بدأ الجزء بتكملة درس أو وحدة سابقة${data.previousUnit ? ` (آخر وحدة: «${data.previousUnit}»)` : ""} فاستخدم عنوان الوحدة نفسه حرفيًا.`
+        ? `هذا الجزء ${data.part} من ${data.parts}. إذا بدأ بتكملة وحدة سابقة${data.previousUnit ? ` بعنوان «${data.previousUnit}»` : ""} فاستخدم عنوان الوحدة نفسه حرفيًا، وأعد الدرس الممتد بعنوانه نفسه ليتم دمج مصدره دون تكرار.`
         : "",
-      `أعد JSON فقط بهذا الشكل: ${SCHEMA}`,
+      `أعد JSON فقط بهذا الشكل: ${OUTLINE_SCHEMA}`,
     ].join("\n");
-
-    const result = await aiComplete({
-      json: true,
-      messages: [
-        { role: "system", content: system },
-        {
-          role: "user",
-          content: `المادة: ${data.subjectName}\nالصف: ${data.gradeName}\n\nنص الكتاب:\n${data.text}`,
-        },
-      ],
+    const raw = await bookAi([
+      { role: "system", content: system },
+      { role: "user", content: `المادة: ${data.subjectName}\nالصف: ${data.gradeName}\n\nنص الجزء:\n${data.text}` },
+    ], `قراءة هيكل الجزء ${data.part}`);
+    let parsed: { units?: OutlineUnit[]; flags?: string[] };
+    try { parsed = parseJson(raw); } catch { throw new Error(`تعذر قراءة هيكل الجزء ${data.part}؛ لم يُحفظ كمكتمل`); }
+    const units = (Array.isArray(parsed.units) ? parsed.units : []).flatMap((u) => {
+      const title = String(u?.title ?? "").trim();
+      if (!title) return [];
+      return [{
+        title,
+        description: String(u?.description ?? ""),
+        lessons: (Array.isArray(u?.lessons) ? u.lessons : []).flatMap((l) => {
+          const lessonTitle = String(l?.title ?? "").trim();
+          return lessonTitle ? [{ title: lessonTitle }] : [];
+        }),
+      }];
     });
+    const flags = Array.isArray(parsed.flags) ? parsed.flags.map(String).filter(Boolean) : [];
+    if (!units.length) flags.push(`الجزء ${data.part}: لم تُستخرج وحدات ودروس واضحة.`);
+    return { units, flags };
+  });
 
-    if (!result.ok) {
-      const why = (result.error ?? "").slice(0, 220);
-      if (result.status === 429)
-        throw new Error(/per.?day|daily|PerDay/i.test(why) ? `نفدت الحصة اليومية لمفاتيح Gemini (${why})` : `تم تجاوز حد الطلبات مؤقتًا، أعد المحاولة بعد دقيقة (${why})`);
-      if (result.status === 402) throw new Error(`رصيد الخدمة غير كافٍ (${why})`);
-      if (result.status === 401 || result.status === 403) throw new Error(`مفتاح الذكاء الاصطناعي غير صالح (${why})`);
-      throw new Error(`تعذّرت معالجة الجزء ${data.part}: ${why || result.status}`);
+/** Generate one lesson stage at a time so successful stages can be saved immediately. */
+export const generateBookLesson = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: LessonInput) => {
+    if (!input?.text?.trim() || !input.lessonTitle?.trim() || !input.unitTitle?.trim()) throw new Error("بيانات الدرس أو مصدره غير مكتملة");
+    if (!["content", "flashcards", "quiz"].includes(input.stage)) throw new Error("مرحلة غير صالحة");
+    return {
+      text: input.text.slice(0, 60000),
+      subjectName: String(input.subjectName ?? "").slice(0, 120),
+      gradeName: String(input.gradeName ?? "").slice(0, 120),
+      unitTitle: input.unitTitle.trim().slice(0, 300),
+      lessonTitle: input.lessonTitle.trim().slice(0, 300),
+      stage: input.stage,
+    };
+  })
+  .handler(async ({ data, context }) => {
+    await assertOwner(context);
+    const source = `المادة: ${data.subjectName}\nالصف: ${data.gradeName}\nالوحدة: ${data.unitTitle}\nالدرس المطلوب فقط: ${data.lessonTitle}\n\nمصدر الكتاب:\n${data.text}`;
+    const grounding = "التزم حرفيًا بمصدر الدرس المحدد، ولا تخترع تعريفات أو قوانين أو أمثلة أو معلومات خارجية. إن كان جزء غامضًا فاذكر أنه غير واضح بدل تخمينه. أعد JSON فقط دون Markdown.";
+
+    if (data.stage === "content") {
+      const schema = `{"explanation":"string","summary":"string","key_points":["string"],"key_terms":[{"term":"string","meaning":"string"}],"review_material":"string","duration_minutes":20}`;
+      const raw = await bookAi([
+        { role: "system", content: `${grounding}\nأنشئ شرحًا عربيًا تعليميًا شاملًا ومتدرجًا لكل موضوعات الدرس، بعناوين رئيسية وفرعية وفقرات قصيرة ونقاط وجداول Markdown عند الحاجة، مع إبراز المصطلحات والقوانين والأمثلة الموجودة في المصدر. لا تنسخ الدرس كفقرة طويلة ولا تحذف معلومة مهمة. ثم أنشئ ملخصًا شاملًا مستقلًا للمراجعة يغطي جميع الأجزاء والتعريفات والقوانين والتواريخ والأمثلة الأساسية.\nالشكل: ${schema}` },
+        { role: "user", content: source },
+      ], `شرح وملخص «${data.lessonTitle}»`);
+      let value: { explanation?: string; summary?: string; key_points?: string[]; key_terms?: { term: string; meaning: string }[]; review_material?: string; duration_minutes?: number };
+      try { value = parseJson(raw); } catch { throw new Error(`تعذر قراءة شرح وملخص «${data.lessonTitle}»`); }
+      const content = {
+        explanation: String(value.explanation ?? "").trim(),
+        summary: String(value.summary ?? "").trim(),
+        key_points: Array.isArray(value.key_points) ? value.key_points.map(String).map((s) => s.trim()).filter(Boolean) : [],
+        key_terms: Array.isArray(value.key_terms) ? value.key_terms.flatMap((t) => t?.term?.trim() && t?.meaning?.trim() ? [{ term: t.term.trim(), meaning: t.meaning.trim() }] : []) : [],
+        review_material: String(value.review_material ?? "").trim(),
+        duration_minutes: Math.max(1, Math.round(Number(value.duration_minutes) || 20)),
+      };
+      if (!content.explanation || !content.summary || !content.key_points.length) throw new Error(`شرح أو ملخص «${data.lessonTitle}» ناقص؛ لم يُعتمد`);
+      return { stage: "content" as const, content };
     }
 
-    const raw = result.content || "{}";
-    let parsed: DraftContent;
-    try {
-      parsed = JSON.parse(raw.replace(/^```json/i, "").replace(/```$/, "")) as DraftContent;
-    } catch {
-      throw new Error("تعذّر قراءة نتيجة المعالجة، أعد المحاولة");
+    if (data.stage === "flashcards") {
+      const raw = await bookAi([
+        { role: "system", content: `${grounding}\nأنشئ بالضبط 25 بطاقة تعليمية حقيقية ومتنوعة تغطي جميع أجزاء الدرس. كل بطاقة سؤال أو مصطلح واحد في front وإجابة دقيقة كاملة في back. لا تكرر الفكرة بصياغات مختلفة ولا تستخدم بطاقات شكلية لاستكمال العدد. إذا تعذر استخراج 25 بطاقة مفيدة فأعد أقل من 25 ليظهر النقص بدل اختراع محتوى.\nالشكل: {"flashcards":[{"front":"string","back":"string"}]}` },
+        { role: "user", content: source },
+      ], `بطاقات «${data.lessonTitle}»`);
+      let value: { flashcards?: DraftFlashcard[] };
+      try { value = parseJson(raw); } catch { throw new Error(`تعذر قراءة بطاقات «${data.lessonTitle}»`); }
+      const flashcards = (Array.isArray(value.flashcards) ? value.flashcards : []).flatMap((f) => f?.front?.trim() && f?.back?.trim() ? [{ front: f.front.trim(), back: f.back.trim() }] : []);
+      const unique = new Set(flashcards.map((f) => f.front.replace(/\s+/g, " ").toLocaleLowerCase("ar")));
+      if (flashcards.length !== 25 || unique.size !== 25) throw new Error(`بطاقات «${data.lessonTitle}» غير مكتملة: وصل ${flashcards.length}، والفريد ${unique.size} من 25`);
+      return { stage: "flashcards" as const, flashcards };
     }
 
-    const units = Array.isArray(parsed.units) ? parsed.units : [];
-    const flags = Array.isArray(parsed.flags) ? parsed.flags : [];
-    if (units.length === 0) flags.push("لم يتمكن الذكاء الاصطناعي من استخراج وحدات واضحة من هذا الملف.");
-
-    return { units, flags } satisfies DraftContent;
+    const raw = await bookAi([
+      { role: "system", content: `${grounding}\nأنشئ بالضبط 25 سؤالًا تعليميًا غير مكرر يغطي كامل الدرس ومرقّمًا ضمن نص السؤال من 1 إلى 25. نوّع بين اختيار من متعدد والصح والخطأ والتطبيق، بما يناسب المصدر ونظام الاختبار الحالي. لكل سؤال خيارات واضحة (خياران للصح والخطأ وأربعة لبقية الأنواع)، correct_index صحيح يبدأ من صفر، وexplanation يصحح ويشرح الإجابة باختصار من المصدر. لا تخترع أسئلة لاستكمال العدد؛ أعد عددًا أقل إن لم يكفِ المصدر ليظهر النقص.\nالشكل: {"quiz":[{"question":"1. ...","options":["أ","ب","ج","د"],"correct_index":0,"explanation":"string"}]}` },
+      { role: "user", content: source },
+    ], `اختبار «${data.lessonTitle}»`);
+    let value: { quiz?: DraftQuiz[] };
+    try { value = parseJson(raw); } catch { throw new Error(`تعذر قراءة اختبار «${data.lessonTitle}»`); }
+    const quiz = (Array.isArray(value.quiz) ? value.quiz : []).flatMap((q) => {
+      const options = Array.isArray(q?.options) ? q.options.map(String).map((s) => s.trim()).filter(Boolean) : [];
+      const correct = Number(q?.correct_index);
+      return q?.question?.trim() && options.length >= 2 && options.length <= 4 && Number.isInteger(correct) && correct >= 0 && correct < options.length && q?.explanation?.trim()
+        ? [{ question: q.question.trim(), options, correct_index: correct, explanation: q.explanation.trim() }]
+        : [];
+    });
+    const unique = new Set(quiz.map((q) => q.question.replace(/^\s*\d+[.)\-]?\s*/, "").replace(/\s+/g, " ").toLocaleLowerCase("ar")));
+    if (quiz.length !== 25 || unique.size !== 25) throw new Error(`اختبار «${data.lessonTitle}» غير مكتمل: وصل ${quiz.length}، والفريد ${unique.size} من 25`);
+    return { stage: "quiz" as const, quiz };
   });

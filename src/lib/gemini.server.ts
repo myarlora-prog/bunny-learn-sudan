@@ -1,8 +1,8 @@
 /**
  * Central AI completion helper. Uses owner-managed keys from `ai_keys`
- * (ordered by priority, enabled only), falling back to env keys and the
- * Lovable AI gateway. Each key is tried once per request — no endless retries.
- * Server-only: never import from client components. Never log key values.
+ * (ordered by priority, enabled only), then the Gemini environment key.
+ * Each key is tried once per request — no endless retries and no hidden
+ * Lovable AI fallback. Server-only: never log key values.
  */
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
@@ -12,6 +12,8 @@ export type Options = {
   /** Request strict JSON output */
   json?: boolean;
   model?: string;
+  /** Restrict sensitive flows, such as book processing, to specific providers. */
+  allowedProviders?: Provider[];
 };
 
 export type AiResult =
@@ -82,7 +84,7 @@ export async function aiComplete(opts: Options): Promise<AiResult> {
   try {
     admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
     const { data } = await admin.from("ai_keys").select("id,provider,model,api_key").eq("enabled", true).order("priority").order("created_at");
-    keys = data ?? [];
+    keys = (data ?? []).filter((k) => !opts.allowedProviders || opts.allowedProviders.includes(k.provider as Provider));
   } catch { keys = []; }
 
   for (const k of keys.slice(0, 8)) {

@@ -6,8 +6,8 @@ import { Loader2, Plus, Trash2, Upload, Check, X, Pencil, MapPin } from "lucide-
 import { toast } from "sonner";
 import { Card } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
-import { processBook, type DraftUnit } from "@/lib/admin-ai.functions";
-import { countLessons, mergeUnits, splitBook } from "@/lib/book-parts";
+import { generateBookLesson, processBook, type BookProcessing, type DraftUnit } from "@/lib/admin-ai.functions";
+import { bookCompletenessErrors, countLessons, emptyDraftLesson, mergeUnits, missingLessonStages, splitBook } from "@/lib/book-parts";
 import {
   publishDraft,
   useAdminList,
@@ -408,8 +408,10 @@ export function AdminUpload() {
   const [sourceTitle, setSourceTitle] = useState("");
   const [step, setStep] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState("");
-  const run = useServerFn(processBook);
+  const runOutline = useServerFn(processBook);
+  const runLesson = useServerFn(generateBookLesson);
   const qc = useQueryClient();
+  const drafts = useDrafts("draft");
 
   const gradeName = useMemo(
     () => String((grades.data ?? []).find((g) => g["id"] === gradeId)?.["name"] ?? ""),
@@ -427,23 +429,76 @@ export function AdminUpload() {
 
   const runParts = async (j: Job) => {
     let cur = j;
-    for (let i = cur.done; i < cur.parts.length; i++) {
-      setStep(`تحليل الجزء ${i + 1} من ${cur.parts.length} بالذكاء الاصطناعي…`);
-      let r: Awaited<ReturnType<typeof run>>;
-      try {
-        r = await run({ data: { text: cur.parts[i], subjectName, gradeName, part: i + 1, parts: cur.parts.length, previousUnit: cur.units[cur.units.length - 1]?.title ?? "" } });
-      } catch (e) {
-        const msg = `${(e as Error)?.message || "خطأ غير متوقع"} — تم حفظ ${i} من ${cur.parts.length} أجزاء، يمكنك الاستكمال.`;
-        if (cur.fileId) await supabase.from("curriculum_files").update({ status: "failed", notes: msg.slice(0, 500) }).eq("id", cur.fileId);
-        throw new Error(msg);
+    const persist = async (state: BookProcessing["state"] = "processing", lastError?: string) => {
+      const processing: BookProcessing = { fileId: cur.fileId, totalParts: cur.parts.length, completedParts: cur.done, state, ...(lastError ? { lastError } : {}) };
+      const notes = lastError ?? `${cur.done}/${cur.parts.length} أجزاء · ${cur.units.length} وحدة · ${countLessons(cur.units)} درسًا`;
+      const { error } = await supabase.from("curriculum_drafts").update({
+        content: { units: cur.units, flags: cur.flags, processing } as never,
+        flags: cur.flags as never,
+      }).eq("id", cur.draftId);
+      if (error) throw new Error(`تعذّر حفظ نتيجة المعالجة: ${error.message}`);
+      if (cur.fileId) {
+        const { error: fileError } = await supabase.from("curriculum_files").update({
+          status: state === "complete" ? "processed" : state === "failed" ? "failed" : "processing",
+          notes: notes.slice(0, 900),
+        }).eq("id", cur.fileId);
+        if (fileError) throw new Error(`حُفظت المسودة لكن تعذر تحديث حالة الملف: ${fileError.message}`);
       }
-      cur = { ...cur, done: i + 1, units: mergeUnits(cur.units, r.units), flags: [...cur.flags, ...r.flags] };
-      const { error } = await supabase.from("curriculum_drafts").update({ content: { units: cur.units } as never, flags: cur.flags as never }).eq("id", cur.draftId);
-      if (error) throw new Error(`تعذّر حفظ الجزء ${i + 1}: ${error.message}`);
+    };
+
+    const generateMissing = async () => {
+      for (let ui = 0; ui < cur.units.length; ui++) {
+        for (let li = 0; li < cur.units[ui]!.lessons.length; li++) {
+          for (const stage of missingLessonStages(cur.units[ui]!.lessons[li]!)) {
+            const unit = cur.units[ui]!;
+            const lesson = unit.lessons[li]!;
+            const label = stage === "content" ? "الشرح والملخص" : stage === "flashcards" ? "25 بطاقة" : "25 سؤالًا";
+            setStep(`${label} — ${lesson.title}`);
+            const result = await runLesson({ data: {
+              text: lesson.source_text || cur.parts[Math.max(0, cur.done - 1)] || "",
+              subjectName, gradeName, unitTitle: unit.title, lessonTitle: lesson.title, stage,
+            } });
+            const units = structuredClone(cur.units);
+            const target = units[ui]!.lessons[li]!;
+            if (result.stage === "content") Object.assign(target, result.content);
+            else if (result.stage === "flashcards") target.flashcards = result.flashcards;
+            else target.quiz = result.quiz;
+            cur = { ...cur, units };
+            await persist();
+            setJob(cur);
+          }
+        }
+      }
+    };
+
+    try {
+      await generateMissing();
+      for (let i = cur.done; i < cur.parts.length; i++) {
+        setStep(`قراءة وحدات ودروس الجزء ${i + 1} من ${cur.parts.length}…`);
+        const outline = await runOutline({ data: {
+          text: cur.parts[i]!, subjectName, gradeName, part: i + 1, parts: cur.parts.length,
+          previousUnit: cur.units[cur.units.length - 1]?.title ?? "",
+        } });
+        const units = outline.units.map((u) => ({
+          ...u,
+          lessons: u.lessons.map((l) => emptyDraftLesson(l.title, cur.parts[i]!)),
+        }));
+        cur = { ...cur, done: i + 1, units: mergeUnits(cur.units, units), flags: [...cur.flags, ...outline.flags] };
+        await persist();
+        setJob(cur);
+        await generateMissing();
+      }
+      const incomplete = bookCompletenessErrors(cur.units);
+      if (incomplete.length) throw new Error(`المعالجة غير مكتملة: ${incomplete.slice(0, 5).join(" | ")}`);
+      await persist("complete");
       setJob(cur);
+      return cur;
+    } catch (e) {
+      const msg = (e as Error)?.message || "خطأ غير متوقع";
+      try { await persist("failed", msg); } catch { /* Preserve the original AI or save error. */ }
+      setJob(cur);
+      throw new Error(`${msg} — النتائج الناجحة محفوظة ويمكن استكمال النواقص فقط.`);
     }
-    if (cur.fileId) await supabase.from("curriculum_files").update({ status: "processed", notes: `${countLessons(cur.units)} درسًا في ${cur.units.length} وحدة` }).eq("id", cur.fileId);
-    return cur;
   };
 
   const process = useMutation({
@@ -476,9 +531,10 @@ export function AdminUpload() {
         throw new Error(msg);
       }
       const parts = splitBook(text);
+      const processing: BookProcessing = { fileId, totalParts: parts.length, completedParts: 0, state: "processing" };
       const d = await supabase.from("curriculum_drafts").insert({
         stage_id: stageId, grade_id: gradeId, subject_id: subjectId, source_name: sourceName,
-        source_text: text.slice(0, 200000), content: { units: [] } as never, flags: [] as never, status: "draft",
+        source_text: text, content: { units: [], flags: [], processing } as never, flags: [] as never, status: "draft",
       }).select("id").single();
       if (d.error) throw d.error;
       const j: Job = { draftId: d.data.id, fileId, parts, done: 0, units: [], flags: [], sourceName };
@@ -487,13 +543,12 @@ export function AdminUpload() {
     },
     onSuccess: (r) => {
       setStep("");
-      setJob(null);
       setFile(null);
       setPasted("");
       setSourceTitle("");
       if (fileRef.current) fileRef.current.value = "";
       void qc.invalidateQueries({ queryKey: ["admin"] });
-      toast.success(`اكتملت المعالجة: ${r.units.length} وحدة و${countLessons(r.units)} درسًا — راجعها في المسودات`);
+      toast.success(`اكتملت المعالجة: ${r.units.length} وحدة و${countLessons(r.units)} درسًا — كل درس له 25 بطاقة و25 سؤالًا في المسودات`);
     },
     onError: (e) => {
       setStep("");
@@ -505,11 +560,30 @@ export function AdminUpload() {
     },
   });
 
+  const resumeDraft = (id: string) => {
+    const d = (drafts.data ?? []).find((row) => row.id === id);
+    const meta = d?.content?.processing;
+    if (!d || !meta || process.isPending) return;
+    const parts = splitBook(d.source_text);
+    setStageId(d.stage_id ?? "");
+    setGradeId(d.grade_id ?? "");
+    setSubjectId(d.subject_id ?? "");
+    setSourceTitle(d.source_name);
+    const resumed: Job = {
+      draftId: d.id, fileId: meta.fileId, parts, done: Math.min(meta.completedParts, parts.length),
+      units: d.content.units ?? [], flags: d.flags ?? [], sourceName: d.source_name,
+    };
+    setJob(resumed);
+    process.mutate(resumed);
+  };
+
   // Start automatically once a file is chosen and the subject is set.
   useEffect(() => {
     if (file && subjectId && !process.isPending) process.mutate(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
+
+  const resumable = (drafts.data ?? []).filter((d) => d.content?.processing && d.content.processing.state !== "complete");
 
   return (
     <div className="flex flex-col gap-3">
@@ -565,19 +639,30 @@ export function AdminUpload() {
       {job && (
         <div className="surface-card flex flex-col gap-2 p-3 text-xs">
           <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-primary transition-all" style={{ width: `${Math.round((job.done / job.parts.length) * 100)}%` }} />
+            <div className="h-full bg-primary transition-all" style={{ width: `${Math.round((job.done / Math.max(1, job.parts.length)) * 100)}%` }} />
           </div>
-          <p>التقدم: {Math.round((job.done / job.parts.length) * 100)}% — {job.done}/{job.parts.length} أجزاء · {job.units.length} وحدة · {countLessons(job.units)} درسًا محفوظًا كمسودة</p>
-          {!process.isPending && job.done < job.parts.length && (
-            <button className={ghost} onClick={() => process.mutate(job)}>استكمال من الجزء {job.done + 1}</button>
+          <p>التقدم: {Math.round((job.done / Math.max(1, job.parts.length)) * 100)}% — {job.done}/{job.parts.length} أجزاء · {job.units.length} وحدة · {countLessons(job.units)} درسًا محفوظًا كمسودة</p>
+          {step && <p className="text-muted-foreground">{step}</p>}
+          {!process.isPending && bookCompletenessErrors(job.units).length > 0 && (
+            <button className={ghost} onClick={() => process.mutate(job)}>استكمال النواقص من آخر نتيجة محفوظة</button>
           )}
         </div>
       )}
       {errorMsg && (
         <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">{errorMsg}</p>
       )}
+      {resumable.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-bold">معالجات محفوظة يمكن استكمالها</p>
+          {resumable.map((d) => (
+            <button key={d.id} className={ghost} disabled={process.isPending} onClick={() => resumeDraft(d.id)}>
+              {d.source_name} — {d.content.processing?.completedParts ?? 0}/{d.content.processing?.totalParts ?? 0} أجزاء
+            </button>
+          ))}
+        </div>
+      )}
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        يعتمد التحليل على نص الكتاب المرفوع فقط. أي جزء ناقص أو غير واضح يُسجَّل كملاحظة للمراجعة بدل تخمينه.
+        يعتمد التحليل على نص الكتاب المرفوع فقط. تُحفظ كل مرحلة ناجحة كمسودة، ولا يُعلن اكتمال الملف إلا بعد شرح وملخص و25 بطاقة و25 سؤالًا لكل درس.
       </p>
     </div>
   );
