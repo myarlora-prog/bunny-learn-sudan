@@ -20,6 +20,7 @@ import {
   type AdminDraft,
 } from "@/lib/admin-db";
 import { extractText } from "@/lib/pdf-text";
+import { assertReadableBookText } from "@/lib/arabic-pdf";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/lib/app-state";
 
@@ -426,12 +427,24 @@ export function AdminUpload() {
 
   type Job = { draftId: string; fileId: string | null; parts: string[]; done: number; units: DraftUnit[]; flags: string[]; sourceName: string };
   const [job, setJob] = useState<Job | null>(null);
+  const totalJobStages = job ? countLessons(job.units) * 3 : 0;
+  const completedJobStages = job?.units.flatMap((unit) => unit.lessons).reduce((sum, lesson) => sum + 3 - missingLessonStages(lesson).length, 0) ?? 0;
+  const jobPercent = job ? Math.round(((job.done + completedJobStages) / Math.max(1, job.parts.length + totalJobStages)) * 100) : 0;
 
   const runParts = async (j: Job) => {
     let cur = j;
     const persist = async (state: BookProcessing["state"] = "processing", lastError?: string) => {
-      const processing: BookProcessing = { fileId: cur.fileId, totalParts: cur.parts.length, completedParts: cur.done, state, ...(lastError ? { lastError } : {}) };
-      const notes = lastError ?? `${cur.done}/${cur.parts.length} أجزاء · ${cur.units.length} وحدة · ${countLessons(cur.units)} درسًا`;
+      const lessons = cur.units.flatMap((unit) => unit.lessons);
+      const totalStages = lessons.length * 3;
+      const completedStages = lessons.reduce((sum, lesson) => sum + 3 - missingLessonStages(lesson).length, 0);
+      const active = lessons.find((lesson) => lesson.processing_stage);
+      const processing: BookProcessing = {
+        fileId: cur.fileId, totalParts: cur.parts.length, completedParts: cur.done,
+        completedStages, totalStages,
+        ...(active?.processing_stage ? { currentLesson: active.title, currentStage: active.processing_stage } : {}),
+        state, ...(lastError ? { lastError } : {}),
+      };
+      const notes = lastError ?? `${cur.done}/${cur.parts.length} أجزاء · ${completedStages}/${totalStages} مراحل · ${cur.units.length} وحدة · ${lessons.length} درسًا`;
       const { error } = await supabase.from("curriculum_drafts").update({
         content: { units: cur.units, flags: cur.flags, processing } as never,
         flags: cur.flags as never,
@@ -452,20 +465,36 @@ export function AdminUpload() {
           for (const stage of missingLessonStages(cur.units[ui]!.lessons[li]!)) {
             const unit = cur.units[ui]!;
             const lesson = unit.lessons[li]!;
-            const label = stage === "content" ? "الشرح والملخص" : stage === "flashcards" ? "25 بطاقة" : "25 سؤالًا";
+            const label = stage === "content" ? "الشرح والملخص" : stage === "flashcards" ? "15 بطاقة" : "15 سؤالًا";
             setStep(`${label} — ${lesson.title}`);
-            const result = await runLesson({ data: {
-              text: lesson.source_text || cur.parts[Math.max(0, cur.done - 1)] || "",
-              subjectName, gradeName, unitTitle: unit.title, lessonTitle: lesson.title, stage,
-            } });
-            const units = structuredClone(cur.units);
-            const target = units[ui]!.lessons[li]!;
-            if (result.stage === "content") Object.assign(target, result.content);
-            else if (result.stage === "flashcards") target.flashcards = result.flashcards;
-            else target.quiz = result.quiz;
+            let units = structuredClone(cur.units);
+            units[ui]!.lessons[li]!.processing_stage = stage;
             cur = { ...cur, units };
             await persist();
             setJob(cur);
+            try {
+              const result = await runLesson({ data: {
+                text: lesson.source_text || cur.parts[Math.max(0, cur.done - 1)] || "",
+                subjectName, gradeName, unitTitle: unit.title, lessonTitle: lesson.title, stage,
+              } });
+              units = structuredClone(cur.units);
+              const target = units[ui]!.lessons[li]!;
+              if (result.stage === "content") Object.assign(target, result.content);
+              else if (result.stage === "flashcards") target.flashcards = result.flashcards;
+              else target.quiz = result.quiz;
+              delete target.processing_stage;
+              delete target.processing_error;
+              cur = { ...cur, units };
+              await persist();
+              setJob(cur);
+            } catch (e) {
+              const message = (e as Error)?.message || "فشلت مرحلة غير معروفة";
+              units = structuredClone(cur.units);
+              units[ui]!.lessons[li]!.processing_error = message;
+              cur = { ...cur, units };
+              setJob(cur);
+              throw e;
+            }
           }
         }
       }
@@ -521,14 +550,22 @@ export function AdminUpload() {
         if (ins.error) throw new Error(`تعذّر تسجيل الملف: ${ins.error.message}`);
         fileId = ins.data.id;
         setStep("قراءة محتوى الملف…");
-        const fileText = await extractText(file);
-        text = text ? `${text}\n\n${fileText}` : fileText;
+        try {
+          const fileText = await extractText(file);
+          text = text ? `${text}\n\n${fileText}` : fileText;
+        } catch (e) {
+          const msg = (e as Error)?.message || "تعذر استخراج نص الملف";
+          await supabase.from("curriculum_files").update({ status: "failed", notes: msg.slice(0, 900) }).eq("id", fileId);
+          throw e;
+        }
         sourceName = sourceTitle.trim() || file.name;
       }
-      if (text.trim().length < 50) {
-        const msg = "لم نتمكن من قراءة نص كافٍ (قد يكون الملف صورًا ممسوحة — الصق النص يدويًا)";
-        if (fileId) await supabase.from("curriculum_files").update({ status: "failed", notes: msg }).eq("id", fileId);
-        throw new Error(msg);
+      try {
+        assertReadableBookText(text);
+      } catch (e) {
+        const msg = (e as Error)?.message || "النص غير قابل للقراءة";
+        if (fileId) await supabase.from("curriculum_files").update({ status: "failed", notes: msg.slice(0, 900) }).eq("id", fileId);
+        throw e;
       }
       const parts = splitBook(text);
       const processing: BookProcessing = { fileId, totalParts: parts.length, completedParts: 0, state: "processing" };
@@ -548,7 +585,7 @@ export function AdminUpload() {
       setSourceTitle("");
       if (fileRef.current) fileRef.current.value = "";
       void qc.invalidateQueries({ queryKey: ["admin"] });
-      toast.success(`اكتملت المعالجة: ${r.units.length} وحدة و${countLessons(r.units)} درسًا — كل درس له 25 بطاقة و25 سؤالًا في المسودات`);
+      toast.success(`اكتملت المعالجة: ${r.units.length} وحدة و${countLessons(r.units)} درسًا — كل درس له 15 بطاقة و15 سؤالًا في المسودات`);
     },
     onError: (e) => {
       setStep("");
@@ -639,9 +676,9 @@ export function AdminUpload() {
       {job && (
         <div className="surface-card flex flex-col gap-2 p-3 text-xs">
           <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-primary transition-all" style={{ width: `${Math.round((job.done / Math.max(1, job.parts.length)) * 100)}%` }} />
+            <div className="h-full bg-primary transition-all" style={{ width: `${jobPercent}%` }} />
           </div>
-          <p>التقدم: {Math.round((job.done / Math.max(1, job.parts.length)) * 100)}% — {job.done}/{job.parts.length} أجزاء · {job.units.length} وحدة · {countLessons(job.units)} درسًا محفوظًا كمسودة</p>
+          <p>التقدم: {jobPercent}% — {job.done}/{job.parts.length} أجزاء · {completedJobStages}/{totalJobStages} مراحل · {job.units.length} وحدة · {countLessons(job.units)} درسًا محفوظًا كمسودة</p>
           {step && <p className="text-muted-foreground">{step}</p>}
           {!process.isPending && bookCompletenessErrors(job.units).length > 0 && (
             <button className={ghost} onClick={() => process.mutate(job)}>استكمال النواقص من آخر نتيجة محفوظة</button>
@@ -662,7 +699,7 @@ export function AdminUpload() {
         </div>
       )}
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        يعتمد التحليل على نص الكتاب المرفوع فقط. تُحفظ كل مرحلة ناجحة كمسودة، ولا يُعلن اكتمال الملف إلا بعد شرح وملخص و25 بطاقة و25 سؤالًا لكل درس.
+        يعتمد التحليل على نص الكتاب المرفوع فقط. تُحفظ كل مرحلة ناجحة كمسودة، ولا يُعلن اكتمال الملف إلا بعد شرح وملخص و15 بطاقة و15 سؤالًا لكل درس.
       </p>
     </div>
   );

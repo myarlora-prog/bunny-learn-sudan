@@ -7,8 +7,8 @@ const complete = (t: string) => ({
   explanation: "شرح كامل",
   summary: "ملخص كامل",
   key_points: ["نقطة"],
-  flashcards: Array.from({ length: 25 }, (_, i) => ({ front: `س${i + 1}`, back: `ج${i + 1}` })),
-  quiz: Array.from({ length: 25 }, (_, i) => ({ question: `${i + 1}. سؤال ${i + 1}`, options: ["أ", "ب"], correct_index: 0, explanation: "تفسير" })),
+  flashcards: Array.from({ length: 15 }, (_, i) => ({ front: `س${i + 1}`, back: `ج${i + 1}` })),
+  quiz: Array.from({ length: 15 }, (_, i) => ({ question: `${i + 1}. سؤال ${i + 1}`, options: ["أ", "ب"], correct_index: 0, explanation: "تفسير" })),
 });
 
 describe("book parts", () => {
@@ -39,17 +39,17 @@ describe("book parts", () => {
     const merged = mergeUnits([{ title: "وحدة", description: "", lessons: [first] }], [{ title: "وحدة", description: "", lessons: [next] }]);
     expect(bookCompletenessErrors(merged)).toEqual([]);
   });
-  it("rejects fewer than 25 cards or questions instead of declaring completion", () => {
+  it("rejects fewer than 15 cards or questions instead of declaring completion", () => {
     const lesson = complete("درس");
-    lesson.flashcards = lesson.flashcards.slice(0, 24);
-    lesson.quiz = lesson.quiz.slice(0, 24);
+    lesson.flashcards = lesson.flashcards.slice(0, 14);
+    lesson.quiz = lesson.quiz.slice(0, 14);
     expect(missingLessonStages(lesson)).toEqual(["flashcards", "quiz"]);
     expect(bookCompletenessErrors([{ title: "وحدة", description: "", lessons: [lesson] }])).toEqual(["وحدة / درس: نواقص flashcards، quiz"]);
   });
   it("rejects duplicate cards and questions", () => {
     const lesson = complete("درس");
-    lesson.flashcards[24] = lesson.flashcards[0]!;
-    lesson.quiz[24] = { ...(lesson.quiz[0]!), question: "1. سؤال 1" };
+    lesson.flashcards[14] = lesson.flashcards[0]!;
+    lesson.quiz[14] = { ...(lesson.quiz[0]!), question: "1. سؤال 1" };
     expect(bookCompletenessErrors([{ title: "وحدة", description: "", lessons: [lesson] }])).toEqual(["درس: بطاقات مكررة", "درس: أسئلة مكررة"]);
   });
 });

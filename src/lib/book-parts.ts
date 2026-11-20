@@ -55,8 +55,8 @@ export type LessonStage = "content" | "flashcards" | "quiz";
 export function missingLessonStages(lesson: DraftLesson): LessonStage[] {
   const missing: LessonStage[] = [];
   if (!lesson.explanation?.trim() || !lesson.summary?.trim() || !(lesson.key_points?.length > 0)) missing.push("content");
-  if (lesson.flashcards?.length !== 25) missing.push("flashcards");
-  if (lesson.quiz?.length !== 25) missing.push("quiz");
+  if (lesson.flashcards?.length !== 15) missing.push("flashcards");
+  if (lesson.quiz?.length !== 15) missing.push("quiz");
   return missing;
 }
 

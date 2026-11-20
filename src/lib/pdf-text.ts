@@ -1,3 +1,5 @@
+import { assertReadableBookText, restorePdfTextItems, type PdfTextItem } from "@/lib/arabic-pdf";
+
 /** Extracts plain text from an uploaded PDF, Word (.docx) or TXT file, in the browser. */
 export async function extractText(file: File): Promise<string> {
   if (file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt")) {
@@ -21,11 +23,14 @@ export async function extractText(file: File): Promise<string> {
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
-    const text = content.items
-      .map((item) => ("str" in item ? item.str : ""))
-      .join(" ")
-      .trim();
+    const items: PdfTextItem[] = content.items.flatMap((item) => "str" in item ? [{
+      str: item.str, dir: item.dir, transform: item.transform,
+      width: item.width, height: item.height, hasEOL: item.hasEOL, fontName: item.fontName,
+    }] : []);
+    const text = restorePdfTextItems(items);
     if (text) parts.push(`--- صفحة ${i} ---\n${text}`);
   }
-  return parts.join("\n\n");
+  const result = parts.join("\n\n");
+  assertReadableBookText(result);
+  return result;
 }

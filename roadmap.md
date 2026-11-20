@@ -1,10 +1,10 @@
 # Nawabig current updates
-- [ ] Fix the existing book-upload build error and verify typecheck, preview and focused tests.
-- [ ] Audit existing Gemini-only upload, DOCX/TXT/PDF extraction, ordered chunking, immediate draft saves, progress and resume without repeating working changes.
-- [ ] Inspect the five stuck uploads and saved drafts read-only; report status, stop point and safe resume path without deleting or auto-processing them.
-- [ ] Make book generation produce source-grounded detailed explanations, comprehensive summaries, exactly 25 useful flashcards and exactly 25 explained quiz questions per lesson, saved in resumable stages as drafts.
-- [ ] Test a small isolated PDF through Gemini only after checking key validity/quota; verify extraction, content, ordering, draft persistence and no student publication.
-- [ ] Test DOCX/TXT extraction, long-book chunking, interruption/resume and duplicate prevention without touching real student content.
-- [ ] Re-test referral settings, draft publish/unpublish/delete, unlock help/WhatsApp, offline lesson/exam sync and progress preservation using only the isolated test account.
+- [x] Fix the existing book-upload build error and verify typecheck, preview and focused tests.
+- [x] Audit existing Gemini-only upload, DOCX/TXT/PDF extraction, ordered chunking, immediate draft saves, progress and resume without repeating working changes.
+- [ ] Fix Arabic PDF visual-order/presentation-form extraction, preserve paragraphs and punctuation, and reject unreadable text before Gemini.
+- [ ] Change book generation to exactly 15 clear source-grounded flashcards and 15 explained quiz questions per lesson; preserve draft-only staged saves and per-lesson errors.
+- [ ] Test real Arabic PDF extraction and a small isolated upload through Gemini only; verify explanation, summary, 15 cards, 15 questions, clarity, multi-line answers, draft persistence and no publication.
+- [ ] Test interruption/resume and duplicate prevention with the isolated test draft only; retain DOCX/TXT behavior and test long-book chunking without unnecessary AI calls.
+- [ ] Leave all 55 previously stuck uploads untouched; do not automatically reprocess or delete them.
 - [ ] Preserve all accounts, curriculum, exams, attempts, subscriptions, referrals, roles and progress; use no Lovable AI or paid AI service.
-- [ ] Report PASS, FAIL or NOT TESTED for every requested item with evidence and exact blockers.
+- [ ] Verify build, preview and focused tests, commit all changes, and report PASS/FAIL/NOT TESTED with Gemini usage and any blockers.

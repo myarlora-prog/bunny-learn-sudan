@@ -21,12 +21,18 @@ export type DraftLesson = {
   quiz: DraftQuiz[];
   /** Source parts used only for resumable generation; never published as lesson content. */
   source_text?: string;
+  processing_stage?: "content" | "flashcards" | "quiz";
+  processing_error?: string;
 };
 export type DraftUnit = { title: string; description: string; lessons: DraftLesson[] };
 export type BookProcessing = {
   fileId: string | null;
   totalParts: number;
   completedParts: number;
+  completedStages?: number;
+  totalStages?: number;
+  currentLesson?: string;
+  currentStage?: "content" | "flashcards" | "quiz";
   state: "processing" | "failed" | "complete";
   lastError?: string;
 };
@@ -172,19 +178,19 @@ export const generateBookLesson = createServerFn({ method: "POST" })
 
     if (data.stage === "flashcards") {
       const raw = await bookAi([
-        { role: "system", content: `${grounding}\nأنشئ بالضبط 25 بطاقة تعليمية حقيقية ومتنوعة تغطي جميع أجزاء الدرس. كل بطاقة سؤال أو مصطلح واحد في front وإجابة دقيقة كاملة في back. لا تكرر الفكرة بصياغات مختلفة ولا تستخدم بطاقات شكلية لاستكمال العدد. إذا تعذر استخراج 25 بطاقة مفيدة فأعد أقل من 25 ليظهر النقص بدل اختراع محتوى.\nالشكل: {"flashcards":[{"front":"string","back":"string"}]}` },
+        { role: "system", content: `${grounding}\nأنشئ بالضبط 15 بطاقة تعليمية مفيدة ومتنوعة تغطي جميع أجزاء الدرس. كل بطاقة تتناول مفهومًا أو هدفًا تعليميًا واحدًا؛ front سؤال عربي كامل وطبيعي وواضح وموجز دون حذف كلمات ضرورية، وback إجابة دقيقة سهلة ومختصرة بقدر ما يسمح المصدر دون فرض كلمة واحدة. إذا تضمنت الإجابة عناصر متعددة فاكتب كل عنصر في سطر مستقل داخل back بصيغة «1. ...» ثم «2. ...» ولا تدمجها في جملة غير مقروءة. افصل الحقائق المستقلة في بطاقات منفصلة، ولا تكرر السؤال أو المعلومة ولا تستخدم بطاقات شكلية لاستكمال العدد. إذا تعذر استخراج 15 بطاقة مفيدة فأعد أقل من 15 ليظهر النقص بدل اختراع محتوى.\nالشكل: {"flashcards":[{"front":"string","back":"string"}]}` },
         { role: "user", content: source },
       ], `بطاقات «${data.lessonTitle}»`);
       let value: { flashcards?: DraftFlashcard[] };
       try { value = parseJson(raw); } catch { throw new Error(`تعذر قراءة بطاقات «${data.lessonTitle}»`); }
       const flashcards = (Array.isArray(value.flashcards) ? value.flashcards : []).flatMap((f) => f?.front?.trim() && f?.back?.trim() ? [{ front: f.front.trim(), back: f.back.trim() }] : []);
       const unique = new Set(flashcards.map((f) => f.front.replace(/\s+/g, " ").toLocaleLowerCase("ar")));
-      if (flashcards.length !== 25 || unique.size !== 25) throw new Error(`بطاقات «${data.lessonTitle}» غير مكتملة: وصل ${flashcards.length}، والفريد ${unique.size} من 25`);
+      if (flashcards.length !== 15 || unique.size !== 15) throw new Error(`بطاقات «${data.lessonTitle}» غير مكتملة: وصل ${flashcards.length}، والفريد ${unique.size} من 15`);
       return { stage: "flashcards" as const, flashcards };
     }
 
     const raw = await bookAi([
-      { role: "system", content: `${grounding}\nأنشئ بالضبط 25 سؤالًا تعليميًا غير مكرر يغطي كامل الدرس ومرقّمًا ضمن نص السؤال من 1 إلى 25. نوّع بين اختيار من متعدد والصح والخطأ والتطبيق، بما يناسب المصدر ونظام الاختبار الحالي. لكل سؤال خيارات واضحة (خياران للصح والخطأ وأربعة لبقية الأنواع)، correct_index صحيح يبدأ من صفر، وexplanation يصحح ويشرح الإجابة باختصار من المصدر. لا تخترع أسئلة لاستكمال العدد؛ أعد عددًا أقل إن لم يكفِ المصدر ليظهر النقص.\nالشكل: {"quiz":[{"question":"1. ...","options":["أ","ب","ج","د"],"correct_index":0,"explanation":"string"}]}` },
+      { role: "system", content: `${grounding}\nأنشئ بالضبط 15 سؤالًا تعليميًا غير مكرر يغطي كامل الدرس ومرقّمًا ضمن نص السؤال من 1 إلى 15. كل سؤال عربي كامل وواضح وموجز، والخيارات قصيرة ومقروءة ومتمايزة، وللسؤال إجابة صحيحة واحدة فقط بلا غموض أو التباس. نوّع بين اختيار من متعدد والصح والخطأ والتطبيق بما يناسب المصدر، ولا تختبر الحقيقة نفسها بصياغات مكررة. لكل سؤال خياران للصح والخطأ وأربعة لبقية الأنواع، correct_index صحيح يبدأ من صفر، وexplanation موجز يصحح الإجابة ويشرحها من المصدر. لا تخترع أسئلة لاستكمال العدد؛ أعد عددًا أقل إن لم يكفِ المصدر ليظهر النقص.\nالشكل: {"quiz":[{"question":"1. ...","options":["أ","ب","ج","د"],"correct_index":0,"explanation":"string"}]}` },
       { role: "user", content: source },
     ], `اختبار «${data.lessonTitle}»`);
     let value: { quiz?: DraftQuiz[] };
@@ -197,6 +203,6 @@ export const generateBookLesson = createServerFn({ method: "POST" })
         : [];
     });
     const unique = new Set(quiz.map((q) => q.question.replace(/^\s*\d+[.)\-]?\s*/, "").replace(/\s+/g, " ").toLocaleLowerCase("ar")));
-    if (quiz.length !== 25 || unique.size !== 25) throw new Error(`اختبار «${data.lessonTitle}» غير مكتمل: وصل ${quiz.length}، والفريد ${unique.size} من 25`);
+    if (quiz.length !== 15 || unique.size !== 15) throw new Error(`اختبار «${data.lessonTitle}» غير مكتمل: وصل ${quiz.length}، والفريد ${unique.size} من 15`);
     return { stage: "quiz" as const, quiz };
   });
