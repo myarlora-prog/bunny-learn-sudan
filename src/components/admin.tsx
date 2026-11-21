@@ -1,13 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Loader2, Plus, Trash2, Upload, Check, X, Pencil, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
-import { generateBookLesson, processBook, type BookProcessing, type DraftUnit } from "@/lib/admin-ai.functions";
-import { bookCompletenessErrors, countLessons, emptyDraftLesson, mergeUnits, missingLessonStages, splitBook } from "@/lib/book-parts";
+import { processBook } from "@/lib/admin-ai.functions";
 import {
   publishDraft,
   useAdminList,
@@ -19,8 +18,6 @@ import {
   useSettingsMap,
   type AdminDraft,
 } from "@/lib/admin-db";
-import { extractText } from "@/lib/pdf-text";
-import { assertReadableBookText } from "@/lib/arabic-pdf";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/lib/app-state";
 
@@ -396,6 +393,31 @@ export function AdminPublished() {
 
 /* --------------------------- Upload & AI processing --------------------------- */
 
+/** Historical PDF/TXT reader, isolated here so other admin pages keep their current reader. */
+async function extractLegacyBookText(file: File): Promise<string> {
+  if (file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt")) {
+    return await file.text();
+  }
+
+  const pdfjs = await import("pdfjs-dist");
+  const workerSrc = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+  pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+
+  const buffer = await file.arrayBuffer();
+  const doc = await pdfjs.getDocument({ data: buffer }).promise;
+  const parts: string[] = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    const text = content.items
+      .map((item) => ("str" in item ? item.str : ""))
+      .join(" ")
+      .trim();
+    if (text) parts.push(`--- صفحة ${i} ---\n${text}`);
+  }
+  return parts.join("\n\n");
+}
+
 export function AdminUpload() {
   const stages = useAdminList<Row>("stages");
   const [stageId, setStageId] = useState("");
@@ -409,10 +431,8 @@ export function AdminUpload() {
   const [sourceTitle, setSourceTitle] = useState("");
   const [step, setStep] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState("");
-  const runOutline = useServerFn(processBook);
-  const runLesson = useServerFn(generateBookLesson);
+  const run = useServerFn(processBook);
   const qc = useQueryClient();
-  const drafts = useDrafts("draft");
 
   const gradeName = useMemo(
     () => String((grades.data ?? []).find((g) => g["id"] === gradeId)?.["name"] ?? ""),
@@ -425,158 +445,58 @@ export function AdminUpload() {
 
   const hasSource = !!file || pasted.trim().length > 0;
 
-  type Job = { draftId: string; fileId: string | null; parts: string[]; done: number; units: DraftUnit[]; flags: string[]; sourceName: string };
-  const [job, setJob] = useState<Job | null>(null);
-  const totalJobStages = job ? countLessons(job.units) * 3 : 0;
-  const completedJobStages = job?.units.flatMap((unit) => unit.lessons).reduce((sum, lesson) => sum + 3 - missingLessonStages(lesson).length, 0) ?? 0;
-  const jobPercent = job ? Math.round(((job.done + completedJobStages) / Math.max(1, job.parts.length + totalJobStages)) * 100) : 0;
-
-  const runParts = async (j: Job) => {
-    let cur = j;
-    const persist = async (state: BookProcessing["state"] = "processing", lastError?: string) => {
-      const lessons = cur.units.flatMap((unit) => unit.lessons);
-      const totalStages = lessons.length * 3;
-      const completedStages = lessons.reduce((sum, lesson) => sum + 3 - missingLessonStages(lesson).length, 0);
-      const active = lessons.find((lesson) => lesson.processing_stage);
-      const processing: BookProcessing = {
-        fileId: cur.fileId, totalParts: cur.parts.length, completedParts: cur.done,
-        completedStages, totalStages,
-        ...(active?.processing_stage ? { currentLesson: active.title, currentStage: active.processing_stage } : {}),
-        state, ...(lastError ? { lastError } : {}),
-      };
-      const notes = lastError ?? `${cur.done}/${cur.parts.length} أجزاء · ${completedStages}/${totalStages} مراحل · ${cur.units.length} وحدة · ${lessons.length} درسًا`;
-      const { error } = await supabase.from("curriculum_drafts").update({
-        content: { units: cur.units, flags: cur.flags, processing } as never,
-        flags: cur.flags as never,
-      }).eq("id", cur.draftId);
-      if (error) throw new Error(`تعذّر حفظ نتيجة المعالجة: ${error.message}`);
-      if (cur.fileId) {
-        const { error: fileError } = await supabase.from("curriculum_files").update({
-          status: state === "complete" ? "processed" : state === "failed" ? "failed" : "processing",
-          notes: notes.slice(0, 900),
-        }).eq("id", cur.fileId);
-        if (fileError) throw new Error(`حُفظت المسودة لكن تعذر تحديث حالة الملف: ${fileError.message}`);
-      }
-    };
-
-    const generateMissing = async () => {
-      for (let ui = 0; ui < cur.units.length; ui++) {
-        for (let li = 0; li < cur.units[ui]!.lessons.length; li++) {
-          for (const stage of missingLessonStages(cur.units[ui]!.lessons[li]!)) {
-            const unit = cur.units[ui]!;
-            const lesson = unit.lessons[li]!;
-            const label = stage === "content" ? "الشرح والملخص" : stage === "flashcards" ? "15 بطاقة" : "15 سؤالًا";
-            setStep(`${label} — ${lesson.title}`);
-            let units = structuredClone(cur.units);
-            units[ui]!.lessons[li]!.processing_stage = stage;
-            cur = { ...cur, units };
-            await persist();
-            setJob(cur);
-            try {
-              const result = await runLesson({ data: {
-                text: lesson.source_text || cur.parts[Math.max(0, cur.done - 1)] || "",
-                subjectName, gradeName, unitTitle: unit.title, lessonTitle: lesson.title, stage,
-              } });
-              units = structuredClone(cur.units);
-              const target = units[ui]!.lessons[li]!;
-              if (result.stage === "content") Object.assign(target, result.content);
-              else if (result.stage === "flashcards") target.flashcards = result.flashcards;
-              else target.quiz = result.quiz;
-              delete target.processing_stage;
-              delete target.processing_error;
-              cur = { ...cur, units };
-              await persist();
-              setJob(cur);
-            } catch (e) {
-              const message = (e as Error)?.message || "فشلت مرحلة غير معروفة";
-              units = structuredClone(cur.units);
-              units[ui]!.lessons[li]!.processing_error = message;
-              cur = { ...cur, units };
-              setJob(cur);
-              throw e;
-            }
-          }
-        }
-      }
-    };
-
-    try {
-      await generateMissing();
-      for (let i = cur.done; i < cur.parts.length; i++) {
-        setStep(`قراءة وحدات ودروس الجزء ${i + 1} من ${cur.parts.length}…`);
-        const outline = await runOutline({ data: {
-          text: cur.parts[i]!, subjectName, gradeName, part: i + 1, parts: cur.parts.length,
-          previousUnit: cur.units[cur.units.length - 1]?.title ?? "",
-        } });
-        const units = outline.units.map((u) => ({
-          ...u,
-          lessons: u.lessons.map((l) => emptyDraftLesson(l.title, cur.parts[i]!)),
-        }));
-        cur = { ...cur, done: i + 1, units: mergeUnits(cur.units, units), flags: [...cur.flags, ...outline.flags] };
-        await persist();
-        setJob(cur);
-        await generateMissing();
-      }
-      const incomplete = bookCompletenessErrors(cur.units);
-      if (incomplete.length) throw new Error(`المعالجة غير مكتملة: ${incomplete.slice(0, 5).join(" | ")}`);
-      await persist("complete");
-      setJob(cur);
-      return cur;
-    } catch (e) {
-      const msg = (e as Error)?.message || "خطأ غير متوقع";
-      try { await persist("failed", msg); } catch { /* Preserve the original AI or save error. */ }
-      setJob(cur);
-      throw new Error(`${msg} — النتائج الناجحة محفوظة ويمكن استكمال النواقص فقط.`);
-    }
-  };
-
   const process = useMutation({
-    mutationFn: async (resume?: Job) => {
+    mutationFn: async () => {
       setErrorMsg("");
-      if (resume) return runParts(resume);
       if (!subjectId) throw new Error("اختر المادة أولًا");
       if (!hasSource) throw new Error("ارفع ملفًا أو الصق نص الكتاب");
 
       let text = pasted.trim();
       let sourceName = sourceTitle.trim() || "نص ملصوق";
-      let fileId: string | null = null;
       if (file) {
-        setStep("رفع الكتاب…");
-        const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
-        const path = `${subjectId}/${Date.now()}.${ext}`;
-        const up = await supabase.storage.from("curriculum-books").upload(path, file);
-        if (up.error) throw new Error(`فشل رفع الملف: ${up.error.message}`);
-        const ins = await supabase.from("curriculum_files").insert({ grade_id: gradeId, subject_id: subjectId, file_name: file.name, file_path: path, status: "processing" }).select("id").single();
-        if (ins.error) throw new Error(`تعذّر تسجيل الملف: ${ins.error.message}`);
-        fileId = ins.data.id;
-        setStep("قراءة محتوى الملف…");
-        try {
-          const fileText = await extractText(file);
-          text = text ? `${text}\n\n${fileText}` : fileText;
-        } catch (e) {
-          const msg = (e as Error)?.message || "تعذر استخراج نص الملف";
-          await supabase.from("curriculum_files").update({ status: "failed", notes: msg.slice(0, 900) }).eq("id", fileId);
-          throw e;
-        }
+        setStep("قراءة الملف…");
+        const fileText = await extractLegacyBookText(file);
+        text = text ? `${text}\n\n${fileText}` : fileText;
         sourceName = sourceTitle.trim() || file.name;
       }
-      try {
-        assertReadableBookText(text);
-      } catch (e) {
-        const msg = (e as Error)?.message || "النص غير قابل للقراءة";
-        if (fileId) await supabase.from("curriculum_files").update({ status: "failed", notes: msg.slice(0, 900) }).eq("id", fileId);
-        throw e;
+      if (text.trim().length < 50)
+        throw new Error("لم نتمكن من قراءة نص كافٍ (قد يكون الملف صورًا ممسوحة — الصق النص يدويًا)");
+
+      if (file) {
+        setStep("رفع الكتاب…");
+        // Storage keys must be ASCII-safe; Arabic names/spaces are rejected.
+        const ext = file.name.toLowerCase().endsWith(".txt") ? "txt" : "pdf";
+        const path = `${subjectId}/${Date.now()}.${ext}`;
+        const up = await supabase.storage.from("curriculum-books").upload(path, file);
+        if (!up.error) {
+          await supabase.from("curriculum_files").insert({
+            grade_id: gradeId,
+            subject_id: subjectId,
+            file_name: file.name,
+            file_path: path,
+            status: "processing",
+          });
+        } else {
+          console.warn("Book file upload failed, continuing with text:", up.error.message);
+        }
       }
-      const parts = splitBook(text);
-      const processing: BookProcessing = { fileId, totalParts: parts.length, completedParts: 0, state: "processing" };
-      const d = await supabase.from("curriculum_drafts").insert({
-        stage_id: stageId, grade_id: gradeId, subject_id: subjectId, source_name: sourceName,
-        source_text: text, content: { units: [], flags: [], processing } as never, flags: [] as never, status: "draft",
-      }).select("id").single();
-      if (d.error) throw d.error;
-      const j: Job = { draftId: d.data.id, fileId, parts, done: 0, units: [], flags: [], sourceName };
-      setJob(j);
-      return runParts(j);
+
+      setStep("تحليل الكتاب بالذكاء الاصطناعي… (قد يستغرق دقيقة)");
+      const result = await run({ data: { text, subjectName, gradeName } });
+
+      setStep("حفظ المسودة…");
+      const { error } = await supabase.from("curriculum_drafts").insert({
+        stage_id: stageId,
+        grade_id: gradeId,
+        subject_id: subjectId,
+        source_name: sourceName,
+        source_text: text.slice(0, 200000),
+        content: { units: result.units } as never,
+        flags: result.flags as never,
+        status: "draft",
+      });
+      if (error) throw error;
+      return result;
     },
     onSuccess: (r) => {
       setStep("");
@@ -585,7 +505,7 @@ export function AdminUpload() {
       setSourceTitle("");
       if (fileRef.current) fileRef.current.value = "";
       void qc.invalidateQueries({ queryKey: ["admin"] });
-      toast.success(`اكتملت المعالجة: ${r.units.length} وحدة و${countLessons(r.units)} درسًا — كل درس له 15 بطاقة و15 سؤالًا في المسودات`);
+      toast.success(`تم استخراج ${r.units.length} وحدة — راجعها في المسودات`);
     },
     onError: (e) => {
       setStep("");
@@ -593,34 +513,8 @@ export function AdminUpload() {
       console.error("Book processing failed:", e);
       setErrorMsg(msg);
       toast.error(msg);
-      void qc.invalidateQueries({ queryKey: ["admin"] });
     },
   });
-
-  const resumeDraft = (id: string) => {
-    const d = (drafts.data ?? []).find((row) => row.id === id);
-    const meta = d?.content?.processing;
-    if (!d || !meta || process.isPending) return;
-    const parts = splitBook(d.source_text);
-    setStageId(d.stage_id ?? "");
-    setGradeId(d.grade_id ?? "");
-    setSubjectId(d.subject_id ?? "");
-    setSourceTitle(d.source_name);
-    const resumed: Job = {
-      draftId: d.id, fileId: meta.fileId, parts, done: Math.min(meta.completedParts, parts.length),
-      units: d.content.units ?? [], flags: d.flags ?? [], sourceName: d.source_name,
-    };
-    setJob(resumed);
-    process.mutate(resumed);
-  };
-
-  // Start automatically once a file is chosen and the subject is set.
-  useEffect(() => {
-    if (file && subjectId && !process.isPending) process.mutate(undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file]);
-
-  const resumable = (drafts.data ?? []).filter((d) => d.content?.processing && d.content.processing.state !== "complete");
 
   return (
     <div className="flex flex-col gap-3">
@@ -645,11 +539,11 @@ export function AdminUpload() {
 
       <label className="surface-card flex cursor-pointer items-center gap-3 p-4">
         <Upload className="size-5 text-primary" />
-        <span className="flex-1 text-sm">{file ? file.name : subjectId ? "ارفع ملف PDF أو Word أو TXT — تبدأ المعالجة تلقائيًا" : "اختر المادة ثم ارفع ملف PDF أو Word أو TXT"}</span>
+        <span className="flex-1 text-sm">{file ? file.name : "ارفع ملف PDF أو TXT"}</span>
         <input
           ref={fileRef}
           type="file"
-          accept=".pdf,.txt,.docx,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          accept=".pdf,.txt,application/pdf,text/plain"
           className="hidden"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
@@ -670,36 +564,14 @@ export function AdminUpload() {
       />
       {pasted && <p className="text-[10px] text-muted-foreground">{pasted.length.toLocaleString("ar")} حرف</p>}
 
-      <button className={btn} disabled={process.isPending || !hasSource || !subjectId} onClick={() => process.mutate(undefined)}>
+      <button className={btn} disabled={process.isPending || !hasSource || !subjectId} onClick={() => process.mutate()}>
         {process.isPending ? step || "جارٍ المعالجة…" : "معالجة الكتاب بالذكاء الاصطناعي"}
       </button>
-      {job && (
-        <div className="surface-card flex flex-col gap-2 p-3 text-xs">
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-primary transition-all" style={{ width: `${jobPercent}%` }} />
-          </div>
-          <p>التقدم: {jobPercent}% — {job.done}/{job.parts.length} أجزاء · {completedJobStages}/{totalJobStages} مراحل · {job.units.length} وحدة · {countLessons(job.units)} درسًا محفوظًا كمسودة</p>
-          {step && <p className="text-muted-foreground">{step}</p>}
-          {!process.isPending && bookCompletenessErrors(job.units).length > 0 && (
-            <button className={ghost} onClick={() => process.mutate(job)}>استكمال النواقص من آخر نتيجة محفوظة</button>
-          )}
-        </div>
-      )}
       {errorMsg && (
         <p className="rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">{errorMsg}</p>
       )}
-      {resumable.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-bold">معالجات محفوظة يمكن استكمالها</p>
-          {resumable.map((d) => (
-            <button key={d.id} className={ghost} disabled={process.isPending} onClick={() => resumeDraft(d.id)}>
-              {d.source_name} — {d.content.processing?.completedParts ?? 0}/{d.content.processing?.totalParts ?? 0} أجزاء
-            </button>
-          ))}
-        </div>
-      )}
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        يعتمد التحليل على نص الكتاب المرفوع فقط. تُحفظ كل مرحلة ناجحة كمسودة، ولا يُعلن اكتمال الملف إلا بعد شرح وملخص و15 بطاقة و15 سؤالًا لكل درس.
+        يعتمد التحليل على نص الكتاب المرفوع فقط. أي جزء ناقص أو غير واضح يُسجَّل كملاحظة للمراجعة بدل تخمينه.
       </p>
     </div>
   );

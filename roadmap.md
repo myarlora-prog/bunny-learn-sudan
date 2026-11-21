@@ -1,10 +1,9 @@
-# Nawabig current updates
-- [x] Fix the existing book-upload build error and verify typecheck, preview and focused tests.
-- [x] Audit existing Gemini-only upload, DOCX/TXT/PDF extraction, ordered chunking, immediate draft saves, progress and resume without repeating working changes.
-- [ ] Fix Arabic PDF visual-order/presentation-form extraction, preserve paragraphs and punctuation, and reject unreadable text before Gemini.
-- [ ] Change book generation to exactly 15 clear source-grounded flashcards and 15 explained quiz questions per lesson; preserve draft-only staged saves and per-lesson errors.
-- [ ] Test real Arabic PDF extraction and a small isolated upload through Gemini only; verify explanation, summary, 15 cards, 15 questions, clarity, multi-line answers, draft persistence and no publication.
-- [ ] Test interruption/resume and duplicate prevention with the isolated test draft only; retain DOCX/TXT behavior and test long-book chunking without unnecessary AI calls.
-- [ ] Leave all 55 previously stuck uploads untouched; do not automatically reprocess or delete them.
-- [ ] Preserve all accounts, curriculum, exams, attempts, subscriptions, referrals, roles and progress; use no Lovable AI or paid AI service.
-- [ ] Verify build, preview and focused tests, commit all changes, and report PASS/FAIL/NOT TESTED with Gemini usage and any blockers.
+# Nawabig legacy book-upload restoration
+- [x] Inspect Git and identify `fe542d2321386f6420912b0bbb53dd1fdcaaae6a` as the last available snapshot before the end of 13 November 2026.
+- [x] Preserve the current code at commit `130f5f5a655993f7c9d16057bf74da63cabc07f2` and temporary copies of the two target files.
+- [ ] Restore only AdminUpload to the historical PDF/TXT UI, local legacy text extraction, manual start, one AI request, and single draft save.
+- [ ] Restore the historical explanation and summary instructions; require exactly 15 concise flashcards and 15 four-option quiz questions per lesson.
+- [ ] Leave every other page, shared PDF reader, database object, existing book, draft, student, result, subscription, and all 55 stuck files untouched.
+- [ ] Run focused tests and inspect the build log and scoped diff.
+- [ ] Test a new isolated small book upload and actual AI/draft saving only if an owner session and Gemini quota are available; report PASS/FAIL/NOT TESTED honestly.
+- [ ] Commit the scoped code changes.
