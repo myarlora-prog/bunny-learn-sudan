@@ -11,8 +11,8 @@ import { groupBlocks, partComplete, wordCount } from "@/lib/format-chunks";
 import { AdminContentPicker } from "@/components/admin-content-picker";
 import { Button } from "@/components/ui/button";
 
-export function AdminAiFormat() {
-  return <AdminContentPicker>{(s) => s[2] ? <Formatter key={s[2].id} subjectId={s[2].id} subject={s[2].name ?? ""} /> : null}</AdminContentPicker>;
+export function AdminAiFormat({ onExit }: { onExit: () => void }) {
+  return <AdminContentPicker onExit={onExit}>{(s) => s[2] ? <Formatter key={s[2].id} subjectId={s[2].id} subject={s[2].name ?? ""} /> : null}</AdminContentPicker>;
 }
 
 type Part = { src: string; html: string; error: string };

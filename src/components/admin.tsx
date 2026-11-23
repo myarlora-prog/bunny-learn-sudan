@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { Loader2, Plus, Trash2, Upload, Check, X, Pencil, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/app-shell";
+import { OwnerBreadcrumb, type OwnerBreadcrumbItem } from "@/components/admin-breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { processBook } from "@/lib/admin-ai.functions";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@/lib/admin-db";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/lib/app-state";
+import { useAdminHierarchy } from "@/lib/admin-hierarchy";
 
 const input =
   "w-full rounded-2xl border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary";
@@ -125,7 +127,7 @@ export function AdminUsers() {
 
 /* ------------------------------- Curriculum ------------------------------- */
 
-type Row = Record<string, string | number | boolean | null>;
+type Row = { id: string } & Record<string, string | number | boolean | null>;
 
 function CrudList({
   table,
@@ -134,6 +136,8 @@ function CrudList({
   fields,
   title,
   onOpen,
+  selectedId,
+  showForm = true,
 }: {
   table: "stages" | "grades" | "subjects" | "units" | "lessons";
   parentColumn?: string;
@@ -141,8 +145,11 @@ function CrudList({
   fields: { key: string; label: string; type?: "text" | "number" | "bool" }[];
   title: string;
   onOpen?: (row: Row) => void;
+  selectedId?: string;
+  showForm?: boolean;
 }) {
   const list = useAdminList<Row>(table, parentColumn ? { column: parentColumn, value: parentValue ?? null } : undefined);
+  const rows = (list.data ?? []).filter((row) => !selectedId || String(row["id"]) === selectedId);
   const mut = useAdminMutation(table);
   const [form, setForm] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<string | null>(null);
@@ -175,7 +182,7 @@ function CrudList({
       {list.isLoading ? (
         <Spinner />
       ) : (
-        (list.data ?? []).map((row) => (
+        rows.map((row) => (
           <Card key={String(row["id"])} className="flex items-center gap-2">
             <button
               type="button"
@@ -212,7 +219,7 @@ function CrudList({
         ))
       )}
 
-      <Card className="flex flex-col gap-2">
+      {showForm && <Card className="flex flex-col gap-2">
         <p className="text-xs font-bold">{editing ? "تعديل" : "إضافة جديد"}</p>
         {fields.map((f) => (
           <input
@@ -239,43 +246,45 @@ function CrudList({
             </button>
           )}
         </div>
-      </Card>
+      </Card>}
     </div>
   );
 }
 
-export function AdminCurriculum({ start = "stages" }: { start?: "stages" | "grades" | "subjects" | "units" | "lessons" }) {
-  const [stage, setStage] = useState<Row | null>(null);
-  const [grade, setGrade] = useState<Row | null>(null);
-  const [subject, setSubject] = useState<Row | null>(null);
-  const [unit, setUnit] = useState<Row | null>(null);
+const CURRICULUM_LABELS = ["المرحلة", "الصف", "المادة", "الوحدة", "الدرس"];
+const lessonFields: { key: string; label: string; type?: "text" | "number" | "bool" }[] = [
+  { key: "title", label: "عنوان الدرس" },
+  { key: "duration_minutes", label: "المدة بالدقائق", type: "number" },
+  { key: "sort_order", label: "الترتيب", type: "number" },
+];
 
-  const crumbs = [stage, grade, subject, unit].filter(Boolean) as Row[];
+export function AdminCurriculum({ start = "stages", onExit }: { start?: "stages" | "grades" | "subjects" | "units" | "lessons"; onExit: () => void }) {
+  const { selection, step, choose, goTo, back } = useAdminHierarchy<Row>(5);
+  const [stage, grade, subject, unit, lesson] = selection;
+  const path = [
+    { id: "owner", label: "لوحة المالك", step: 0 },
+    ...selection.slice(0, step).map((row, index) => ({
+      id: row.id,
+      label: String(row["name"] ?? row["title"] ?? ""),
+      step: index + 1,
+    })),
+  ];
+  if (step < 5) path.push({ id: `level-${step}`, label: CURRICULUM_LABELS[step]!, step });
+  const items: OwnerBreadcrumbItem[] = path.map((item, index) => ({
+    id: item.id,
+    label: item.label,
+    onSelect: index < path.length - 1 ? () => item.step === 0 && step === 0 ? onExit() : goTo(item.step) : undefined,
+  }));
 
   return (
     <div className="flex flex-col gap-4">
-      {crumbs.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-          {crumbs.map((c, i) => (
-            <span key={i} className="rounded-lg bg-secondary px-2 py-1">
-              {String(c["name"] ?? c["title"])}
-            </span>
-          ))}
-          <button
-            className="text-primary"
-            onClick={() => {
-              setStage(null);
-              setGrade(null);
-              setSubject(null);
-              setUnit(null);
-            }}
-          >
-            إعادة تعيين
-          </button>
-        </div>
-      )}
+      <OwnerBreadcrumb
+        items={items}
+        onBack={step > 0 ? back : undefined}
+        backLabel={step > 0 ? `رجوع إلى ${CURRICULUM_LABELS[step - 1]}` : undefined}
+      />
 
-      {!stage && start === "stages" && (
+      {step === 0 && start === "stages" && (
         <CrudList
           table="stages"
           title="المراحل التعليمية"
@@ -284,28 +293,28 @@ export function AdminCurriculum({ start = "stages" }: { start?: "stages" | "grad
             { key: "description", label: "الوصف" },
             { key: "sort_order", label: "الترتيب", type: "number" },
           ]}
-          onOpen={setStage}
+          onOpen={choose}
         />
       )}
-      {stage && !grade && (
+      {step === 1 && stage && (
         <CrudList
           table="grades"
           parentColumn="stage_id"
-          parentValue={String(stage["id"])}
+          parentValue={stage.id}
           title="الصفوف"
           fields={[
             { key: "name", label: "اسم الصف" },
             { key: "access_type", label: "نوع الوصول (free/super)" },
             { key: "sort_order", label: "الترتيب", type: "number" },
           ]}
-          onOpen={setGrade}
+          onOpen={choose}
         />
       )}
-      {grade && !subject && (
+      {step === 2 && grade && (
         <CrudList
           table="subjects"
           parentColumn="grade_id"
-          parentValue={String(grade["id"])}
+          parentValue={grade.id}
           title="المواد"
           fields={[
             { key: "name", label: "اسم المادة" },
@@ -313,34 +322,42 @@ export function AdminCurriculum({ start = "stages" }: { start?: "stages" | "grad
             { key: "color", label: "اللون" },
             { key: "sort_order", label: "الترتيب", type: "number" },
           ]}
-          onOpen={setSubject}
+          onOpen={choose}
         />
       )}
-      {subject && !unit && (
+      {step === 3 && subject && (
         <CrudList
           table="units"
           parentColumn="subject_id"
-          parentValue={String(subject["id"])}
+          parentValue={subject.id}
           title="الوحدات"
           fields={[
             { key: "title", label: "عنوان الوحدة" },
             { key: "description", label: "الوصف" },
             { key: "sort_order", label: "الترتيب", type: "number" },
           ]}
-          onOpen={setUnit}
+          onOpen={choose}
         />
       )}
-      {unit && (
+      {step === 4 && unit && (
         <CrudList
           table="lessons"
           parentColumn="unit_id"
-          parentValue={String(unit["id"])}
+          parentValue={unit.id}
           title="الدروس"
-          fields={[
-            { key: "title", label: "عنوان الدرس" },
-            { key: "duration_minutes", label: "المدة بالدقائق", type: "number" },
-            { key: "sort_order", label: "الترتيب", type: "number" },
-          ]}
+          fields={lessonFields}
+          onOpen={choose}
+        />
+      )}
+      {step === 5 && unit && lesson && (
+        <CrudList
+          table="lessons"
+          parentColumn="unit_id"
+          parentValue={unit.id}
+          title="الدرس المحدد"
+          fields={lessonFields}
+          selectedId={lesson.id}
+          showForm={false}
         />
       )}
     </div>

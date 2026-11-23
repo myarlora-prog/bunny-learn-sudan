@@ -13,8 +13,8 @@ import { explanationHtml, sanitizeHtml } from "@/lib/sanitize-html";
 import { AdminContentPicker } from "@/components/admin-content-picker";
 import { Button } from "@/components/ui/button";
 
-export function AdminExplanationEditor() {
-  return <AdminContentPicker lesson>{(s) => {
+export function AdminExplanationEditor({ onExit }: { onExit: () => void }) {
+  return <AdminContentPicker lesson onExit={onExit}>{(s) => {
     const lesson = s[4];
     return lesson ? <ExplanationEditor key={lesson.id} lessonId={lesson.id} title={lesson.title ?? ""} /> : null;
   }}</AdminContentPicker>;

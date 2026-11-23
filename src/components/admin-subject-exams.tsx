@@ -13,8 +13,8 @@ import { loadSubjectLessons, lessonSource, autoQuestionCount } from "@/lib/subje
 import { AdminContentPicker } from "@/components/admin-content-picker";
 import { Button } from "@/components/ui/button";
 
-export function AdminSubjectExams() {
-  return <AdminContentPicker>{(s) => s[2] ? <ExamBuilder key={s[2].id} subjectId={s[2].id} subject={s[2].name ?? ""} /> : null}</AdminContentPicker>;
+export function AdminSubjectExams({ onExit }: { onExit: () => void }) {
+  return <AdminContentPicker onExit={onExit}>{(s) => s[2] ? <ExamBuilder key={s[2].id} subjectId={s[2].id} subject={s[2].name ?? ""} /> : null}</AdminContentPicker>;
 }
 function ExamBuilder({ subjectId, subject }: { subjectId: string; subject: string }) {
   const { session } = useApp();

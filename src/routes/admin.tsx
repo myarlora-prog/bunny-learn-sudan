@@ -106,13 +106,15 @@ const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookO
   { id: "settings", label: "الإعدادات", desc: "الطاقة، رابط واتساب، الإحالات", Icon: Settings2 },
 ];
 
-function SectionBody({ id }: { id: SectionId }) {
-  if (id === "explanations") return <AdminExplanationEditor />;
-  if (id === "format") return <AdminAiFormat />;
+const HIERARCHICAL_SECTIONS = new Set<SectionId>(["explanations", "format", "exams", "curriculum"]);
+
+function SectionBody({ id, onExit }: { id: SectionId; onExit: () => void }) {
+  if (id === "explanations") return <AdminExplanationEditor onExit={onExit} />;
+  if (id === "format") return <AdminAiFormat onExit={onExit} />;
   if (id === "aikeys") return <AdminAiKeys />;
-  if (id === "exams") return <AdminSubjectExams />;
+  if (id === "exams") return <AdminSubjectExams onExit={onExit} />;
   if (id === "examManager") return <AdminExamManager />;
-  if (id === "curriculum") return <AdminCurriculum />;
+  if (id === "curriculum") return <AdminCurriculum onExit={onExit} />;
   if (id === "upload") return <AdminUpload />;
   if (id === "drafts") return <AdminDrafts />;
   if (id === "published") return <AdminPublished />;
@@ -150,14 +152,16 @@ function AdminPage() {
 
       {active ? (
         <div className="flex flex-col gap-4">
-          <button
-            className="press inline-flex w-fit items-center gap-1 rounded-2xl border border-border bg-card px-3 py-2 text-xs font-bold"
-            onClick={() => setSection(null)}
-          >
-            <ArrowRight className="size-3.5" />
-            رجوع للوحة
-          </button>
-          <SectionBody id={active.id} />
+          {!HIERARCHICAL_SECTIONS.has(active.id) && (
+            <button
+              className="press inline-flex w-fit items-center gap-1 rounded-2xl border border-border bg-card px-3 py-2 text-xs font-bold"
+              onClick={() => setSection(null)}
+            >
+              <ArrowRight className="size-3.5" />
+              رجوع للوحة
+            </button>
+          )}
+          <SectionBody id={active.id} onExit={() => setSection(null)} />
         </div>
       ) : (
         <>
