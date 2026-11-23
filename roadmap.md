@@ -2,7 +2,7 @@
 - [x] Add a reusable owner-only curriculum breadcrumb and one-level back behavior.
 - [x] Connect the shared content picker and curriculum manager while preserving selections.
 - [x] Add focused navigation tests and verify the owner flow on mobile.
-- [ ] Commit only the scoped owner-navigation changes.
+- [x] Commit only the scoped owner-navigation changes.
 
 # Nawabig legacy book-upload restoration
 - [x] Inspect Git and identify `fe542d2321386f6420912b0bbb53dd1fdcaaae6a` as the last available snapshot before the end of 13 November 2026.
