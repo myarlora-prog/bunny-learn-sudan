@@ -1052,6 +1052,54 @@ export type Database = {
           },
         ]
       }
+      tour_steps: {
+        Row: {
+          body: string
+          default_body: string
+          default_title: string
+          enabled: boolean
+          id: string
+          page: string
+          page_label: string
+          sort_order: number
+          step_key: string
+          target_id: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body: string
+          default_body: string
+          default_title: string
+          enabled?: boolean
+          id?: string
+          page: string
+          page_label: string
+          sort_order: number
+          step_key: string
+          target_id: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string
+          default_body?: string
+          default_title?: string
+          enabled?: boolean
+          id?: string
+          page?: string
+          page_label?: string
+          sort_order?: number
+          step_key?: string
+          target_id?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       units: {
         Row: {
           created_at: string

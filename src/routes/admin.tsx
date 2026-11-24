@@ -29,6 +29,7 @@ import { AdminFeedback } from "@/components/feedback";
 import { AdminSocialSettings } from "@/components/social-links";
 import { AdminExamManager } from "@/components/admin-exam-manager";
 import { AdminReferralShare } from "@/components/admin-referral-share";
+import { AdminTour } from "@/components/admin-tour";
 import {
   AdminAnnouncements,
   AdminCurriculum,
@@ -83,6 +84,7 @@ type SectionId =
   | "feedback"
   | "social"
   | "referralShare"
+  | "tour"
   | "settings";
 
 const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookOpen }[] = [
@@ -103,6 +105,7 @@ const SECTIONS: { id: SectionId; label: string; desc: string; Icon: typeof BookO
   { id: "feedback", label: "ملاحظات الطلاب", desc: "قراءة الملاحظات مرتبة من الأحدث", Icon: MessageSquare },
   { id: "social", label: "إعدادات تابعنا", desc: "روابط Instagram وTikTok وFacebook", Icon: Share2 },
   { id: "referralShare", label: "إعدادات دعوة الأصدقاء", desc: "تعديل نص الدعوة ورابط التطبيق", Icon: Gift },
+  { id: "tour", label: "إدارة الجولة التعريفية", desc: "نصوص الخطوات وترتيبها وتفعيلها", Icon: ListChecks },
   { id: "settings", label: "الإعدادات", desc: "الطاقة، رابط واتساب، الإحالات", Icon: Settings2 },
 ];
 
@@ -126,6 +129,7 @@ function SectionBody({ id, onExit }: { id: SectionId; onExit: () => void }) {
   if (id === "feedback") return <AdminFeedback />;
   if (id === "social") return <AdminSocialSettings />;
   if (id === "referralShare") return <AdminReferralShare />;
+  if (id === "tour") return <AdminTour />;
   return <AdminSettings keys={SETTING_KEYS} />;
 }
 

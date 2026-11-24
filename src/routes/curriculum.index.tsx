@@ -80,12 +80,12 @@ function CurriculumPage() {
         />
       ) : (
         <div className="flex flex-col gap-3" data-tour="library-subjects">
-          {(subjectsQ.data ?? []).map((s) => {
+          {(subjectsQ.data ?? []).map((s, subjectIndex) => {
             const c = countsQ.data?.[s.id] ?? { units: 0, lessons: 0, ids: [] };
             const doneCount = c.ids.filter((id) => state.completedLessons.includes(id)).length;
             const pct = c.lessons ? Math.round((doneCount / c.lessons) * 100) : 0;
             return (
-              <Link key={s.id} to="/curriculum/$subjectId" params={{ subjectId: s.id }}>
+              <Link key={s.id} to="/curriculum/$subjectId" params={{ subjectId: s.id }} data-tour={subjectIndex === 0 ? "library-subject-first" : undefined}>
                 <Card className="flex items-center gap-4">
                   <span
                     className="flex size-14 items-center justify-center rounded-2xl text-2xl"

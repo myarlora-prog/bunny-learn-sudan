@@ -89,7 +89,7 @@ function LessonPage() {
   if (lesson.freeAccess === false && !isSuper && !isAdmin) {
     return (
       <Screen nav={false}>
-        <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back />
+        <PageHeader title="" back />
         <SaqroEmpty title="هذا الدرس غير متاح حاليًا 💎" desc="يمكنك فتح جميع دروس صفك والاستفادة من الشرح والملخصات والبطاقات." />
         <Link to="/super" className="press gradient-hero mt-4 block rounded-2xl py-3 text-center text-sm font-bold text-primary-foreground">
           كيفية فتح جميع الدروس
@@ -103,13 +103,14 @@ function LessonPage() {
 
   return (
     <Screen nav={false}>
-      <PageHeader title={lesson.title} subtitle={`${subject.name} · ${unit.title}`} back action={<EnergyBadge />} />
+      <PageHeader title="" back action={<EnergyBadge />} />
 
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {tabs.map(({ id, label, Icon }) => (
           <button
             key={id}
             type="button"
+            data-tour={`lesson-tab-${id}`}
             onClick={() => setTab(id)}
             className={cn(
               "press flex shrink-0 items-center gap-1.5 rounded-2xl border border-border px-3.5 py-2 text-xs font-bold transition-all",
@@ -230,6 +231,7 @@ function LessonPage() {
 
       <button
         type="button"
+        data-tour="lesson-complete"
         onClick={async () => {
           const completing = !done;
           await toggleLesson(lesson.id);

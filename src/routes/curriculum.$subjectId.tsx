@@ -110,7 +110,7 @@ function SubjectPage() {
                           {body}
                         </button>
                       ) : (
-                        <Link to="/lesson/$lessonId" params={{ lessonId: l.id }} className="press flex flex-col items-center">
+                        <Link to="/lesson/$lessonId" params={{ lessonId: l.id }} data-tour="subject-lesson-first" className="press flex flex-col items-center">
                           {body}
                         </Link>
                       )}
