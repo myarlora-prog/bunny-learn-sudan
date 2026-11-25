@@ -1,15 +1,13 @@
-# Nawabig owner smart breadcrumb
-- [x] Add a reusable owner-only curriculum breadcrumb and one-level back behavior.
-- [x] Connect the shared content picker and curriculum manager while preserving selections.
-- [x] Add focused navigation tests and verify the owner flow on mobile.
-- [x] Commit only the scoped owner-navigation changes.
+# Nawabig scoped completion
 
-# Nawabig legacy book-upload restoration
-- [x] Inspect Git and identify `fe542d2321386f6420912b0bbb53dd1fdcaaae6a` as the last available snapshot before the end of 13 November 2026.
-- [x] Preserve the current code at commit `130f5f5a655993f7c9d16057bf74da63cabc07f2` and temporary copies of the two target files.
-- [ ] Restore only AdminUpload to the historical PDF/TXT UI, local legacy text extraction, manual start, one AI request, and single draft save.
-- [ ] Restore the historical explanation and summary instructions; require exactly 15 concise flashcards and 15 four-option quiz questions per lesson.
-- [ ] Leave every other page, shared PDF reader, database object, existing book, draft, student, result, subscription, and all 55 stuck files untouched.
-- [ ] Run focused tests and inspect the build log and scoped diff.
-- [ ] Test a new isolated small book upload and actual AI/draft saving only if an owner session and Gemini quota are available; report PASS/FAIL/NOT TESTED honestly.
-- [ ] Commit the scoped code changes.
+## Current request
+- [ ] Review the existing owner-managed onboarding tour and preserve its working controls.
+- [ ] Add the owner-editable unlock-lessons/WhatsApp tour step after the account step, linked to the real profile action.
+- [ ] Replace the flashcard interaction sound with a quieter, non-overlapping study sound without changing card behavior.
+- [ ] Replace every existing app logo/icon/splash usage with the supplied official image, preserving its aspect ratio. Blocked: the uploaded document contains no logo image.
+- [ ] Run focused tests, typecheck/build, and mobile browser checks for the implemented changes.
+- [ ] Commit only the scoped changes and report PASS/FAIL/NOT TESTED clearly.
+
+## Previously committed work — do not repeat
+- Owner smart breadcrumb: `2f402cf`, `ba300db`.
+- Legacy book-upload restoration: `b7cf5fb`.

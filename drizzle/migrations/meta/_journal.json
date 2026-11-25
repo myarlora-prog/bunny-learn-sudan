@@ -113,6 +113,13 @@
       "when": 1795553673029,
       "tag": "0015_onboarding_tour_steps",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1795642480143,
+      "tag": "0016_add_unlock_lessons_tour_step",
+      "breakpoints": true
     }
   ]
 }

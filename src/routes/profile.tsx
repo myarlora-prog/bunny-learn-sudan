@@ -105,7 +105,7 @@ function ProfilePage() {
 
       <div className="mt-4 flex flex-col gap-2.5" data-tour="profile-options">
         {links.map(({ to, label, desc, Icon }) => (
-          <Link key={to} to={to}>
+          <Link key={to} to={to} data-tour={to === "/super" ? "unlock-lessons" : undefined}>
             <Card className="flex items-center gap-3">
               <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-soft">
                 <Icon className="size-5 text-primary" />

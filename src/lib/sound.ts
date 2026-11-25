@@ -22,7 +22,7 @@ export function playAppSound(kind: AppSound, enabled: boolean): HTMLAudioElement
   if (!audio) {
     audio = new Audio(SOURCES[kind]);
     audio.preload = "auto";
-    audio.volume = kind === "flip" ? 0.32 : 0.4;
+    audio.volume = kind === "flip" ? 0.18 : 0.4;
     cache.set(kind, audio);
   }
   audio.currentTime = 0;
