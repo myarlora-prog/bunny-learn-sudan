@@ -170,12 +170,14 @@ export function StudentTour() {
         height: Math.min(vh - 8, rect.height + pad * 2),
       }
     : null;
-  const below = hl ? hl.top + hl.height / 2 < vh / 2 : false;
+  const spaceAbove = hl ? Math.max(0, hl.top - 32) : 0;
+  const spaceBelow = hl ? Math.max(0, vh - hl.top - hl.height - 32) : 0;
+  const below = hl ? spaceBelow >= spaceAbove : false;
   const cardStyle: CSSProperties = hl
     ? below
-      ? { top: Math.min(vh - 260, hl.top + hl.height + 16) }
-      : { bottom: Math.max(16, vh - hl.top + 16) }
-    : { top: "30%" };
+      ? { top: hl.top + hl.height + 16, maxHeight: spaceBelow }
+      : { bottom: vh - hl.top + 16, maxHeight: spaceAbove }
+    : { top: "30%", maxHeight: "65vh" };
 
   return (
     <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label="جولة التعريف بنوابغ" dir="rtl">
@@ -184,7 +186,7 @@ export function StudentTour() {
       {ready && (
         <section
           key={step.id}
-          className="surface-card rise fixed inset-x-4 z-[83] mx-auto max-w-md p-5 shadow-[var(--shadow-float)]"
+          className="surface-card rise fixed inset-x-4 z-[83] mx-auto max-w-md overflow-y-auto p-5 shadow-[var(--shadow-float)]"
           style={cardStyle}
         >
           <div className="flex items-start gap-3">
