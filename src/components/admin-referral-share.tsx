@@ -37,7 +37,7 @@ export function AdminReferralShare() {
 
   if (settings.isLoading) return <Loader2 className="mx-auto my-8 size-6 animate-spin text-primary" />;
   if (settings.isError) return <p className="text-sm text-destructive">تعذّر تحميل رسالة الدعوة الحالية.</p>;
-  const preview = buildReferralMessage(form, "SAQRO-ABC123");
+  const preview = buildReferralMessage(form, "ABC123");
 
   return (
     <div className="flex flex-col gap-4">

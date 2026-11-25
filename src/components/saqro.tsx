@@ -1,5 +1,5 @@
-import lightLogo from "@/assets/nawabig-logo-light.png.asset.json";
-import darkLogo from "@/assets/nawabig-logo-dark.png.asset.json";
+import lightLogo from "@/assets/nawabig-logo-official.png.asset.json";
+import darkLogo from "@/assets/nawabig-logo-official.png.asset.json";
 import { cn } from "@/lib/utils";
 
 type Props = {

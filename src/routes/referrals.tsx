@@ -137,7 +137,7 @@ function ReferralsPage() {
               <input
                 value={friendCode}
                 onChange={(e) => setFriendCode(e.target.value.toUpperCase())}
-                placeholder="SAQRO-XXXXXX"
+                placeholder="أدخل كود الدعوة"
                 className="h-11 flex-1 rounded-2xl border border-border bg-card px-3 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button

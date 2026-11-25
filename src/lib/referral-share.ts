@@ -4,7 +4,7 @@ export type ReferralShareSettings = {
 };
 
 export const DEFAULT_REFERRAL_SHARE: ReferralShareSettings = {
-  message: "انضم معي إلى تطبيق نوابغ للمنهج السوداني، واستخدم كود الدعوة: {code}\n\nرابط التطبيق: {link}",
+  message: "انضم إلى نوابغ 🚀 تطبيقك للمذاكرة ومراجعة المناهج السودانية! استخدم كود الدعوة الخاص بي: {code}\nواستمتع برحلتك التعليمية مع نوابغ 📚\n\nرابط التطبيق: {link}",
   url: "https://bunny-learn-sudan.lovable.app",
 };
 
