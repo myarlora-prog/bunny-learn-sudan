@@ -52,7 +52,7 @@ function Onboarding() {
       <div key={i} className="page-enter flex flex-1 flex-col items-center justify-center text-center">
         <div className="relative mb-8 flex items-center justify-center">
           <div className="absolute size-56 rounded-full bg-primary-soft blur-2xl" />
-          <Saqro variant={slide.variant} size={220} float priority />
+          <Saqro variant={slide.variant} size={220} float priority className="relative z-10" />
         </div>
         <h1 className="text-3xl leading-tight">{slide.title}</h1>
         <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground">{slide.desc}</p>
