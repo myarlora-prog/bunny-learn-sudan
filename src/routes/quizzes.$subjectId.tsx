@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { playAppSound } from "@/lib/sound";
+import { shuffleQuizOptions } from "@/lib/shuffle-options";
 
 export const Route = createFileRoute("/quizzes/$subjectId")({
   validateSearch: z.object({ mode: z.enum(["exam", "units"]).optional(), exam: z.string().uuid().optional() }),
@@ -139,8 +140,12 @@ function SubjectExam({ subject, examId }: { subject: Subject; examId?: string | 
   } />;
 }
 
-function ExamRunner({ subject, title, questions, selector }: { subject: Subject; title: string; questions: ExamQuestion[]; selector: React.ReactNode }) {
+function ExamRunner({ subject, title, questions: source, selector }: { subject: Subject; title: string; questions: ExamQuestion[]; selector: React.ReactNode }) {
   const { state } = useApp();
+  const [attempt, setAttempt] = useState(0);
+  const [questions, setQuestions] = useState<ExamQuestion[]>(source);
+  useEffect(() => { setQuestions(shuffleQuizOptions(source));   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, source.length, attempt]);
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
@@ -163,7 +168,7 @@ function ExamRunner({ subject, title, questions, selector }: { subject: Subject;
           <p className="text-sm text-muted-foreground">انتهى الاختبار</p>
           <button
             type="button"
-            onClick={() => { setI(0); setPicked(null); setScore(0); }}
+            onClick={() => { setI(0); setPicked(null); setScore(0); setAttempt((n) => n + 1); }}
             className="press gradient-hero mt-2 flex items-center gap-2 rounded-2xl px-6 py-3 font-bold text-primary-foreground"
           >
             <RotateCcw className="size-4" /> اختبار جديد

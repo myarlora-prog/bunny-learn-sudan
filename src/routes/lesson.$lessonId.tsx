@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { playAppSound } from "@/lib/sound";
 import { LessonFlashcards } from "@/components/lesson-flashcards";
+import { shuffleQuizOptions } from "@/lib/shuffle-options";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
   validateSearch: z.object({ tab: z.enum(["explain", "summary", "cards", "quiz"]).optional() }),
@@ -45,6 +46,8 @@ function LessonPage() {
   const [tab, setTab] = useState<(typeof tabs)[number]["id"]>(search.tab ?? "explain");
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [blocked, setBlocked] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [shuffled, setShuffled] = useState<{ key: string; quiz: NonNullable<typeof data>["lesson"]["quiz"] } | null>(null);
   const freeAccess = data?.lesson.freeAccess;
 
   useEffect(() => {
@@ -62,6 +65,13 @@ function LessonPage() {
     });
     return () => { active = false; };
   }, [lessonId, session, data, freeAccess, isSuper, isAdmin, queryClient, refresh]);
+
+  const quizSource = data?.lesson.quiz;
+  const quizKey = data ? `${data.lesson.id}:${attempt}:${data.lesson.quiz.length}` : "";
+  useEffect(() => {
+    if (quizSource) setShuffled({ key: quizKey, quiz: shuffleQuizOptions(quizSource) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizKey]);
 
   if (isDbId(lessonId) && live.isLoading) {
     return (
@@ -81,7 +91,8 @@ function LessonPage() {
     );
   }
 
-  const { lesson, subject, unit } = data;
+  const { lesson: rawLesson, subject, unit } = data;
+  const lesson = shuffled?.key === `${rawLesson.id}:${attempt}:${rawLesson.quiz.length}` ? { ...rawLesson, quiz: shuffled.quiz } : rawLesson;
   const done = state.completedLessons.includes(lesson.id);
   const score = lesson.quiz.reduce((n, q, i) => n + (answers[i] === q.correct ? 1 : 0), 0);
   const answered = Object.keys(answers).length;
@@ -220,7 +231,7 @@ function LessonPage() {
           {answered > 0 && (
             <button
               type="button"
-              onClick={() => setAnswers({})}
+              onClick={() => { setAnswers({}); setAttempt((n) => n + 1); }}
               className="press flex items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 text-sm font-bold"
             >
               <RotateCcw className="size-4" /> إعادة الاختبار
